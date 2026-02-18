@@ -1,629 +1,555 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
- <meta charset="UTF-8">
- <meta name="viewport" content="width=device-width, initial-scale=1.0">
- <title>Valley Digital | Ottawa Valley Web Services & Social Media Services | Ottawa Valley</title>
- <meta name="description" content="Your website and social media, handled monthly. One flat fee, everything included. We keep your Ottawa Valley business visible and engaging all year round.">
- <link rel="preconnect" href="https://fonts.googleapis.com">
- <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
- <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
- <style>
- :root {
- --primary: #6366f1;
- --primary-dark: #4f46e5;
- --secondary: #f59e0b;
- --dark: #0f172a;
- --darker: #020617;
- --light: #f8fafc;
- --gray: #64748b;
- --gray-light: #94a3b8;
- --success: #10b981;
- --gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
- --gradient-subtle: linear-gradient(135deg, rgba(99,102,241,0.1) 0%, rgba(139,92,246,0.1) 100%);
- }
- * { margin: 0; padding: 0; box-sizing: border-box; }
- html { scroll-behavior: smooth; }
- body {
- font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
- background: var(--darker);
- color: var(--light);
- line-height: 1.6;
- overflow-x: hidden;
- }
- .bg-grid {
- position: fixed;
- top: 0; left: 0;
- width: 100%; height: 100%;
- background-image:
- linear-gradient(rgba(99,102,241,0.03) 1px, transparent 1px),
- linear-gradient(90deg, rgba(99,102,241,0.03) 1px, transparent 1px);
- background-size: 50px 50px;
- pointer-events: none;
- z-index: 0;
- }
- .glow-orb {
- position: fixed;
- width: 600px; height: 600px;
- border-radius: 50%;
- filter: blur(120px);
- opacity: 0.15;
- pointer-events: none;
- z-index: 0;
- }
- .glow-orb-1 { top: -200px; right: -200px; background: var(--primary); }
- .glow-orb-2 { bottom: -300px; left: -200px; background: #d946ef; }
- nav {
- position: fixed;
- top: 0; left: 0; right: 0;
- z-index: 1000;
- padding: 1rem 2rem;
- background: rgba(2, 6, 23, 0.8);
- backdrop-filter: blur(20px);
- border-bottom: 1px solid rgba(255,255,255,0.05);
- transition: all 0.3s ease;
- }
- nav.scrolled { padding: 0.75rem 2rem; background: rgba(2, 6, 23, 0.95); }
- .nav-container {
- max-width: 1200px;
- margin: 0 auto;
- display: flex;
- justify-content: space-between;
- align-items: center;
- }
- .logo {
- font-size: 1.5rem;
- font-weight: 800;
- background: var(--gradient);
- -webkit-background-clip: text;
- -webkit-text-fill-color: transparent;
- background-clip: text;
- display: flex;
- align-items: center;
- gap: 0.5rem;
- }
- .logo-icon {
- width: 36px; height: 36px;
- background: var(--gradient);
- border-radius: 8px;
- display: flex;
- align-items: center;
- justify-content: center;
- font-size: 1.2rem;
- color: white;
- }
- .nav-links { display: flex; gap: 2rem; list-style: none; align-items: center; }
- .nav-links a {
- color: var(--gray-light);
- text-decoration: none;
- font-weight: 500;
- transition: color 0.3s;
- font-size: 0.95rem;
- }
- .nav-links a:hover { color: var(--light); }
- .nav-cta {
- background: var(--gradient);
- color: white;
- padding: 0.6rem 1.5rem;
- border-radius: 50px;
- font-weight: 600;
- transition: all 0.3s;
- box-shadow: 0 4px 15px rgba(99,102,241,0.3);
- }
- .nav-cta:hover {
- transform: translateY(-2px);
- box-shadow: 0 6px 25px rgba(99,102,241,0.4);
- color: white;
- }
- .mobile-toggle { display: none; flex-direction: column; gap: 5px; cursor: pointer; padding: 10px; }
- .mobile-toggle span { width: 25px; height: 2px; background: var(--light); transition: all 0.3s; }
- .hero {
- min-height: 100vh;
- display: flex;
- align-items: center;
- justify-content: center;
- padding: 8rem 2rem 4rem;
- position: relative;
- z-index: 1;
- }
- .hero-content { max-width: 1200px; text-align: center; }
- .hero-badge {
- display: inline-flex;
- align-items: center;
- gap: 0.5rem;
- background: rgba(16,185,129,0.1);
- border: 1px solid rgba(16,185,129,0.3);
- padding: 0.5rem 1rem;
- border-radius: 50px;
- font-size: 0.875rem;
- color: var(--success);
- margin-bottom: 2rem;
- animation: fadeInUp 0.6s ease;
- }
- .hero-badge .pulse {
- width: 8px; height: 8px;
- background: var(--success);
- border-radius: 50%;
- animation: pulse 2s infinite;
- }
- @keyframes pulse {
- 0%, 100% { opacity: 1; transform: scale(1); }
- 50% { opacity: 0.5; transform: scale(1.2); }
- }
- .hero h1 {
- font-size: clamp(2.5rem, 6vw, 4.5rem);
- font-weight: 900;
- line-height: 1.1;
- margin-bottom: 1.5rem;
- animation: fadeInUp 0.6s ease 0.1s both;
- }
- .hero h1 .gradient {
- background: var(--gradient);
- -webkit-background-clip: text;
- -webkit-text-fill-color: transparent;
- background-clip: text;
- }
- .hero-subtitle {
- font-size: 1.25rem;
- color: var(--gray-light);
- max-width: 650px;
- margin: 0 auto 2.5rem;
- animation: fadeInUp 0.6s ease 0.2s both;
- }
- .hero-price {
- display: inline-flex;
- align-items: center;
- gap: 1rem;
- background: rgba(99,102,241,0.1);
- border: 1px solid rgba(99,102,241,0.2);
- padding: 1rem 2rem;
- border-radius: 16px;
- margin-bottom: 2rem;
- animation: fadeInUp 0.6s ease 0.25s both;
- }
- .hero-price-label { color: var(--gray-light); font-size: 0.9rem; }
- .hero-price-amount { font-size: 2.5rem; font-weight: 900; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
- .hero-price-note { color: var(--gray); font-size: 0.8rem; }
- .hero-cta {
- display: flex;
- gap: 1rem;
- justify-content: center;
- flex-wrap: wrap;
- animation: fadeInUp 0.6s ease 0.3s both;
- }
- .btn {
- padding: 1rem 2rem;
- border-radius: 50px;
- font-weight: 600;
- font-size: 1rem;
- text-decoration: none;
- transition: all 0.3s ease;
- cursor: pointer;
- border: none;
- display: inline-flex;
- align-items: center;
- gap: 0.5rem;
- }
- .btn-primary {
- background: var(--gradient);
- color: white;
- box-shadow: 0 4px 20px rgba(99,102,241,0.3);
- }
- .btn-primary:hover {
- transform: translateY(-3px);
- box-shadow: 0 8px 30px rgba(99,102,241,0.4);
- color: white;
- }
- .btn-secondary {
- background: rgba(255,255,255,0.05);
- color: var(--light);
- border: 1px solid rgba(255,255,255,0.1);
- }
- .btn-secondary:hover { background: rgba(255,255,255,0.1); color: var(--light); }
- .stats-bar {
- display: flex;
- justify-content: center;
- gap: 4rem;
- margin-top: 4rem;
- padding-top: 3rem;
- border-top: 1px solid rgba(255,255,255,0.05);
- animation: fadeInUp 0.6s ease 0.4s both;
- }
- .stat { text-align: center; }
- .stat-number {
- font-size: 2.5rem;
- font-weight: 800;
- background: var(--gradient);
- -webkit-background-clip: text;
- -webkit-text-fill-color: transparent;
- background-clip: text;
- }
- .stat-label { color: var(--gray); font-size: 0.875rem; margin-top: 0.25rem; }
- section { padding: 6rem 2rem; position: relative; z-index: 1; }
- .section-header { text-align: center; max-width: 700px; margin: 0 auto 4rem; }
- .section-label {
- color: var(--primary);
- font-weight: 600;
- font-size: 0.875rem;
- text-transform: uppercase;
- letter-spacing: 2px;
- margin-bottom: 1rem;
- }
- .section-title { font-size: clamp(2rem, 4vw, 3rem); font-weight: 800; margin-bottom: 1rem; }
- .section-desc { color: var(--gray-light); font-size: 1.1rem; }
- .monthly-section { background: linear-gradient(180deg, transparent 0%, rgba(16,185,129,0.03) 50%, transparent 100%); }
- .monthly-grid {
- display: grid;
- grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
- gap: 1.5rem;
- max-width: 1200px;
- margin: 0 auto;
- }
- .monthly-card {
- background: rgba(255,255,255,0.02);
- border: 1px solid rgba(255,255,255,0.05);
- border-radius: 16px;
- padding: 1.5rem;
- display: flex;
- align-items: flex-start;
- gap: 1rem;
- transition: all 0.3s ease;
- }
- .monthly-card:hover {
- border-color: rgba(16,185,129,0.3);
- background: rgba(16,185,129,0.03);
- }
- .monthly-icon {
- width: 48px; height: 48px;
- background: linear-gradient(135deg, rgba(16,185,129,0.2), rgba(16,185,129,0.1));
- border-radius: 12px;
- display: flex;
- align-items: center;
- justify-content: center;
- font-size: 1.5rem;
- flex-shrink: 0;
- }
- .monthly-content h4 { font-size: 1rem; font-weight: 700; margin-bottom: 0.25rem; }
- .monthly-content p { color: var(--gray-light); font-size: 0.875rem; line-height: 1.5; }
- .pricing-section { background: linear-gradient(180deg, transparent 0%, rgba(99,102,241,0.03) 50%, transparent 100%); }
- .pricing-grid {
- display: grid;
- grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
- gap: 2rem;
- max-width: 1100px;
- margin: 0 auto;
- }
- .pricing-card {
- background: rgba(255,255,255,0.02);
- border: 1px solid rgba(255,255,255,0.05);
- border-radius: 24px;
- padding: 2.5rem;
- position: relative;
- transition: all 0.3s ease;
- }
- .pricing-card.featured {
- border-color: var(--primary);
- background: rgba(99,102,241,0.05);
- transform: scale(1.05);
- }
- .pricing-card.featured::before {
- content: 'BEST VALUE';
- position: absolute;
- top: -12px; left: 50%;
- transform: translateX(-50%);
- background: var(--gradient);
- color: white;
- padding: 0.35rem 1rem;
- border-radius: 50px;
- font-size: 0.7rem;
- font-weight: 700;
- letter-spacing: 1px;
- }
- .pricing-card:hover { transform: translateY(-5px); }
- .pricing-card.featured:hover { transform: scale(1.05) translateY(-5px); }
- .pricing-tier { font-size: 0.875rem; font-weight: 600; color: var(--primary); margin-bottom: 0.5rem; }
- .pricing-name { font-size: 1.5rem; font-weight: 800; margin-bottom: 1rem; }
- .pricing-price { font-size: 3.5rem; font-weight: 900; margin-bottom: 0.5rem; }
- .pricing-price span { font-size: 1rem; font-weight: 500; color: var(--gray); }
- .pricing-desc { color: var(--gray-light); font-size: 0.9rem; margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid rgba(255,255,255,0.05); }
- .pricing-features { list-style: none; margin-bottom: 2rem; }
- .pricing-features li {
- display: flex;
- align-items: flex-start;
- gap: 0.75rem;
- margin-bottom: 1rem;
- font-size: 0.95rem;
- color: var(--gray-light);
- }
- .pricing-features li .check { color: var(--success); font-weight: bold; flex-shrink: 0; }
- .pricing-cta { width: 100%; text-align: center; justify-content: center; }
- .cta-section { text-align: center; padding: 8rem 2rem; }
- .cta-box {
- max-width: 800px;
- margin: 0 auto;
- background: linear-gradient(135deg, rgba(99,102,241,0.1) 0%, rgba(139,92,246,0.1) 100%);
- border: 1px solid rgba(99,102,241,0.2);
- border-radius: 30px;
- padding: 4rem;
- position: relative;
- overflow: hidden;
- }
- .cta-box::before {
- content: '';
- position: absolute;
- top: -100px; right: -100px;
- width: 300px; height: 300px;
- background: var(--primary);
- border-radius: 50%;
- filter: blur(100px);
- opacity: 0.2;
- }
- .cta-box h2 { font-size: 2.5rem; font-weight: 800; margin-bottom: 1rem; position: relative; }
- .cta-box p { color: var(--gray-light); font-size: 1.1rem; margin-bottom: 2rem; position: relative; }
- .cta-buttons { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; position: relative; }
- footer {
- border-top: 1px solid rgba(255,255,255,0.05);
- padding: 3rem 2rem;
- text-align: center;
- position: relative;
- z-index: 1;
- }
- .footer-content { max-width: 1200px; margin: 0 auto; }
- .footer-logo {
- font-size: 1.25rem;
- font-weight: 800;
- background: var(--gradient);
- -webkit-background-clip: text;
- -webkit-text-fill-color: transparent;
- background-clip: text;
- margin-bottom: 1rem;
- }
- .footer-links { display: flex; justify-content: center; gap: 2rem; margin-bottom: 2rem; flex-wrap: wrap; }
- .footer-links a { color: var(--gray); text-decoration: none; font-size: 0.9rem; transition: color 0.3s; }
- .footer-links a:hover { color: var(--light); }
- .footer-copy { color: var(--gray); font-size: 0.875rem; }
- @keyframes fadeInUp {
- from { opacity: 0; transform: translateY(30px); }
- to { opacity: 1; transform: translateY(0); }
- }
- .fade-in { opacity: 0; transform: translateY(30px); transition: all 0.6s ease; }
- .fade-in.visible { opacity: 1; transform: translateY(0); }
- @media (max-width: 768px) {
- .nav-links { display: none; }
- .mobile-toggle { display: flex; }
- .hero { padding: 6rem 1.5rem 3rem; }
- .stats-bar { flex-direction: column; gap: 2rem; }
- .pricing-card.featured { transform: none; }
- .pricing-card.featured:hover { transform: translateY(-5px); }
- .cta-box { padding: 2.5rem 1.5rem; }
- .cta-box h2 { font-size: 1.75rem; }
- section { padding: 4rem 1.5rem; }
- }
- </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ValleyAI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ============================================
+           OTTAWA VALLEY DIGITAL SERVICES
+           Landing Directory Page
+           
+           To add a new client card:
+           1. Copy a card block from the services grid
+           2. Update: data-icon, title, description, href
+           3. Choose an icon from the options below
+           ============================================ */
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            /* Ottawa Valley Color Palette */
+            --forest-green: #2d5a3d;
+            --river-blue: #4a7c8f;
+            --sunset-orange: #c67c4e;
+            --pine-dark: #1a3329;
+            --cream: #f8f6f2;
+            --stone: #e8e4dc;
+            --text-dark: #2c3e3a;
+            --text-light: #6b7c78;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(-45deg, #1a3329, #2d5a3d, #1e3a5f, #0c4a6e);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            min-height: 100vh;
+            color: var(--text-dark);
+            line-height: 1.6;
+        }
+        
+        /* Pattern overlay removed for clean dark background */
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* ============================================
+           HERO SECTION
+           ============================================ */
+        header {
+            text-align: center;
+            padding: 80px 24px 60px;
+        }
+        
+        .logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        
+        .logo-icon {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, var(--forest-green) 0%, var(--river-blue) 100%);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(45, 90, 61, 0.25);
+        }
+        
+        .logo-icon svg {
+            width: 32px;
+            height: 32px;
+            fill: white;
+        }
+        
+        h1 {
+            font-size: clamp(2rem, 5vw, 3rem);
+            font-weight: 700;
+            color: var(--pine-dark);
+            margin-bottom: 16px;
+            letter-spacing: -0.02em;
+        }
+        
+        .tagline {
+            font-size: clamp(1rem, 2.5vw, 1.25rem);
+            color: var(--text-light);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .divider {
+            width: 80px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--forest-green), var(--sunset-orange));
+            margin: 32px auto 0;
+            border-radius: 2px;
+        }
+        
+        /* ============================================
+           SERVICES GRID
+           ============================================ */
+        main {
+            padding: 40px 24px 80px;
+        }
+        
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 28px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        
+        /* ============================================
+           SERVICE CARD TEMPLATE
+           Copy this block to add new clients
+           ============================================ */
+        .service-card {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04),
+                        0 8px 24px rgba(0, 0, 0, 0.06);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            border: 1px solid rgba(45, 90, 61, 0.08);
+        }
+        
+        .service-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06),
+                        0 16px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        
+        .card-icon svg {
+            width: 32px;
+            height: 32px;
+        }
+        
+        /* Icon color variants - use these for new cards */
+        .icon-ai { background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); }
+        .icon-ai svg { fill: white; }
+        
+        .icon-photo { background: linear-gradient(135deg, #ec4899 0%, #f472b6 100%); }
+        .icon-photo svg { fill: white; }
+        
+        .icon-home { background: linear-gradient(135deg, var(--forest-green) 0%, #4ade80 100%); }
+        .icon-home svg { fill: white; }
+        
+        /* Add more icon variants as needed:
+           .icon-tech { background: linear-gradient(135deg, #0ea5e9 0%, #38bdf8 100%); }
+           .icon-food { background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%); }
+           .icon-health { background: linear-gradient(135deg, #10b981 0%, #34d399 100%); }
+        */
+        
+        .card-title {
+            font-size: 1.375rem;
+            font-weight: 600;
+            color: var(--pine-dark);
+            margin-bottom: 8px;
+        }
+        
+        .card-description {
+            font-size: 1rem;
+            color: var(--text-light);
+            margin-bottom: 24px;
+            flex-grow: 1;
+        }
+        
+        .card-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            background: var(--forest-green);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.9375rem;
+            transition: background 0.2s ease;
+        }
+        
+        .card-link:hover {
+            background: var(--pine-dark);
+        }
+        
+        .card-link svg {
+            width: 18px;
+            height: 18px;
+            transition: transform 0.2s ease;
+        }
+        
+        .card-link:hover svg {
+            transform: translateX(4px);
+        }
+        
+        /* ============================================
+           FOOTER
+           ============================================ */
+        footer {
+            background: var(--pine-dark);
+            color: white;
+            padding: 48px 24px;
+            text-align: center;
+        }
+        
+        .footer-content {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .footer-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        
+        .footer-contact {
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 24px;
+        }
+        
+        .footer-contact a {
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+        }
+        
+        .footer-contact a:hover {
+            text-decoration: underline;
+        }
+        
+        .footer-tagline {
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.6);
+            padding-top: 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* ============================================
+           RESPONSIVE ADJUSTMENTS
+           ============================================ */
+        @media (max-width: 768px) {
+            header {
+                padding: 60px 20px 40px;
+            }
+            
+            .services-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .service-card {
+                padding: 24px;
+            }
+            
+            footer {
+                padding: 40px 20px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .logo-icon {
+                width: 48px;
+                height: 48px;
+            }
+            
+            .card-icon {
+                width: 56px;
+                height: 56px;
+            }
+        }
+    </style>
+
+    <style>
+        /* Snow Effect */
+        .snowflake {
+            position: fixed;
+            top: -10px;
+            color: white;
+            font-size: 1em;
+            text-shadow: 0 0 5px rgba(255,255,255,0.8);
+            pointer-events: none;
+            z-index: 9999;
+            animation: fall linear infinite;
+            opacity: 0.8;
+        }
+
+        @keyframes fall {
+            0% {
+                transform: translateY(-10px) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0.3;
+            }
+        }
+
+        /* Enhanced visual elements */
+        .hero-glow {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+            top: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            pointer-events: none;
+        }
+
+        .card-glow {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .service-card:hover .card-glow {
+            opacity: 1;
+        }
+
+        /* Gradient text for hero */
+        .gradient-text {
+            background: linear-gradient(135deg, #4ade80 0%, #38bdf8 50%, #a78bfa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Duplicate body removed - using dark gradient above */
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            25% { background-position: 50% 100%; }
+            50% { background-position: 100% 50%; }
+            75% { background-position: 50% 0%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Floating particles */
+        .particle {
+            position: fixed;
+            width: 4px;
+            height: 4px;
+            background: rgba(99, 102, 241, 0.3);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+        }
+    </style>
 </head>
 <body>
- <div class="bg-grid"></div>
- <div class="glow-orb glow-orb-1"></div>
- <div class="glow-orb glow-orb-2"></div>
+    <!-- ============================================
+         HERO SECTION
+         ============================================ -->
+    <header>
+        <div class="hero-glow"></div>
+        <div class="logo">
+            <div class="logo-icon">
+                <!-- Valley/Mountain Icon -->
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L2 19h20L12 2zm0 4l6.5 11h-13L12 6z"/>
+                    <path d="M4 19l4-7 4 7H4zm12 0l4-7 4 7h-8z" opacity="0.6"/>
+                </svg>
+            </div>
+        </div>
+        <h1 class="gradient-text">ValleyAI</h1>
+        <p class="tagline">AI-Powered Digital Services for the Ottawa Valley. Building the future of local business with intelligent automation.</p>
+        <div class="divider"></div>
+    </header>
 
- <nav>
- <div class="nav-container">
- <div class="logo">
- <div class="logo-icon">V</div>
- Valley Digital
- </div>
- <ul class="nav-links">
- <li><a href="#monthly">What's Included</a></li>
- <li><a href="#pricing">Pricing</a></li>
- <li><a href="#contact" class="nav-cta">Get Started</a></li>
- </ul>
- <div class="mobile-toggle">
- <span></span><span></span><span></span>
- </div>
- </div>
- </nav>
+    <!-- ============================================
+         SERVICES GRID
+         ============================================ -->
+    <main>
+        <div class="container">
+            <div class="services-grid">
+                
+                <!-- ============================================
+                     CARD 1: ValleyAI
+                     ============================================ -->
+                <article class="service-card">
+                    <div class="card-glow"></div>
+                    <div class="card-icon icon-ai">
+                        <!-- AI/Brain Icon -->
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2a4 4 0 014 4v1a4 4 0 01-8 0V6a4 4 0 014-4zm0 2a2 2 0 00-2 2v1a2 2 0 004 0V6a2 2 0 00-2-2z"/>
+                            <path d="M9 11a1 1 0 100 2 1 1 0 000-2zm6 0a1 1 0 100 2 1 1 0 000-2z"/>
+                            <path d="M12 14c-2 0-3 1.5-3 3v3h6v-3c0-1.5-1-3-3-3z"/>
+                            <path d="M5 8a3 3 0 013 3v1a3 3 0 01-3 3v-7zm14 0a3 3 0 00-3 3v1a3 3 0 003 3V8z"/>
+                        </svg>
+                    </div>
+                    <h2 class="card-title">ValleyAI</h2>
+                    <p class="card-description">AI Marketing & Automation Services. Helping Ottawa Valley businesses grow with intelligent marketing solutions, lead generation, and workflow automation.</p>
+                    <a href="https://ai.ottawav.com" class="card-link">
+                        Visit Site
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </article>
+                
+                <!-- ============================================
+                     CARD 2: Memories by Kim
+                     ============================================ -->
+                <article class="service-card">
+                    <div class="card-glow"></div>
+                    <div class="card-icon icon-photo">
+                        <!-- Camera Icon -->
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/>
+                            <path d="M20 4h-3.17l-1.86-2H9.03L7.17 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V6a2 2 0 00-2-2zm-8 13a5 5 0 110-10 5 5 0 010 10z"/>
+                        </svg>
+                    </div>
+                    <h2 class="card-title">Memories by Kim</h2>
+                    <p class="card-description">Professional Photography Services. Capturing life's precious moments with an artistic eye. Family portraits, events, and special occasions throughout the Ottawa Valley.</p>
+                    <a href="https://kim.ottawav.com" class="card-link">
+                        Visit Site
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </article>
+                
+                <!-- ============================================
+                     CARD 3: AMO Seamless
+                     ============================================ -->
+                <article class="service-card">
+                    <div class="card-glow"></div>
+                    <div class="card-icon icon-home">
+                        <!-- Home/Roof Icon -->
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 3L2 12h3v8h14v-8h3L12 3zm0 2.84L18 12v7H6v-7l6-6.16z"/>
+                            <path d="M12 14a2 2 0 100-4 2 2 0 000 4z"/>
+                        </svg>
+                    </div>
+                    <h2 class="card-title">AMO Seamless</h2>
+                    <p class="card-description">Eavestrough & Gutter Services. Family-owned business serving Pembroke, Petawawa, and the Ottawa Valley. Installation, cleaning, and repairs with 100% customer recommendation.</p>
+                    <a href="https://amogutters.ottawav.com" class="card-link">
+                        Visit Site
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </article>
+                
+                <!-- ============================================
+                     ADD NEW CARDS BELOW
+                     
+                     Template:
+                     <article class="service-card">
+                    <div class="card-glow"></div>
+                         <div class="card-icon icon-[variant]">
+                             <svg viewBox="0 0 24 24">[icon-path]</svg>
+                         </div>
+                         <h2 class="card-title">[Business Name]</h2>
+                         <p class="card-description">[Description text here]</p>
+                         <a href="https://[subdomain].ottawav.com" class="card-link">
+                             Visit Site
+                             <svg>...</svg>
+                         </a>
+                     </article>
+                     ============================================ -->
+                
+            </div>
+        </div>
+    </main>
 
- <section class="hero">
- <div class="hero-content">
- <div class="hero-badge">
- <span class="pulse"></span>
- Your Website & Social Media, Handled Monthly
- </div>
- <h1>Set It and Forget It.<br><span class="gradient">We Handle Everything.</span></h1>
- <p class="hero-subtitle">Your website stays fresh, your social media stays active, and your business stays visible. One flat monthly fee, zero hassle.</p>
- <div class="hero-price">
- <div>
- <span class="hero-price-label">Starting at just</span><br>
- <span class="hero-price-amount">$499/mo</span>
- </div>
- <div class="hero-price-note">All-inclusive.<br>No contracts.</div>
- </div>
- <div class="hero-cta">
- <a href="#pricing" class="btn btn-primary">See Monthly Packages <span>→</span></a>
- <a href="#monthly" class="btn btn-secondary">What's Included</a>
- </div>
- <div class="stats-bar">
- <div class="stat">
- <div class="stat-number">50+</div>
- <div class="stat-label">Local Businesses</div>
- </div>
- <div class="stat">
- <div class="stat-number">3x</div>
- <div class="stat-label">Average Lead Increase</div>
- </div>
- <div class="stat">
- <div class="stat-number">24hr</div>
- <div class="stat-label">Response Time</div>
- </div>
- </div>
- </div>
- </section>
+    <!-- ============================================
+         FOOTER
+         ============================================ -->
+    <footer>
+        <div class="footer-content">
+            <p class="footer-title">ValleyAI</p>
+            <p class="footer-contact">
+                <a href="mailto:hello@ottawav.com">hello@ottawav.com</a>
+            </p>
+            <p class="footer-tagline">AI-Powered Solutions for Ottawa Valley Businesses</p>
+        </div>
+    </footer>
 
- <section id="monthly" class="monthly-section">
- <div class="section-header">
- <div class="section-label">Every Single Month</div>
- <h2 class="section-title">What We Do For You</h2>
- <p class="section-desc">No more outdated websites or ghost social accounts. We keep everything fresh and engaging, month after month.</p>
- </div>
- <div class="monthly-grid">
- <div class="monthly-card fade-in">
- <div class="monthly-icon">🎨</div>
- <div class="monthly-content">
- <h4>Seasonal Website Updates</h4>
- <p>Spring promos, summer specials, fall themes, holiday hours - your site always looks current.</p>
- </div>
- </div>
- <div class="monthly-card fade-in">
- <div class="monthly-icon">📱</div>
- <div class="monthly-content">
- <h4>Social Media Posts</h4>
- <p>Regular Facebook and Instagram posts that engage your audience and keep you top of mind.</p>
- </div>
- </div>
- <div class="monthly-card fade-in">
- <div class="monthly-icon">📊</div>
- <div class="monthly-content">
- <h4>Google Business Updates</h4>
- <p>Photos, posts, and updates to your Google listing so you show up in local searches.</p>
- </div>
- </div>
- <div class="monthly-card fade-in">
- <div class="monthly-icon">📈</div>
- <div class="monthly-content">
- <h4>Ad Campaign Management</h4>
- <p>Monthly optimization of your Google and Facebook ads for better leads at lower cost.</p>
- </div>
- </div>
- <div class="monthly-card fade-in">
- <div class="monthly-icon">📋</div>
- <div class="monthly-content">
- <h4>Performance Reports</h4>
- <p>Clear monthly reports showing website traffic, leads, and what's working.</p>
- </div>
- </div>
- <div class="monthly-card fade-in">
- <div class="monthly-icon">🎯</div>
- <div class="monthly-content">
- <h4>Strategy Calls</h4>
- <p>Regular check-ins to discuss goals, review results, and plan upcoming promotions.</p>
- </div>
- </div>
- <div class="monthly-card fade-in">
- <div class="monthly-icon">🔧</div>
- <div class="monthly-content">
- <h4>Content Updates</h4>
- <p>New services, price changes, team photos - just send us the info and we update everything.</p>
- </div>
- </div>
- <div class="monthly-card fade-in">
- <div class="monthly-icon">🛡️</div>
- <div class="monthly-content">
- <h4>Security & Backups</h4>
- <p>Your site stays secure and backed up. If anything breaks, we fix it - no extra charge.</p>
- </div>
- </div>
- </div>
- </section>
+    <script>
+        // Snow effect
+        function createSnowflake() {
+            const snowflake = document.createElement('div');
+            snowflake.className = 'snowflake';
+            snowflake.innerHTML = '❄';
+            snowflake.style.left = Math.random() * 100 + 'vw';
+            snowflake.style.animationDuration = (Math.random() * 3 + 4) + 's';
+            snowflake.style.fontSize = (Math.random() * 0.8 + 0.5) + 'em';
+            snowflake.style.opacity = Math.random() * 0.6 + 0.4;
+            document.body.appendChild(snowflake);
 
- <section id="pricing" class="pricing-section">
- <div class="section-header">
- <div class="section-label">Simple Monthly Pricing</div>
- <h2 class="section-title">Choose Your Level</h2>
- <p class="section-desc">One flat monthly fee. No hidden costs, no surprises. Cancel anytime.</p>
- </div>
- <div class="pricing-grid">
- <div class="pricing-card fade-in">
- <div class="pricing-tier">Starter</div>
- <div class="pricing-name">Foundation</div>
- <div class="pricing-price">$499<span>/month</span></div>
- <p class="pricing-desc">Perfect for small businesses wanting a professional presence without the hassle.</p>
- <ul class="pricing-features">
- <li><span class="check">✓</span> Quarterly website updates</li>
- <li><span class="check">✓</span> 4 social posts per month</li>
- <li><span class="check">✓</span> Google Business management</li>
- <li><span class="check">✓</span> Monthly performance report</li>
- <li><span class="check">✓</span> Email support</li>
- </ul>
- <a href="#contact" class="btn btn-secondary pricing-cta">Get Started</a>
- </div>
- <div class="pricing-card featured fade-in">
- <div class="pricing-tier">Growth</div>
- <div class="pricing-name">Most Popular</div>
- <div class="pricing-price">$799<span>/month</span></div>
- <p class="pricing-desc">Our recommended package for established businesses ready to grow.</p>
- <ul class="pricing-features">
- <li><span class="check">✓</span> Monthly website updates</li>
- <li><span class="check">✓</span> 8 social posts (FB + Instagram)</li>
- <li><span class="check">✓</span> Ad campaign management</li>
- <li><span class="check">✓</span> Monthly strategy call</li>
- <li><span class="check">✓</span> Phone + email support</li>
- <li><span class="check">✓</span> Seasonal promotions</li>
- </ul>
- <a href="#contact" class="btn btn-primary pricing-cta">Get Started</a>
- </div>
- <div class="pricing-card fade-in">
- <div class="pricing-tier">Premium</div>
- <div class="pricing-name">Dominate</div>
- <div class="pricing-price">$1,199<span>/month</span></div>
- <p class="pricing-desc">Maximum growth for ambitious businesses ready to lead their market.</p>
- <ul class="pricing-features">
- <li><span class="check">✓</span> Unlimited website updates</li>
- <li><span class="check">✓</span> 12+ social posts (all platforms)</li>
- <li><span class="check">✓</span> Advanced ad optimization</li>
- <li><span class="check">✓</span> Monthly blog content</li>
- <li><span class="check">✓</span> Bi-weekly strategy calls</li>
- <li><span class="check">✓</span> Priority support</li>
- </ul>
- <a href="#contact" class="btn btn-secondary pricing-cta">Get Started</a>
- </div>
- </div>
- </section>
+            setTimeout(() => {
+                snowflake.remove();
+            }, 7000);
+        }
 
- <section id="contact" class="cta-section">
- <div class="cta-box">
- <h2>Ready to Grow Your Business?</h2>
- <p>Let's talk about your goals and see if we're a good fit. No pressure, no hard sell - just an honest conversation about what's possible.</p>
- <div class="cta-buttons">
- <a href="mailto:hello@ottawav.com" class="btn btn-primary">Schedule Free Consultation <span>→</span></a>
- <a href="tel:+16135551234" class="btn btn-secondary">Call Now: 613-555-1234</a>
- </div>
- </div>
- </section>
+        // Create snowflakes periodically
+        setInterval(createSnowflake, 200);
 
- <footer>
- <div class="footer-content">
- <div class="footer-logo">Valley Digital</div>
- <div class="footer-links">
- <a href="#monthly">What's Included</a>
- <a href="#pricing">Pricing</a>
- <a href="#contact">Contact</a>
- </div>
- <p class="footer-copy">© 2026 Valley Digital. Serving Ottawa Valley businesses.</p>
- </div>
- </footer>
+        // Initial burst
+        for(let i = 0; i < 20; i++) {
+            setTimeout(createSnowflake, i * 100);
+        }
 
- <script>
- const observerOptions = { threshold: 0.1, rootMargin: '0px 0px -50px 0px' };
- const observer = new IntersectionObserver((entries) => {
- entries.forEach(entry => {
- if (entry.isIntersecting) entry.target.classList.add('visible');
- });
- }, observerOptions);
- document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+        // Floating particles
+        function createParticle() {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + 'vw';
+            particle.style.top = Math.random() * 100 + 'vh';
+            particle.style.animation = `float ${Math.random() * 10 + 10}s ease-in-out infinite`;
+            document.body.appendChild(particle);
+        }
 
- window.addEventListener('scroll', () => {
- const nav = document.querySelector('nav');
- if (window.scrollY > 50) nav.classList.add('scrolled');
- else nav.classList.remove('scrolled');
- });
-
- document.querySelectorAll('a[href^="#"]').forEach(anchor => {
- anchor.addEventListener('click', function(e) {
- e.preventDefault();
- const target = document.querySelector(this.getAttribute('href'));
- if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
- });
- });
- </script>
+        for(let i = 0; i < 15; i++) {
+            createParticle();
+        }
+    </script>
 </body>
 </html>
