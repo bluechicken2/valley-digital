@@ -203,32 +203,9 @@
             overflow: visible;
         }
 
-        /* Icicles hanging from top */.service-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 40px;
-            pointer-events: none;
-            z-index: 2;
-            background: 
-                /* Icicle drips - more visible */
-                linear-gradient(180deg, rgba(180, 220, 255, 0.95) 0%, rgba(200, 235, 255, 0.8) 30%, rgba(255, 255, 255, 0.4) 70%, transparent 100%),
-                linear-gradient(180deg, rgba(160, 210, 255, 0.9) 0%, rgba(180, 225, 255, 0.7) 40%, transparent 100%),
-                linear-gradient(180deg, rgba(170, 215, 255, 0.95) 0%, rgba(190, 230, 255, 0.75) 35%, transparent 100%),
-                linear-gradient(180deg, rgba(165, 212, 255, 0.9) 0%, rgba(185, 228, 255, 0.7) 45%, transparent 100%),
-                linear-gradient(180deg, rgba(175, 218, 255, 0.95) 0%, rgba(195, 232, 255, 0.8) 30%, transparent 100%),
-                linear-gradient(180deg, rgba(155, 208, 255, 0.9) 0%, rgba(175, 223, 255, 0.7) 50%, transparent 100%),
-                linear-gradient(180deg, rgba(180, 222, 255, 0.95) 0%, rgba(200, 235, 255, 0.75) 35%, transparent 100%);
-            background-size: 10px 38px, 8px 32px, 12px 35px, 7px 30px, 11px 40px, 9px 28px, 10px 36px;
-            background-position: 5% 0, 18% 0, 32% 0, 48% 0, 62% 0, 78% 0, 92% 0;
-            background-repeat: no-repeat;
-        }
+        /* Winter effects removed */
 
-        /* Removed - icicles now in ::before */.service-card::after {
-            content: none;
-        }
+        
 
         .service-card:hover {
             transform: translateY(-4px);
