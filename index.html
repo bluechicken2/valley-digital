@@ -187,16 +187,70 @@
            Copy this block to add new clients
            ============================================ */
         .service-card {
-            background: white;
+            background: linear-gradient(180deg, #e8f4fc 0%, #f8fbfd 30%, #ffffff 100%);
             border-radius: 16px;
             padding: 32px;
+            padding-top: 40px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04),
-                        0 8px 24px rgba(0, 0, 0, 0.06);
+                        0 8px 24px rgba(0, 0, 0, 0.06),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.9);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             display: flex;
             flex-direction: column;
             align-items: flex-start;
-            border: 1px solid rgba(45, 90, 61, 0.08);
+            border: 1px solid rgba(135, 206, 235, 0.3);
+            position: relative;
+            overflow: visible;
+        }
+
+        /* Snow pile on top of card */
+        .service-card::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: -2px;
+            right: -2px;
+            height: 24px;
+            background: 
+                radial-gradient(ellipse 30px 12px at 15% 100%, #ffffff 70%, transparent 70%),
+                radial-gradient(ellipse 40px 14px at 35% 100%, #ffffff 60%, transparent 60%),
+                radial-gradient(ellipse 35px 10px at 55% 100%, #f0f9ff 70%, transparent 70%),
+                radial-gradient(ellipse 45px 15px at 75% 100%, #ffffff 65%, transparent 65%),
+                radial-gradient(ellipse 30px 11px at 90% 100%, #f8fbfd 70%, transparent 70%);
+            background-repeat: no-repeat;
+            z-index: 2;
+            filter: drop-shadow(0 2px 3px rgba(135, 206, 235, 0.2));
+        }
+
+        /* Icicles hanging from snow */
+        .service-card::after {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 0;
+            right: 0;
+            height: 30px;
+            background: 
+                linear-gradient(180deg, rgba(200, 230, 255, 0.9) 0%, rgba(255, 255, 255, 0.6) 50%, transparent 100%),
+                /* Icicle shapes */
+                conic-gradient(from 220deg at 10% 0, transparent 0deg, rgba(180, 220, 255, 0.7) 40deg, transparent 80deg),
+                conic-gradient(from 220deg at 25% 0, transparent 0deg, rgba(200, 235, 255, 0.8) 35deg, transparent 70deg),
+                conic-gradient(from 225deg at 40% 0, transparent 0deg, rgba(190, 225, 255, 0.6) 45deg, transparent 90deg),
+                conic-gradient(from 220deg at 55% 0, transparent 0deg, rgba(180, 220, 255, 0.7) 40deg, transparent 80deg),
+                conic-gradient(from 225deg at 70% 0, transparent 0deg, rgba(200, 235, 255, 0.8) 35deg, transparent 70deg),
+                conic-gradient(from 220deg at 85% 0, transparent 0deg, rgba(190, 225, 255, 0.6) 45deg, transparent 90deg);
+            background-size: 100% 100%, 15px 25px, 12px 30px, 18px 22px, 14px 28px, 16px 24px, 13px 26px;
+            background-position: 0 0, 5% 0, 22% 0, 38% 0, 54% 0, 68% 0, 82% 0;
+            background-repeat: no-repeat;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .service-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06),
+                        0 16px 40px rgba(0, 0, 0, 0.1),
+                        0 0 20px rgba(135, 206, 235, 0.15);
         }
         
         .service-card:hover {
