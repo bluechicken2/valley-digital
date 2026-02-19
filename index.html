@@ -203,47 +203,31 @@
             overflow: visible;
         }
 
-        /* Snow pile on top of card */
-        .service-card::before {
+        /* Icicles hanging from top */.service-card::before {
             content: '';
             position: absolute;
-            top: -8px;
-            left: -2px;
-            right: -2px;
-            height: 24px;
-            background: 
-                radial-gradient(ellipse 30px 12px at 15% 100%, #ffffff 70%, transparent 70%),
-                radial-gradient(ellipse 40px 14px at 35% 100%, #ffffff 60%, transparent 60%),
-                radial-gradient(ellipse 35px 10px at 55% 100%, #f0f9ff 70%, transparent 70%),
-                radial-gradient(ellipse 45px 15px at 75% 100%, #ffffff 65%, transparent 65%),
-                radial-gradient(ellipse 30px 11px at 90% 100%, #f8fbfd 70%, transparent 70%);
-            background-repeat: no-repeat;
-            z-index: 2;
-            filter: drop-shadow(0 2px 3px rgba(135, 206, 235, 0.2));
-        }
-
-        /* Icicles hanging from snow */
-        .service-card::after {
-            content: '';
-            position: absolute;
-            top: 8px;
+            top: 0;
             left: 0;
             right: 0;
-            height: 30px;
-            background: 
-                linear-gradient(180deg, rgba(200, 230, 255, 0.9) 0%, rgba(255, 255, 255, 0.6) 50%, transparent 100%),
-                /* Icicle shapes */
-                conic-gradient(from 220deg at 10% 0, transparent 0deg, rgba(180, 220, 255, 0.7) 40deg, transparent 80deg),
-                conic-gradient(from 220deg at 25% 0, transparent 0deg, rgba(200, 235, 255, 0.8) 35deg, transparent 70deg),
-                conic-gradient(from 225deg at 40% 0, transparent 0deg, rgba(190, 225, 255, 0.6) 45deg, transparent 90deg),
-                conic-gradient(from 220deg at 55% 0, transparent 0deg, rgba(180, 220, 255, 0.7) 40deg, transparent 80deg),
-                conic-gradient(from 225deg at 70% 0, transparent 0deg, rgba(200, 235, 255, 0.8) 35deg, transparent 70deg),
-                conic-gradient(from 220deg at 85% 0, transparent 0deg, rgba(190, 225, 255, 0.6) 45deg, transparent 90deg);
-            background-size: 100% 100%, 15px 25px, 12px 30px, 18px 22px, 14px 28px, 16px 24px, 13px 26px;
-            background-position: 0 0, 5% 0, 22% 0, 38% 0, 54% 0, 68% 0, 82% 0;
-            background-repeat: no-repeat;
-            z-index: 1;
+            height: 40px;
             pointer-events: none;
+            z-index: 2;
+            background: 
+                /* Icicle drips - more visible */
+                linear-gradient(180deg, rgba(180, 220, 255, 0.95) 0%, rgba(200, 235, 255, 0.8) 30%, rgba(255, 255, 255, 0.4) 70%, transparent 100%),
+                linear-gradient(180deg, rgba(160, 210, 255, 0.9) 0%, rgba(180, 225, 255, 0.7) 40%, transparent 100%),
+                linear-gradient(180deg, rgba(170, 215, 255, 0.95) 0%, rgba(190, 230, 255, 0.75) 35%, transparent 100%),
+                linear-gradient(180deg, rgba(165, 212, 255, 0.9) 0%, rgba(185, 228, 255, 0.7) 45%, transparent 100%),
+                linear-gradient(180deg, rgba(175, 218, 255, 0.95) 0%, rgba(195, 232, 255, 0.8) 30%, transparent 100%),
+                linear-gradient(180deg, rgba(155, 208, 255, 0.9) 0%, rgba(175, 223, 255, 0.7) 50%, transparent 100%),
+                linear-gradient(180deg, rgba(180, 222, 255, 0.95) 0%, rgba(200, 235, 255, 0.75) 35%, transparent 100%);
+            background-size: 10px 38px, 8px 32px, 12px 35px, 7px 30px, 11px 40px, 9px 28px, 10px 36px;
+            background-position: 5% 0, 18% 0, 32% 0, 48% 0, 62% 0, 78% 0, 92% 0;
+            background-repeat: no-repeat;
+        }
+
+        /* Removed - icicles now in ::before */.service-card::after {
+            content: none;
         }
 
         .service-card:hover {
