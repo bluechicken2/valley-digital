@@ -412,6 +412,30 @@ body {
                 height: 56px;
             }
         }
+
+        .construction-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+            z-index: 10;
+            animation: pulse-badge 2s infinite;
+        }
+        @keyframes pulse-badge {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        .service-card {
+            position: relative;
+        }
     </style>
 
     <style>
@@ -495,6 +519,30 @@ body {
             pointer-events: none;
             z-index: 0;
         }
+
+        .construction-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+            z-index: 10;
+            animation: pulse-badge 2s infinite;
+        }
+        @keyframes pulse-badge {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        .service-card {
+            position: relative;
+        }
     </style>
 </head>
 <body>
@@ -543,6 +591,7 @@ body {
                      CARD 1: ValleyAI
                      ============================================ -->
                 <article class="service-card">
+                <span class="construction-badge">🚧 Under Construction</span>
                     <div class="card-glow"></div>
                     <div class="card-icon icon-ai">
                         <!-- AI/Brain Icon -->
@@ -567,6 +616,7 @@ body {
                      CARD 2: Memories by Kim
                      ============================================ -->
                 <article class="service-card">
+                <span class="construction-badge">🚧 Under Construction</span>
                     <div class="card-glow"></div>
                     <div class="card-icon icon-photo">
                         <!-- Camera Icon -->
@@ -589,6 +639,7 @@ body {
                      CARD 3: AMO Seamless
                      ============================================ -->
                 <article class="service-card">
+                <span class="construction-badge">🚧 Under Construction</span>
                     <div class="card-glow"></div>
                     <div class="card-icon icon-home">
                         <!-- Home/Roof Icon -->
@@ -612,6 +663,7 @@ body {
                      
                      Template:
                      <article class="service-card">
+                <span class="construction-badge">🚧 Under Construction</span>
                     <div class="card-glow"></div>
                          <div class="card-icon icon-[variant]">
                              <svg viewBox="0 0 24 24">[icon-path]</svg>
