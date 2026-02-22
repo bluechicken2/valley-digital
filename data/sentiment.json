@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-02-22T21:10:41.813046+00:00",
+  "timestamp": "2026-02-22T21:15:04.769430+00:00",
   "market_status": {
     "stock": "closed",
     "crypto": "open",
@@ -22,9 +22,9 @@
         "up",
         "pressure"
       ],
-      "volume_trend": "normal",
-      "volume_score": 57,
-      "trend_strength": 40,
+      "volume_trend": "low",
+      "volume_score": 36,
+      "trend_strength": 34,
       "trend_strength_label": "Moderate",
       "price_change_24h": 1.2,
       "price_targets": {
@@ -32,13 +32,13 @@
         "base_case": 250,
         "bear_case": 225.0
       },
-      "momentum_score": 53,
+      "momentum_score": 49,
       "momentum_label": "Neutral"
     },
     "NVDA": {
-      "sentiment": 58,
+      "sentiment": 63,
       "trend": "bullish",
-      "confidence": 0.44,
+      "confidence": 0.43,
       "headlines_analyzed": 15,
       "sources": [
         "Google News"
@@ -46,13 +46,12 @@
       "matched_keywords": [
         "up",
         "buy",
-        "fall",
         "sell",
         "gain"
       ],
       "volume_trend": "normal",
-      "volume_score": 56,
-      "trend_strength": 43,
+      "volume_score": 68,
+      "trend_strength": 46,
       "trend_strength_label": "Moderate",
       "price_change_24h": 2.5,
       "price_targets": {
@@ -60,27 +59,27 @@
         "base_case": 150,
         "bear_case": 135.0
       },
-      "momentum_score": 58,
+      "momentum_score": 60,
       "momentum_label": "Up"
     },
     "BTC": {
-      "sentiment": 50,
-      "trend": "neutral",
-      "confidence": 0.38,
+      "sentiment": 52,
+      "trend": "slightly_bullish",
+      "confidence": 0.4,
       "headlines_analyzed": 15,
       "sources": [
         "Google News"
       ],
       "matched_keywords": [
+        "rally",
         "buy",
         "down",
         "rebound",
-        "sell",
-        "rally"
+        "sell"
       ],
       "volume_trend": "high",
-      "volume_score": 94,
-      "trend_strength": 47,
+      "volume_score": 100,
+      "trend_strength": 50,
       "trend_strength_label": "Moderate",
       "price_change_24h": 0,
       "price_targets": {
@@ -92,25 +91,25 @@
       "momentum_label": "Up"
     },
     "ETH": {
-      "sentiment": 50,
+      "sentiment": 51,
       "trend": "neutral",
-      "confidence": 0.43,
+      "confidence": 0.45,
       "headlines_analyzed": 15,
       "sources": [
-        "CryptoNews",
         "CoinDesk",
+        "CryptoNews",
         "Google News"
       ],
       "matched_keywords": [
+        "rally",
         "buy",
         "rebound",
         "sell",
-        "rally",
-        "up"
+        "undervalued"
       ],
-      "volume_trend": "low",
-      "volume_score": 38,
-      "trend_strength": 32,
+      "volume_trend": "high",
+      "volume_score": 99,
+      "trend_strength": 52,
       "trend_strength_label": "Moderate",
       "price_change_24h": 0,
       "price_targets": {
@@ -118,8 +117,8 @@
         "base_case": 3400,
         "bear_case": 3060.0
       },
-      "momentum_score": 46,
-      "momentum_label": "Neutral"
+      "momentum_score": 60,
+      "momentum_label": "Up"
     }
   },
   "alerts": {
@@ -141,79 +140,84 @@
     }
   },
   "fear_greed_index": {
-    "value": 52,
+    "value": 54,
     "label": "Neutral",
     "components": {
-      "sentiment_score": 52,
+      "sentiment_score": 54,
       "market_momentum": 54.6,
-      "asset_trends": 52.1
+      "asset_trends": 54.1
     }
   },
   "signal_summary": {
     "signal": "HOLD",
-    "confidence": 20,
-    "weighted_score": 47.4
+    "confidence": 1,
+    "weighted_score": 50.6
   },
   "market_regime": {
     "regime": "Range-bound",
     "confidence": 68
   },
   "correlations": {
-    "BTC-ETH": 0.73,
-    "AAPL-NVDA": 0.57,
-    "BTC-AAPL": 0.12
+    "BTC-ETH": 0.7,
+    "AAPL-NVDA": 0.56,
+    "BTC-AAPL": 0.27
   },
   "market_breadth": {
-    "advance_decline_ratio": 50,
-    "breadth_signal": "neutral",
+    "advance_decline_ratio": 75,
+    "breadth_signal": "positive",
     "participation": "mixed"
   },
   "risk_assessment": {
     "risk_level": "Low",
-    "risk_score": 21,
+    "risk_score": 20,
     "components": {
       "volatility": 0.93,
       "fear_greed_extremeness": 0,
-      "trend_weakness": 59.5
+      "trend_weakness": 54.5
     }
   },
   "volatility_index": {
-    "volatility_index": 30,
+    "volatility_index": 37,
     "label": "Normal",
     "components": {
       "price_volatility": 0.93,
-      "sentiment_range": 8,
-      "volume_score": 61.2
+      "sentiment_range": 12,
+      "volume_score": 75.8
     }
   },
   "alert_triggers": [],
   "sector_analysis": {
     "sector_performance": {
-      "Technology": 55.0,
-      "Crypto": 50.0
+      "Technology": 57.5,
+      "Crypto": 51.5
     },
     "sector_trend": {
       "Technology": "slightly_bullish",
       "Crypto": "neutral"
     },
-    "leading_sector": "Neutral"
+    "leading_sector": "Technology"
   },
   "historical_comparison": {
-    "sentiment_change": -8,
-    "trend_direction": "declining",
-    "week_over_week": 4
+    "sentiment_change": 5,
+    "trend_direction": "improving",
+    "week_over_week": -8
+  },
+  "sentiment_momentum": {
+    "direction": "declining",
+    "rate": "rapid",
+    "score_change": -12
   },
   "performance_score": {
-    "score": 52,
+    "score": 55,
     "label": "Fair",
     "components": {
-      "prediction_accuracy": 51.6,
-      "signal_reliability": 41.0,
+      "prediction_accuracy": 59.0,
+      "signal_reliability": 44.3,
       "data_quality": 70
     }
   },
   "overall": {
-    "sentiment": 52,
+    "sentiment": 54,
     "label": "Bullish"
   },
   "metadata": {
@@ -227,8 +231,8 @@
       "Investing.com"
     ],
     "headlines_count": 190,
-    "last_updated": "2026-02-22T21:10:41.813087+00:00",
-    "next_update": "2026-02-22T21:15:41.813090+00:00"
+    "last_updated": "2026-02-22T21:15:04.769463+00:00",
+    "next_update": "2026-02-22T21:20:04.769465+00:00"
   },
   "themes": [
     "Crypto",
@@ -245,7 +249,7 @@
     },
     {
       "action": "Buy",
-      "asset": "BTC",
+      "asset": "NVDA",
       "reason": "Strong momentum (Up) with positive trend",
       "timeframe": "medium"
     },

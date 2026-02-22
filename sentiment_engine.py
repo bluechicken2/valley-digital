@@ -1141,6 +1141,41 @@ def calculate_historical_comparison(current_score):
         "week_over_week": week_over_week
     }
 
+
+
+def calculate_sentiment_momentum():
+    """
+    Calculate sentiment momentum based on recent sentiment changes.
+    Returns direction (improving/declining/stable), rate (rapid/moderate/slow), and score_change.
+    Mock implementation - in production would compare with historical data.
+    """
+    import random
+
+    # Mock: generate realistic momentum data (points changed in last hour)
+    score_change = random.choice([-12, -8, -5, -3, -1, 0, 1, 3, 5, 8, 12])
+
+    # Determine direction based on score change
+    if score_change > 2:
+        direction = "improving"
+    elif score_change < -2:
+        direction = "declining"
+    else:
+        direction = "stable"
+
+    # Determine rate based on magnitude of change
+    if abs(score_change) >= 8:
+        rate = "rapid"
+    elif abs(score_change) >= 4:
+        rate = "moderate"
+    else:
+        rate = "slow"
+
+    return {
+        "direction": direction,
+        "rate": rate,
+        "score_change": score_change
+    }
+
 def generate_trading_recommendations(assets_data, fear_greed, signal_summary, overall_score):
     """
     Generate 3 actionable trading recommendations based on sentiment analysis.
@@ -1555,6 +1590,7 @@ def update_sentiment_file():
         "alert_triggers": generate_alert_triggers(assets_data, current_prices, fear_greed),
         "sector_analysis": sector_analysis,
         "historical_comparison": calculate_historical_comparison(overall_score),
+        "sentiment_momentum": calculate_sentiment_momentum(),
         "performance_score": performance_score,
         "overall": {
             "sentiment": overall_score,
