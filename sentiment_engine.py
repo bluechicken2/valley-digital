@@ -1391,6 +1391,61 @@ def generate_alert_triggers(assets_data, current_prices, fear_greed):
 
     return triggers
 
+def calculate_market_breadth(assets_data):
+    """
+    Calculate market breadth indicator.
+    Returns advance_decline_ratio, breadth_signal, and participation.
+    """
+    total = len(assets_data)
+    if total == 0:
+        return {
+            "advance_decline_ratio": 50,
+            "breadth_signal": "neutral",
+            "participation": "mixed"
+        }
+
+    # Count advancing assets (bullish trends or positive price change)
+    advancing = 0
+    declining = 0
+
+    for asset, data in assets_data.items():
+        trend = data.get("trend", "neutral")
+        price_change = data.get("price_change_24h", 0)
+
+        # Asset is advancing if trend is bullish or price is up
+        if trend in ["bullish", "slightly_bullish"] or price_change > 0:
+            advancing += 1
+        elif trend in ["bearish", "slightly_bearish"] or price_change < 0:
+            declining += 1
+        # neutral with no price change = no contribution
+
+    advance_decline_ratio = int((advancing / total) * 100)
+
+    # Determine breadth signal
+    if advance_decline_ratio >= 75:
+        breadth_signal = "positive"
+    elif advance_decline_ratio >= 60:
+        breadth_signal = "positive"
+    elif advance_decline_ratio <= 25:
+        breadth_signal = "negative"
+    elif advance_decline_ratio <= 40:
+        breadth_signal = "negative"
+    else:
+        breadth_signal = "neutral"
+
+    # Determine participation (broad if all moving same direction)
+    if advancing == total or declining == total:
+        participation = "broad"
+    else:
+        participation = "mixed"
+
+    return {
+        "advance_decline_ratio": advance_decline_ratio,
+        "breadth_signal": breadth_signal,
+        "participation": participation
+    }
+
+
 def update_sentiment_file():
     print("")
     print("=" * 60)
@@ -1494,6 +1549,7 @@ def update_sentiment_file():
         "signal_summary": signal_summary,
         "market_regime": market_regime,
         "correlations": calculate_asset_correlations(),
+        "market_breadth": calculate_market_breadth(assets_data),
         "risk_assessment": risk_assessment,
         "volatility_index": volatility_index,
         "alert_triggers": generate_alert_triggers(assets_data, current_prices, fear_greed),
