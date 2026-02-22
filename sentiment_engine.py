@@ -1481,6 +1481,62 @@ def calculate_market_breadth(assets_data):
     }
 
 
+
+
+def calculate_overall_confidence(assets_data, source_stats, signal_summary):
+    """
+    Calculate overall confidence score (0-100) based on:
+    - Average asset confidence (40% weight)
+    - Data quality - sources active (30% weight)
+    - Signal agreement - how aligned are signals (30% weight)
+    Returns score and label.
+    """
+    # 1. Average asset confidence (40% weight)
+    confidences = [a.get("confidence", 0.5) for a in assets_data.values()]
+    avg_confidence = sum(confidences) / len(confidences) if confidences else 0.5
+    confidence_score = (avg_confidence * 100) * 0.40
+    
+    # 2. Data quality - sources active (30% weight)
+    total_sources = len(RSS_FEEDS)
+    active_sources = sum(1 for s in source_stats.values() if s.get("success", False))
+    data_quality = (active_sources / total_sources * 100) * 0.30 if total_sources > 0 else 15
+    
+    # 3. Signal agreement (30% weight)
+    # Check how aligned the asset trends are
+    trends = [a.get("trend", "neutral") for a in assets_data.values()]
+    bullish_count = sum(1 for t in trends if "bullish" in t)
+    bearish_count = sum(1 for t in trends if "bearish" in t)
+    total = len(trends)
+    
+    # Agreement is high if most signals point same direction
+    if total > 0:
+        agreement_ratio = max(bullish_count, bearish_count, total - bullish_count - bearish_count) / total
+        signal_agreement = agreement_ratio * 100 * 0.30
+    else:
+        signal_agreement = 15
+    
+    # Calculate total score
+    overall_score = int(confidence_score + data_quality + signal_agreement)
+    overall_score = max(0, min(100, overall_score))
+    
+    # Determine label
+    if overall_score >= 80:
+        label = "High"
+    elif overall_score >= 50:
+        label = "Medium"
+    else:
+        label = "Low"
+    
+    return {
+        "score": overall_score,
+        "label": label,
+        "components": {
+            "avg_asset_confidence": round(avg_confidence * 100, 1),
+            "data_quality_sources": round(active_sources / total_sources * 100 if total_sources > 0 else 0, 1),
+            "signal_agreement": round(agreement_ratio * 100 if total > 0 else 50, 1)
+        }
+    }
+
 def update_sentiment_file():
     print("")
     print("=" * 60)
@@ -1582,6 +1638,7 @@ def update_sentiment_file():
         "alerts": ALERT_THRESHOLDS,
         "fear_greed_index": fear_greed,
         "signal_summary": signal_summary,
+        "overall_confidence": calculate_overall_confidence(assets_data, source_stats, signal_summary),
         "market_regime": market_regime,
         "correlations": calculate_asset_correlations(),
         "market_breadth": calculate_market_breadth(assets_data),
