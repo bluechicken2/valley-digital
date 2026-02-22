@@ -1537,6 +1537,66 @@ def calculate_overall_confidence(assets_data, source_stats, signal_summary):
         }
     }
 
+
+def calculate_time_analysis(overall_score, fear_greed, signal_summary, assets_data):
+    """
+    Calculate time-based analysis for trading decisions.
+    Returns best_time_to_buy, best_time_to_sell, and market_phase.
+    """
+    fg_value = fear_greed.get("value", 50)
+    signal = signal_summary.get("signal", "HOLD")
+
+    # Determine market phase based on Wyckoff theory
+    # Accumulation: Low sentiment, fear dominant, preparing for markup
+    # Markup: Rising sentiment, greed building, uptrend
+    # Distribution: High sentiment, extreme greed, preparing for markdown  
+    # Markdown: Falling sentiment, fear rising, downtrend
+
+    if overall_score <= 40 and fg_value <= 35:
+        market_phase = "accumulation"
+    elif overall_score >= 60 and fg_value >= 65:
+        market_phase = "distribution"
+    elif overall_score >= 50 and signal in ["BUY", "STRONG BUY"]:
+        market_phase = "markup"
+    elif overall_score < 50 and signal in ["SELL", "STRONG SELL"]:
+        market_phase = "markdown"
+    elif overall_score >= 55:
+        market_phase = "markup"
+    elif overall_score <= 45:
+        market_phase = "markdown"
+    else:
+        market_phase = "accumulation"
+
+    # Determine best time to buy
+    if market_phase == "accumulation":
+        best_time_to_buy = "now"
+    elif market_phase == "markdown" and fg_value <= 30:
+        best_time_to_buy = "now - oversold conditions"
+    elif signal in ["STRONG BUY", "BUY"] and fg_value <= 45:
+        best_time_to_buy = "now"
+    elif overall_score <= 45:
+        best_time_to_buy = "wait for stabilization"
+    else:
+        best_time_to_buy = "wait"
+
+    # Determine best time to sell
+    if market_phase == "distribution":
+        best_time_to_sell = "now"
+    elif market_phase == "markup" and fg_value >= 70:
+        best_time_to_sell = "now - overbought conditions"
+    elif signal in ["STRONG SELL", "SELL"] and fg_value >= 65:
+        best_time_to_sell = "now"
+    elif overall_score >= 65:
+        best_time_to_sell = "take partial profits"
+    else:
+        best_time_to_sell = "wait"
+
+    return {
+        "best_time_to_buy": best_time_to_buy,
+        "best_time_to_sell": best_time_to_sell,
+        "market_phase": market_phase
+    }
+
 def update_sentiment_file():
     print("")
     print("=" * 60)
@@ -1638,6 +1698,7 @@ def update_sentiment_file():
         "alerts": ALERT_THRESHOLDS,
         "fear_greed_index": fear_greed,
         "signal_summary": signal_summary,
+        "time_analysis": calculate_time_analysis(overall_score, fear_greed, signal_summary, assets_data),
         "overall_confidence": calculate_overall_confidence(assets_data, source_stats, signal_summary),
         "market_regime": market_regime,
         "correlations": calculate_asset_correlations(),

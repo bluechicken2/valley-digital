@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-02-22T21:18:45.519743+00:00",
+  "timestamp": "2026-02-22T21:23:06.110895+00:00",
   "market_status": {
     "stock": "closed",
     "crypto": "open",
@@ -8,9 +8,9 @@
   "source": "Multi-Source RSS (6 sources)",
   "assets": {
     "AAPL": {
-      "sentiment": 51,
-      "trend": "neutral",
-      "confidence": 0.4,
+      "sentiment": 52,
+      "trend": "slightly_bullish",
+      "confidence": 0.42,
       "headlines_analyzed": 15,
       "sources": [
         "Google News"
@@ -23,8 +23,8 @@
         "pressure"
       ],
       "volume_trend": "high",
-      "volume_score": 80,
-      "trend_strength": 46,
+      "volume_score": 94,
+      "trend_strength": 51,
       "trend_strength_label": "Moderate",
       "price_change_24h": 1.2,
       "price_targets": {
@@ -50,8 +50,8 @@
         "gain"
       ],
       "volume_trend": "high",
-      "volume_score": 100,
-      "trend_strength": 55,
+      "volume_score": 89,
+      "trend_strength": 52,
       "trend_strength_label": "Moderate",
       "price_change_24h": 2.5,
       "price_targets": {
@@ -77,18 +77,18 @@
         "rally",
         "stable"
       ],
-      "volume_trend": "low",
-      "volume_score": 37,
-      "trend_strength": 32,
+      "volume_trend": "normal",
+      "volume_score": 46,
+      "trend_strength": 35,
       "trend_strength_label": "Moderate",
-      "price_change_24h": -1.22,
+      "price_change_24h": -1.29,
       "price_targets": {
-        "bull_case": 74177.4,
-        "base_case": 67434,
-        "bear_case": 60690.6
+        "bull_case": 74188.4,
+        "base_case": 67444,
+        "bear_case": 60699.6
       },
-      "momentum_score": 43,
-      "momentum_label": "Down"
+      "momentum_score": 47,
+      "momentum_label": "Neutral"
     },
     "ETH": {
       "sentiment": 50,
@@ -96,9 +96,9 @@
       "confidence": 0.45,
       "headlines_analyzed": 15,
       "sources": [
-        "CoinDesk",
         "Google News",
-        "CryptoNews"
+        "CryptoNews",
+        "CoinDesk"
       ],
       "matched_keywords": [
         "buy",
@@ -107,18 +107,18 @@
         "rally",
         "stable"
       ],
-      "volume_trend": "high",
-      "volume_score": 100,
-      "trend_strength": 55,
+      "volume_trend": "normal",
+      "volume_score": 76,
+      "trend_strength": 48,
       "trend_strength_label": "Moderate",
-      "price_change_24h": -1.74,
+      "price_change_24h": -1.78,
       "price_targets": {
-        "bull_case": 2136.52,
-        "base_case": 1942.29,
-        "bear_case": 1748.06
+        "bull_case": 2136.92,
+        "base_case": 1942.65,
+        "bear_case": 1748.39
       },
-      "momentum_score": 55,
-      "momentum_label": "Up"
+      "momentum_score": 45,
+      "momentum_label": "Neutral"
     }
   },
   "alerts": {
@@ -140,26 +140,31 @@
     }
   },
   "fear_greed_index": {
-    "value": 52,
+    "value": 53,
     "label": "Neutral",
     "components": {
       "sentiment_score": 54,
-      "market_momentum": 50.9,
-      "asset_trends": 53.7
+      "market_momentum": 50.8,
+      "asset_trends": 53.9
     }
   },
   "signal_summary": {
     "signal": "HOLD",
     "confidence": 1,
-    "weighted_score": 50.6
+    "weighted_score": 50.7
+  },
+  "time_analysis": {
+    "best_time_to_buy": "now",
+    "best_time_to_sell": "wait",
+    "market_phase": "accumulation"
   },
   "overall_confidence": {
-    "score": 49,
-    "label": "Low",
+    "score": 57,
+    "label": "Medium",
     "components": {
-      "avg_asset_confidence": 41.0,
+      "avg_asset_confidence": 41.5,
       "data_quality_sources": 60.0,
-      "signal_agreement": 50.0
+      "signal_agreement": 75.0
     }
   },
   "market_regime": {
@@ -167,9 +172,9 @@
     "confidence": 69
   },
   "correlations": {
-    "BTC-ETH": 0.74,
-    "AAPL-NVDA": 0.55,
-    "BTC-AAPL": 0.22
+    "BTC-ETH": 0.76,
+    "AAPL-NVDA": 0.61,
+    "BTC-AAPL": 0.18
   },
   "market_breadth": {
     "advance_decline_ratio": 75,
@@ -180,18 +185,18 @@
     "risk_level": "Low",
     "risk_score": 22,
     "components": {
-      "volatility": 1.67,
+      "volatility": 1.69,
       "fear_greed_extremeness": 0,
-      "trend_weakness": 53.0
+      "trend_weakness": 53.5
     }
   },
   "volatility_index": {
-    "volatility_index": 44,
+    "volatility_index": 43,
     "label": "Normal",
     "components": {
-      "price_volatility": 1.67,
+      "price_volatility": 1.69,
       "sentiment_range": 12,
-      "volume_score": 79.2
+      "volume_score": 76.2
     }
   },
   "alert_triggers": [
@@ -199,42 +204,42 @@
       "condition": "Price broke below support",
       "asset": "BTC",
       "priority": "high",
-      "details": "$67,434.00 vs support $95,000.00"
+      "details": "$67,444.00 vs support $95,000.00"
     },
     {
       "condition": "Price broke below support",
       "asset": "ETH",
       "priority": "high",
-      "details": "$1,942.29 vs support $3,200.00"
+      "details": "$1,942.65 vs support $3,200.00"
     }
   ],
   "sector_analysis": {
     "sector_performance": {
-      "Technology": 56.5,
+      "Technology": 57.0,
       "Crypto": 51.5
     },
     "sector_trend": {
       "Technology": "slightly_bullish",
       "Crypto": "neutral"
     },
-    "leading_sector": "Neutral"
+    "leading_sector": "Technology"
   },
   "historical_comparison": {
-    "sentiment_change": -5,
+    "sentiment_change": -8,
     "trend_direction": "declining",
     "week_over_week": -12
   },
   "sentiment_momentum": {
-    "direction": "improving",
-    "rate": "rapid",
-    "score_change": 12
+    "direction": "declining",
+    "rate": "slow",
+    "score_change": -3
   },
   "performance_score": {
-    "score": 54,
+    "score": 52,
     "label": "Fair",
     "components": {
-      "prediction_accuracy": 51.9,
-      "signal_reliability": 44.6,
+      "prediction_accuracy": 47.0,
+      "signal_reliability": 44.5,
       "data_quality": 70
     }
   },
@@ -253,8 +258,8 @@
       "Investing.com"
     ],
     "headlines_count": 190,
-    "last_updated": "2026-02-22T21:18:45.519794+00:00",
-    "next_update": "2026-02-22T21:23:45.519797+00:00"
+    "last_updated": "2026-02-22T21:23:06.110959+00:00",
+    "next_update": "2026-02-22T21:28:06.110961+00:00"
   },
   "themes": [
     "Crypto",
@@ -304,9 +309,9 @@
       "sentiment_impact": "bearish"
     },
     {
-      "title": "XRP falls 4% as network sees biggest realized loss spike since 2022",
+      "title": "Curve Finance founder says disagreement within a DAO is a healthy sign",
       "asset": "BTC",
-      "sentiment_impact": "bearish"
+      "sentiment_impact": "bullish"
     }
   ],
   "headlines_fetched": 190,
