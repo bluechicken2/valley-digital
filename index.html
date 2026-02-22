@@ -3,389 +3,570 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TradingAI | Professional Trading Dashboard - Coming Soon</title>
-    <meta name="description" content="Professional trading dashboard with real-time market data, AI-powered analytics, and advanced charting. Bloomberg terminal alternative at a fraction of the cost.">
-
-    <!-- Open Graph -->
-    <meta property="og:title" content="TradingAI - Professional Trading Dashboard">
-    <meta property="og:description" content="Bloomberg terminal alternative. Real-time data, AI analytics, advanced charting. Coming soon.">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://ottawav.com">">
-
+    <title>TradingAI Dashboard</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-
+        
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --border: #30363d;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --green: #3fb950;
+            --red: #f85149;
+            --blue: #58a6ff;
+            --purple: #a371f7;
+            --orange: #d29922;
+        }
+        
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            background: linear-gradient(135deg, #0a0f1c 0%, #1a1f35 50%, #0d1425 100%);
+            background: var(--bg-primary);
+            color: var(--text-primary);
             min-height: 100vh;
-            color: #e0e6ed;
-            overflow-x: hidden;
         }
-
-        /* Animated grid background */
-        .grid-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: 
-                linear-gradient(rgba(0, 255, 136, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 255, 136, 0.03) 1px, transparent 1px);
-            background-size: 50px 50px;
-            animation: gridMove 20s linear infinite;
-            pointer-events: none;
-        }
-
-        @keyframes gridMove {
-            0% { transform: translate(0, 0); }
-            100% { transform: translate(50px, 50px); }
-        }
-
-        /* Floating particles */
-        .particles {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-        }
-
-        .particle {
-            position: absolute;
-            width: 4px;
-            height: 4px;
-            background: #00ff88;
-            border-radius: 50%;
-            opacity: 0.3;
-            animation: float 15s infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
-            10% { opacity: 0.3; }
-            90% { opacity: 0.3; }
-            100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
-        }
-
-        .container {
-            position: relative;
-            z-index: 1;
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 60px 20px;
-            min-height: 100vh;
+        
+        /* Header */
+        .header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 24px;
             display: flex;
-            flex-direction: column;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
-            text-align: center;
         }
-
-        /* Logo */
+        
         .logo {
-            font-size: 3.5rem;
-            font-weight: 800;
-            margin-bottom: 10px;
-            background: linear-gradient(135deg, #00ff88 0%, #00d4ff 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            letter-spacing: -2px;
-        }
-
-        .logo-icon {
-            font-size: 4rem;
-            margin-bottom: 20px;
-            display: block;
-        }
-
-        .tagline {
-            font-size: 1.3rem;
-            color: #8892a6;
-            margin-bottom: 50px;
-            font-weight: 300;
-        }
-
-        /* Main headline */
-        h1 {
-            font-size: 2.8rem;
-            font-weight: 700;
-            margin-bottom: 20px;
-            line-height: 1.2;
-        }
-
-        .highlight {
-            color: #00ff88;
-        }
-
-        .description {
-            font-size: 1.2rem;
-            color: #a0aab8;
-            max-width: 600px;
-            margin-bottom: 50px;
-            line-height: 1.6;
-        }
-
-        /* Feature cards */
-        .features {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 50px;
-            width: 100%;
-            max-width: 800px;
-        }
-
-        .feature-card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(0, 255, 136, 0.1);
-            border-radius: 12px;
-            padding: 25px;
-            transition: all 0.3s ease;
-        }
-
-        .feature-card:hover {
-            border-color: rgba(0, 255, 136, 0.3);
-            transform: translateY(-5px);
-            box-shadow: 0 10px 40px rgba(0, 255, 136, 0.1);
-        }
-
-        .feature-icon {
-            font-size: 2rem;
-            margin-bottom: 15px;
-        }
-
-        .feature-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: #fff;
-        }
-
-        .feature-desc {
-            font-size: 0.9rem;
-            color: #8892a6;
-        }
-
-        /* Email signup */
-        .signup-section {
-            background: rgba(0, 255, 136, 0.05);
-            border: 1px solid rgba(0, 255, 136, 0.2);
-            border-radius: 16px;
-            padding: 40px;
-            width: 100%;
-            max-width: 500px;
-            margin-bottom: 40px;
-        }
-
-        .signup-title {
-            font-size: 1.3rem;
-            margin-bottom: 10px;
-        }
-
-        .signup-desc {
-            color: #8892a6;
-            margin-bottom: 25px;
-        }
-
-        .email-form {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .email-input {
-            flex: 1;
-            min-width: 250px;
-            padding: 15px 20px;
-            border: 1px solid rgba(0, 255, 136, 0.3);
-            border-radius: 8px;
-            background: rgba(0, 0, 0, 0.3);
-            color: #fff;
-            font-size: 1rem;
-            outline: none;
-            transition: all 0.3s ease;
-        }
-
-        .email-input:focus {
-            border-color: #00ff88;
-            box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
-        }
-
-        .email-input::placeholder {
-            color: #5a6270;
-        }
-
-        .submit-btn {
-            padding: 15px 30px;
-            background: linear-gradient(135deg, #00ff88 0%, #00d4ff 100%);
-            border: none;
-            border-radius: 8px;
-            color: #0a0f1c;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .submit-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 5px 30px rgba(0, 255, 136, 0.4);
-        }
-
-        /* Pricing teaser */
-        .pricing-teaser {
-            margin-top: 30px;
-            padding: 20px;
-            background: rgba(255, 107, 107, 0.1);
-            border-radius: 8px;
-            border: 1px solid rgba(255, 107, 107, 0.2);
-        }
-
-        .pricing-teaser p {
-            color: #ff6b6b;
-            font-weight: 600;
-        }
-
-        .comparison {
-            display: flex;
-            justify-content: center;
-            gap: 30px;
-            margin-top: 15px;
-            flex-wrap: wrap;
-        }
-
-        .comparison-item {
-            text-align: center;
-        }
-
-        .comparison-item .price {
             font-size: 1.5rem;
             font-weight: 700;
+            background: linear-gradient(135deg, var(--blue), var(--purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
-
-        .comparison-item .label {
-            font-size: 0.8rem;
-            color: #8892a6;
+        
+        .live-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-tertiary);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
         }
-
-        .strike {
-            text-decoration: line-through;
-            color: #ff6b6b;
+        
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--red);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
         }
-
-        .ours {
-            color: #00ff88;
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
-
-        /* Footer */
-        footer {
-            margin-top: auto;
-            padding-top: 40px;
-            color: #5a6270;
+        
+        /* Ticker Bar */
+        .ticker-bar {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 24px;
+            display: flex;
+            gap: 32px;
+            overflow-x: auto;
+        }
+        
+        .ticker {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: fit-content;
+        }
+        
+        .ticker-icon {
+            font-size: 1.5rem;
+        }
+        
+        .ticker-info h3 {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        
+        .ticker-info .price {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+        
+        .ticker-info .change {
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        .ticker-info .change.positive { color: var(--green); }
+        .ticker-info .change.negative { color: var(--red); }
+        
+        /* Main Grid */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            padding: 16px 24px;
+        }
+        
+        @media (max-width: 900px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Panel Styles */
+        .panel {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .panel-header {
+            background: var(--bg-tertiary);
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .panel-title {
             font-size: 0.9rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-
-        footer a {
-            color: #00ff88;
-            text-decoration: none;
+        
+        .panel-badge {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            background: var(--bg-secondary);
         }
-
-        /* Responsive */
-        @media (max-width: 600px) {
-            .logo { font-size: 2.5rem; }
-            h1 { font-size: 1.8rem; }
-            .description { font-size: 1rem; }
-            .signup-section { padding: 25px; }
-            .email-form { flex-direction: column; }
-            .email-input { min-width: 100%; }
+        
+        .panel-content {
+            padding: 16px;
+        }
+        
+        /* Sentiment Panel */
+        .sentiment-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .sentiment-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .sentiment-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .sentiment-score {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+        
+        .sentiment-score.bullish { color: var(--green); }
+        .sentiment-score.bearish { color: var(--red); }
+        
+        .sentiment-bar {
+            width: 100px;
+            height: 6px;
+            background: var(--bg-secondary);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .sentiment-bar-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+        
+        .sentiment-bar-fill.bullish { background: var(--green); }
+        .sentiment-bar-fill.bearish { background: var(--red); }
+        
+        /* Technical Panel */
+        .tech-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        
+        .tech-item {
+            background: var(--bg-tertiary);
+            padding: 12px;
+            border-radius: 8px;
+        }
+        
+        .tech-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+        
+        .tech-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        
+        .tech-value.overbought { color: var(--red); }
+        .tech-value.oversold { color: var(--green); }
+        .tech-value.neutral { color: var(--text-secondary); }
+        
+        .signal-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .signal-buy { background: rgba(63, 185, 80, 0.2); color: var(--green); }
+        .signal-sell { background: rgba(248, 81, 73, 0.2); color: var(--red); }
+        .signal-hold { background: rgba(210, 153, 34, 0.2); color: var(--orange); }
+        
+        /* News Panel */
+        .news-item {
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .news-item:last-child {
+            border-bottom: none;
+        }
+        
+        .news-time {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+        
+        .news-title {
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        
+        .news-impact {
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+        
+        .news-impact.positive { background: rgba(63, 185, 80, 0.2); color: var(--green); }
+        .news-impact.negative { background: rgba(248, 81, 73, 0.2); color: var(--red); }
+        .news-impact.neutral { background: rgba(139, 148, 158, 0.2); color: var(--text-secondary); }
+        
+        /* Prediction Panel */
+        .prediction-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .prediction-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .prediction-asset {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .prediction-price {
+            text-align: right;
+        }
+        
+        .prediction-target {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+        
+        .prediction-change {
+            font-size: 0.85rem;
+        }
+        
+        .prediction-change.positive { color: var(--green); }
+        .prediction-change.negative { color: var(--red); }
+        
+        /* Full Width Panel */
+        .full-width {
+            grid-column: 1 / -1;
+        }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 24px;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--border);
+            margin-top: 16px;
         }
     </style>
 </head>
 <body>
-    <div class="grid-bg"></div>
-    <div class="particles">
-        <div class="particle" style="left: 10%; animation-delay: 0s;"></div>
-        <div class="particle" style="left: 20%; animation-delay: 2s;"></div>
-        <div class="particle" style="left: 30%; animation-delay: 4s;"></div>
-        <div class="particle" style="left: 40%; animation-delay: 1s;"></div>
-        <div class="particle" style="left: 50%; animation-delay: 3s;"></div>
-        <div class="particle" style="left: 60%; animation-delay: 5s;"></div>
-        <div class="particle" style="left: 70%; animation-delay: 2.5s;"></div>
-        <div class="particle" style="left: 80%; animation-delay: 4.5s;"></div>
-        <div class="particle" style="left: 90%; animation-delay: 1.5s;"></div>
-    </div>
-
-    <div class="container">
-        <span class="logo-icon">📈</span>
+    <!-- Header -->
+    <header class="header">
         <div class="logo">TradingAI</div>
-        <p class="tagline">Professional Trading Dashboard</p>
-
-        <h1>The <span class="highlight">Bloomberg Terminal</span><br>Alternative for Everyone</h1>
-
-        <p class="description">
-            Real-time market data, AI-powered analytics, and advanced charting 
-            at a fraction of the cost. Built for traders who demand professional tools.
-        </p>
-
-        <div class="features">
-            <div class="feature-card">
-                <div class="feature-icon">📊</div>
-                <div class="feature-title">Real-Time Data</div>
-                <div class="feature-desc">Live market feeds with sub-second latency</div>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">🤖</div>
-                <div class="feature-title">AI Analytics</div>
-                <div class="feature-desc">Machine learning insights and predictions</div>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">📉</div>
-                <div class="feature-title">Advanced Charts</div>
-                <div class="feature-desc">TradingView-style charting tools</div>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">💰</div>
-                <div class="feature-title">Affordable</div>
-                <div class="feature-desc">Professional tools without the $24K price tag</div>
+        <div class="live-badge">
+            <span class="live-dot"></span>
+            <span>Live Feed</span>
+        </div>
+    </header>
+    
+    <!-- Ticker Bar -->
+    <div class="ticker-bar">
+        <div class="ticker">
+            <span class="ticker-icon">📈</span>
+            <div class="ticker-info">
+                <h3>AAPL</h3>
+                <div class="price">$198.45</div>
+                <div class="change positive">+2.3% ↑</div>
             </div>
         </div>
-
-        <div class="signup-section">
-            <h2 class="signup-title">🚀 Get Early Access</h2>
-            <p class="signup-desc">Be the first to know when we launch. Early subscribers get 50% off.</p>
-            <form class="email-form" action="https://formspree.io/f/placeholder" method="POST">
-                <input type="email" name="email" class="email-input" placeholder="Enter your email" required>
-                <input type="hidden" name="source" value="tradingai-coming-soon">
-                <button type="submit" class="submit-btn">Notify Me</button>
-            </form>
-
-            <div class="pricing-teaser">
-                <p>Professional trading tools shouldn't cost a fortune</p>
-                <div class="comparison">
-                    <div class="comparison-item">
-                        <div class="price strike">$2,000/mo</div>
-                        <div class="label">Bloomberg Terminal</div>
+        <div class="ticker">
+            <span class="ticker-icon">📊</span>
+            <div class="ticker-info">
+                <h3>BTC</h3>
+                <div class="price">$98,432</div>
+                <div class="change positive">+1.8% ↑</div>
+            </div>
+        </div>
+        <div class="ticker">
+            <span class="ticker-icon">🪙</span>
+            <div class="ticker-info">
+                <h3>ETH</h3>
+                <div class="price">$3,245</div>
+                <div class="change negative">-0.5% ↓</div>
+            </div>
+        </div>
+        <div class="ticker">
+            <span class="ticker-icon">🏢</span>
+            <div class="ticker-info">
+                <h3>NVDA</h3>
+                <div class="price">$875.20</div>
+                <div class="change positive">+4.2% ↑</div>
+            </div>
+        </div>
+        <div class="ticker">
+            <span class="ticker-icon">🏦</span>
+            <div class="ticker-info">
+                <h3>TSLA</h3>
+                <div class="price">$245.80</div>
+                <div class="change negative">-1.1% ↓</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Grid -->
+    <main class="main-grid">
+        <!-- Sentiment Panel (Romeo) -->
+        <div class="panel">
+            <div class="panel-header">
+                <div class="panel-title">
+                    🤖 Sentiment Analysis
+                    <span class="panel-badge">Romeo</span>
+                </div>
+            </div>
+            <div class="panel-content">
+                <div class="sentiment-item">
+                    <div class="sentiment-left">
+                        <span>AAPL</span>
+                        <span class="sentiment-score bullish">78% Bullish</span>
                     </div>
-                    <div class="comparison-item">
-                        <div class="price ours">$49/mo</div>
-                        <div class="label">TradingAI (est.)</div>
+                    <div class="sentiment-bar">
+                        <div class="sentiment-bar-fill bullish" style="width: 78%"></div>
+                    </div>
+                </div>
+                <div class="sentiment-item">
+                    <div class="sentiment-left">
+                        <span>BTC</span>
+                        <span class="sentiment-score bullish">65% Bullish</span>
+                    </div>
+                    <div class="sentiment-bar">
+                        <div class="sentiment-bar-fill bullish" style="width: 65%"></div>
+                    </div>
+                </div>
+                <div class="sentiment-item">
+                    <div class="sentiment-left">
+                        <span>ETH</span>
+                        <span class="sentiment-score bearish">55% Bearish</span>
+                    </div>
+                    <div class="sentiment-bar">
+                        <div class="sentiment-bar-fill bearish" style="width: 55%"></div>
+                    </div>
+                </div>
+                <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border);">
+                    <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 8px;">🔥 Top Themes</div>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <span class="signal-badge signal-buy">AI</span>
+                        <span class="signal-badge signal-buy">Earnings</span>
+                        <span class="signal-badge signal-hold">Fed</span>
                     </div>
                 </div>
             </div>
         </div>
-
-        <footer>
-            <p>© 2026 TradingAI | <a href="mailto:ai@ottawav.com">ai@ottawav.com</a></p>
-        </footer>
-    </div>
+        
+        <!-- Technical Analysis Panel (New Agent) -->
+        <div class="panel">
+            <div class="panel-header">
+                <div class="panel-title">
+                    📉 Technical Analysis
+                    <span class="panel-badge">Analyst</span>
+                </div>
+            </div>
+            <div class="panel-content">
+                <div style="margin-bottom: 12px;">
+                    <div style="font-weight: 600; margin-bottom: 8px;">BTC/USD</div>
+                    <div class="tech-grid">
+                        <div class="tech-item">
+                            <div class="tech-label">RSI (14)</div>
+                            <div class="tech-value overbought">72</div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-label">MACD</div>
+                            <div class="tech-value bullish">Bullish</div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-label">Support</div>
+                            <div class="tech-value">$95,000</div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-label">Resistance</div>
+                            <div class="tech-value">$102,000</div>
+                        </div>
+                    </div>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 1px solid var(--border);">
+                    <span style="font-size: 0.85rem; color: var(--text-secondary);">Signal:</span>
+                    <span class="signal-badge signal-hold">HOLD</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- News Panel -->
+        <div class="panel">
+            <div class="panel-header">
+                <div class="panel-title">
+                    📰 News Feed
+                </div>
+            </div>
+            <div class="panel-content" style="padding: 0;">
+                <div class="news-item">
+                    <div class="news-time">2 min ago</div>
+                    <div class="news-title">NVDA earnings beat estimates by 12%, AI demand surging</div>
+                    <span class="news-impact positive">Bullish</span>
+                </div>
+                <div class="news-item">
+                    <div class="news-time">15 min ago</div>
+                    <div class="news-title">Fed signals potential rate pause in upcoming meeting</div>
+                    <span class="news-impact neutral">Neutral</span>
+                </div>
+                <div class="news-item">
+                    <div class="news-time">1 hour ago</div>
+                    <div class="news-title">BTC ETF sees record inflows of $500M</div>
+                    <span class="news-impact positive">Bullish</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Predictions Panel -->
+        <div class="panel">
+            <div class="panel-header">
+                <div class="panel-title">
+                    🎯 7-Day Predictions
+                </div>
+            </div>
+            <div class="panel-content">
+                <div class="prediction-item">
+                    <div class="prediction-asset">
+                        <span>📈</span>
+                        <span>AAPL</span>
+                    </div>
+                    <div class="prediction-price">
+                        <div class="prediction-target">$205.00</div>
+                        <div class="prediction-change positive">+3.3%</div>
+                    </div>
+                </div>
+                <div class="prediction-item">
+                    <div class="prediction-asset">
+                        <span>📊</span>
+                        <span>BTC</span>
+                    </div>
+                    <div class="prediction-price">
+                        <div class="prediction-target">$101,000</div>
+                        <div class="prediction-change positive">+2.6%</div>
+                    </div>
+                </div>
+                <div class="prediction-item">
+                    <div class="prediction-asset">
+                        <span>🪙</span>
+                        <span>ETH</span>
+                    </div>
+                    <div class="prediction-price">
+                        <div class="prediction-target">$3,400</div>
+                        <div class="prediction-change positive">+4.8%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        TradingAI Dashboard • Data refreshes every 5 minutes • Not financial advice
+    </footer>
+    
+    <script>
+        // Simulate live updates
+        function randomChange(current, maxPercent = 0.5) {
+            const change = (Math.random() - 0.5) * 2 * maxPercent;
+            return current * (1 + change / 100);
+        }
+        
+        // Update prices periodically
+        setInterval(() => {
+            const prices = document.querySelectorAll('.ticker-info .price');
+            prices.forEach(price => {
+                const current = parseFloat(price.textContent.replace(/[$,]/g, ''));
+                const newPrice = randomChange(current, 0.1);
+                if (newPrice > 1000) {
+                    price.textContent = '$' + newPrice.toLocaleString('en-US', {maximumFractionDigits: 0});
+                } else {
+                    price.textContent = '$' + newPrice.toFixed(2);
+                }
+            });
+        }, 5000);
+    </script>
 </body>
 </html>
