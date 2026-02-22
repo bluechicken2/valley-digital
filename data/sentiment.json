@@ -1,30 +1,284 @@
 {
-  "timestamp": "2026-02-22T05:10:00.000000+00:00",
+  "timestamp": "2026-02-22T18:41:33.256989+00:00",
+  "market_status": {
+    "stock": "closed",
+    "crypto": "open",
+    "next_open": "2026-02-23T09:30:00-05:00"
+  },
+  "source": "Multi-Source RSS (6 sources)",
   "assets": {
     "AAPL": {
-      "sentiment": 90,
-      "trend": "bullish",
-      "confidence": 0.9
+      "sentiment": 52,
+      "trend": "slightly_bullish",
+      "confidence": 0.42,
+      "headlines_analyzed": 15,
+      "sources": [
+        "Google News"
+      ],
+      "matched_keywords": [
+        "buy",
+        "growth",
+        "drop",
+        "up",
+        "sell"
+      ],
+      "volume_trend": "low",
+      "volume_score": 34,
+      "trend_strength": 33,
+      "trend_strength_label": "Moderate",
+      "price_change_24h": 1.2,
+      "price_targets": {
+        "bull_case": 275.0,
+        "base_case": 250,
+        "bear_case": 225.0
+      },
+      "momentum_score": 49,
+      "momentum_label": "Neutral"
     },
     "NVDA": {
-      "sentiment": 90,
+      "sentiment": 69,
       "trend": "bullish",
-      "confidence": 0.9
+      "confidence": 0.46,
+      "headlines_analyzed": 15,
+      "sources": [
+        "Google News"
+      ],
+      "matched_keywords": [
+        "buy",
+        "up",
+        "sell",
+        "gain",
+        "growth"
+      ],
+      "volume_trend": "high",
+      "volume_score": 80,
+      "trend_strength": 52,
+      "trend_strength_label": "Moderate",
+      "price_change_24h": 2.5,
+      "price_targets": {
+        "bull_case": 165.0,
+        "base_case": 150,
+        "bear_case": 135.0
+      },
+      "momentum_score": 71,
+      "momentum_label": "Up"
     },
     "BTC": {
-      "sentiment": 65,
-      "trend": "bullish",
-      "confidence": 0.65
+      "sentiment": 53,
+      "trend": "slightly_bullish",
+      "confidence": 0.39,
+      "headlines_analyzed": 15,
+      "sources": [
+        "Google News"
+      ],
+      "matched_keywords": [
+        "buy",
+        "down",
+        "rebound",
+        "sell",
+        "rally"
+      ],
+      "volume_trend": "high",
+      "volume_score": 100,
+      "trend_strength": 49,
+      "trend_strength_label": "Moderate",
+      "price_change_24h": 0,
+      "price_targets": {
+        "bull_case": 106700.0,
+        "base_case": 97000,
+        "bear_case": 87300.0
+      },
+      "momentum_score": 60,
+      "momentum_label": "Up"
     },
     "ETH": {
-      "sentiment": 60,
-      "trend": "bullish",
-      "confidence": 0.6
+      "sentiment": 50,
+      "trend": "neutral",
+      "confidence": 0.43,
+      "headlines_analyzed": 15,
+      "sources": [
+        "CryptoNews",
+        "Google News",
+        "CoinDesk"
+      ],
+      "matched_keywords": [
+        "buy",
+        "rebound",
+        "sell",
+        "rally",
+        "up"
+      ],
+      "volume_trend": "normal",
+      "volume_score": 59,
+      "trend_strength": 39,
+      "trend_strength_label": "Moderate",
+      "price_change_24h": 0,
+      "price_targets": {
+        "bull_case": 3740.0,
+        "base_case": 3400,
+        "bear_case": 3060.0
+      },
+      "momentum_score": 50,
+      "momentum_label": "Neutral"
+    }
+  },
+  "alerts": {
+    "BTC": {
+      "support": 95000,
+      "resistance": 100000
+    },
+    "ETH": {
+      "support": 3200,
+      "resistance": 3500
+    },
+    "AAPL": {
+      "support": 240,
+      "resistance": 260
+    },
+    "NVDA": {
+      "support": 140,
+      "resistance": 160
+    }
+  },
+  "fear_greed_index": {
+    "value": 55,
+    "label": "Neutral",
+    "components": {
+      "sentiment_score": 56,
+      "market_momentum": 54.6,
+      "asset_trends": 55.4
+    }
+  },
+  "signal_summary": {
+    "signal": "HOLD",
+    "confidence": 1,
+    "weighted_score": 50.6
+  },
+  "market_regime": {
+    "regime": "Range-bound",
+    "confidence": 65
+  },
+  "correlations": {
+    "BTC-ETH": 0.7,
+    "AAPL-NVDA": 0.56,
+    "BTC-AAPL": 0.27
+  },
+  "risk_assessment": {
+    "risk_level": "Low",
+    "risk_score": 20,
+    "components": {
+      "volatility": 0.93,
+      "fear_greed_extremeness": 0,
+      "trend_weakness": 56.8
+    }
+  },
+  "volatility_index": {
+    "volatility_index": 39,
+    "label": "Normal",
+    "components": {
+      "price_volatility": 0.93,
+      "sentiment_range": 19,
+      "volume_score": 68.2
+    }
+  },
+  "alert_triggers": [],
+  "sector_analysis": {
+    "sector_performance": {
+      "Technology": 60.5,
+      "Crypto": 51.5
+    },
+    "sector_trend": {
+      "Technology": "bullish",
+      "Crypto": "neutral"
+    },
+    "leading_sector": "Technology"
+  },
+  "historical_comparison": {
+    "sentiment_change": 2,
+    "trend_direction": "stable",
+    "week_over_week": 0
+  },
+  "performance_score": {
+    "score": 55,
+    "label": "Fair",
+    "components": {
+      "prediction_accuracy": 54.2,
+      "signal_reliability": 43.0,
+      "data_quality": 70
     }
   },
   "overall": {
-    "sentiment": 76,
+    "sentiment": 56,
     "label": "Bullish"
   },
-  "themes": ["AI", "Earnings", "Tech"]
+  "metadata": {
+    "engine_version": "2.2",
+    "data_sources": [
+      "Google News",
+      "Yahoo Finance",
+      "CoinDesk",
+      "CryptoNews",
+      "Cointelegraph",
+      "Investing.com"
+    ],
+    "headlines_count": 190,
+    "last_updated": "2026-02-22T18:41:33.257026+00:00",
+    "next_update": "2026-02-22T18:46:33.257028+00:00"
+  },
+  "themes": [
+    "Crypto",
+    "AI/Tech",
+    "Semiconductors",
+    "Earnings"
+  ],
+  "recommendations": [
+    {
+      "action": "Hold",
+      "asset": "Portfolio",
+      "reason": "Mixed signals with Neutral sentiment - wait for clarity",
+      "timeframe": "medium"
+    },
+    {
+      "action": "Buy",
+      "asset": "NVDA",
+      "reason": "Strong momentum (Up) with positive trend",
+      "timeframe": "medium"
+    },
+    {
+      "action": "Watch",
+      "asset": "NVDA",
+      "reason": "Tech sector momentum key for market direction",
+      "timeframe": "medium"
+    }
+  ],
+  "top_headlines": [
+    {
+      "title": "DAE Capital nears deal to buy aircraft leasing firm Macquarie Airfinance, sources say",
+      "asset": "Stocks",
+      "sentiment_impact": "bullish"
+    },
+    {
+      "title": "Could Buying XRP Today Set You Up for Life?",
+      "asset": "NVDA",
+      "sentiment_impact": "bullish"
+    },
+    {
+      "title": "Quantum computing risk puts 7 million BTC including Satoshi Nakamoto's 1 million at stake - CoinDesk",
+      "asset": "BTC",
+      "sentiment_impact": "bearish"
+    },
+    {
+      "title": "Bitcoin see-saws around $68,000, DOGE, ETH slide as tariff uncertainty weighs on risk assets",
+      "asset": "BTC",
+      "sentiment_impact": "bearish"
+    },
+    {
+      "title": "XRP falls 4% as network sees biggest realized loss spike since 2022",
+      "asset": "BTC",
+      "sentiment_impact": "bearish"
+    }
+  ],
+  "headlines_fetched": 190,
+  "sources_active": 6,
+  "engine_version": "2.2"
 }
