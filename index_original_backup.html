@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TradingAI Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --border: #30363d;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --green: #3fb950;
+            --red: #f85149;
+            --blue: #58a6ff;
+            --purple: #a371f7;
+            --orange: #d29922;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+        
+        /* Header */
+        .header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--blue), var(--purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .live-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-tertiary);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+        
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--red);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        /* Ticker Bar */
+        .ticker-bar {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 24px;
+            display: flex;
+            gap: 32px;
+            overflow-x: auto;
+        }
+        
+        .ticker {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: fit-content;
+        }
+        
+        .ticker-icon {
+            font-size: 1.5rem;
+        }
+        
+        .ticker-info h3 {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        
+        .ticker-info .price {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+        
+        .ticker-info .change {
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        .ticker-info .change.positive { color: var(--green); }
+        .ticker-info .change.negative { color: var(--red); }
+        
+        /* Main Grid */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            padding: 16px 24px;
+        }
+        
+        @media (max-width: 900px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Panel Styles */
+        .panel {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .panel-header {
+            background: var(--bg-tertiary);
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .panel-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .panel-badge {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            background: var(--bg-secondary);
+        }
+        
+        .panel-content {
+            padding: 16px;
+        }
+        
+        /* Sentiment Panel */
+        .sentiment-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .sentiment-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .sentiment-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .sentiment-score {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+        
+        .sentiment-score.bullish { color: var(--green); }
+        .sentiment-score.bearish { color: var(--red); }
+        
+        .sentiment-bar {
+            width: 100px;
+            height: 6px;
+            background: var(--bg-secondary);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .sentiment-bar-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+        
+        .sentiment-bar-fill.bullish { background: var(--green); }
+        .sentiment-bar-fill.bearish { background: var(--red); }
+        
+        /* Technical Panel */
+        .tech-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        
+        .tech-item {
+            background: var(--bg-tertiary);
+            padding: 12px;
+            border-radius: 8px;
+        }
+        
+        .tech-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+        
+        .tech-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        
+        .tech-value.overbought { color: var(--red); }
+        .tech-value.oversold { color: var(--green); }
+        .tech-value.neutral { color: var(--text-secondary); }
+        
+        .signal-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .signal-buy { background: rgba(63, 185, 80, 0.2); color: var(--green); }
+        .signal-sell { background: rgba(248, 81, 73, 0.2); color: var(--red); }
+        .signal-hold { background: rgba(210, 153, 34, 0.2); color: var(--orange); }
+        
+        /* News Panel */
+        .news-item {
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .news-item:last-child {
+            border-bottom: none;
+        }
+        
+        .news-time {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+        
+        .news-title {
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        
+        .news-impact {
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+        
+        .news-impact.positive { background: rgba(63, 185, 80, 0.2); color: var(--green); }
+        .news-impact.negative { background: rgba(248, 81, 73, 0.2); color: var(--red); }
+        .news-impact.neutral { background: rgba(139, 148, 158, 0.2); color: var(--text-secondary); }
+        
+        /* Prediction Panel */
+        .prediction-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .prediction-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .prediction-asset {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .prediction-price {
+            text-align: right;
+        }
+        
+        .prediction-target {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+        
+        .prediction-change {
+            font-size: 0.85rem;
+        }
+        
+        .prediction-change.positive { color: var(--green); }
+        .prediction-change.negative { color: var(--red); }
+        
+        /* Full Width Panel */
+        .full-width {
+            grid-column: 1 / -1;
+        }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 24px;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--border);
+            margin-top: 16px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">TradingAI</div>
+        <div class="live-badge">
+            <span class="live-dot"></span>
+            <span>Live Feed</span>
+        </div>
+    </header>
+    
+    <!-- Ticker Bar -->
+    <div class="ticker-bar">
+        <div class="ticker">
+            <span class="ticker-icon">📈</span>
+            <div class="ticker-info">
+                <h3>AAPL</h3>
+                <div class="price">$198.45</div>
+                <div class="change positive">+2.3% ↑</div>
+            </div>
+        </div>
+        <div class="ticker">
+            <span class="ticker-icon">📊</span>
+            <div class="ticker-info">
+                <h3>BTC</h3>
+                <div class="price">$98,432</div>
+                <div class="change positive">+1.8% ↑</div>
+            </div>
+        </div>
+        <div class="ticker">
+            <span class="ticker-icon">🪙</span>
+            <div class="ticker-info">
+                <h3>ETH</h3>
+                <div class="price">$3,245</div>
+                <div class="change negative">-0.5% ↓</div>
+            </div>
+        </div>
+        <div class="ticker">
+            <span class="ticker-icon">🏢</span>
+            <div class="ticker-info">
+                <h3>NVDA</h3>
+                <div class="price">$875.20</div>
+                <div class="change positive">+4.2% ↑</div>
+            </div>
+        </div>
+        <div class="ticker">
+            <span class="ticker-icon">🏦</span>
+            <div class="ticker-info">
+                <h3>TSLA</h3>
+                <div class="price">$245.80</div>
+                <div class="change negative">-1.1% ↓</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Grid -->
+    <main class="main-grid">
+        <!-- Sentiment Panel (Romeo) -->
+        <div class="panel">
+            <div class="panel-header">
+                <div class="panel-title">
+                    🤖 Sentiment Analysis
+                    <span class="panel-badge">Romeo</span>
+                </div>
+            </div>
+            <div class="panel-content">
+                <div class="sentiment-item">
+                    <div class="sentiment-left">
+                        <span>AAPL</span>
+                        <span class="sentiment-score bullish">78% Bullish</span>
+                    </div>
+                    <div class="sentiment-bar">
+                        <div class="sentiment-bar-fill bullish" style="width: 78%"></div>
+                    </div>
+                </div>
+                <div class="sentiment-item">
+                    <div class="sentiment-left">
+                        <span>BTC</span>
+                        <span class="sentiment-score bullish">65% Bullish</span>
+                    </div>
+                    <div class="sentiment-bar">
+                        <div class="sentiment-bar-fill bullish" style="width: 65%"></div>
+                    </div>
+                </div>
+                <div class="sentiment-item">
+                    <div class="sentiment-left">
+                        <span>ETH</span>
+                        <span class="sentiment-score bearish">55% Bearish</span>
+                    </div>
+                    <div class="sentiment-bar">
+                        <div class="sentiment-bar-fill bearish" style="width: 55%"></div>
+                    </div>
+                </div>
+                <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border);">
+                    <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 8px;">🔥 Top Themes</div>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <span class="signal-badge signal-buy">AI</span>
+                        <span class="signal-badge signal-buy">Earnings</span>
+                        <span class="signal-badge signal-hold">Fed</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Technical Analysis Panel (New Agent) -->
+        <div class="panel">
+            <div class="panel-header">
+                <div class="panel-title">
+                    📉 Technical Analysis
+                    <span class="panel-badge">Analyst</span>
+                </div>
+            </div>
+            <div class="panel-content">
+                <div style="margin-bottom: 12px;">
+                    <div style="font-weight: 600; margin-bottom: 8px;">BTC/USD</div>
+                    <div class="tech-grid">
+                        <div class="tech-item">
+                            <div class="tech-label">RSI (14)</div>
+                            <div class="tech-value overbought">72</div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-label">MACD</div>
+                            <div class="tech-value bullish">Bullish</div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-label">Support</div>
+                            <div class="tech-value">$95,000</div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-label">Resistance</div>
+                            <div class="tech-value">$102,000</div>
+                        </div>
+                    </div>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 1px solid var(--border);">
+                    <span style="font-size: 0.85rem; color: var(--text-secondary);">Signal:</span>
+                    <span class="signal-badge signal-hold">HOLD</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- News Panel -->
+        <div class="panel">
+            <div class="panel-header">
+                <div class="panel-title">
+                    📰 News Feed
+                </div>
+            </div>
+            <div class="panel-content" style="padding: 0;">
+                <div class="news-item">
+                    <div class="news-time">2 min ago</div>
+                    <div class="news-title">NVDA earnings beat estimates by 12%, AI demand surging</div>
+                    <span class="news-impact positive">Bullish</span>
+                </div>
+                <div class="news-item">
+                    <div class="news-time">15 min ago</div>
+                    <div class="news-title">Fed signals potential rate pause in upcoming meeting</div>
+                    <span class="news-impact neutral">Neutral</span>
+                </div>
+                <div class="news-item">
+                    <div class="news-time">1 hour ago</div>
+                    <div class="news-title">BTC ETF sees record inflows of $500M</div>
+                    <span class="news-impact positive">Bullish</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Predictions Panel -->
+        <div class="panel">
+            <div class="panel-header">
+                <div class="panel-title">
+                    🎯 7-Day Predictions
+                </div>
+            </div>
+            <div class="panel-content">
+                <div class="prediction-item">
+                    <div class="prediction-asset">
+                        <span>📈</span>
+                        <span>AAPL</span>
+                    </div>
+                    <div class="prediction-price">
+                        <div class="prediction-target">$205.00</div>
+                        <div class="prediction-change positive">+3.3%</div>
+                    </div>
+                </div>
+                <div class="prediction-item">
+                    <div class="prediction-asset">
+                        <span>📊</span>
+                        <span>BTC</span>
+                    </div>
+                    <div class="prediction-price">
+                        <div class="prediction-target">$101,000</div>
+                        <div class="prediction-change positive">+2.6%</div>
+                    </div>
+                </div>
+                <div class="prediction-item">
+                    <div class="prediction-asset">
+                        <span>🪙</span>
+                        <span>ETH</span>
+                    </div>
+                    <div class="prediction-price">
+                        <div class="prediction-target">$3,400</div>
+                        <div class="prediction-change positive">+4.8%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        TradingAI Dashboard • Data refreshes every 5 minutes • Not financial advice
+    </footer>
+    
+    <script>
+        // Simulate live updates
+        function randomChange(current, maxPercent = 0.5) {
+            const change = (Math.random() - 0.5) * 2 * maxPercent;
+            return current * (1 + change / 100);
+        }
+        
+        // Update prices periodically
+        setInterval(() => {
+            const prices = document.querySelectorAll('.ticker-info .price');
+            prices.forEach(price => {
+                const current = parseFloat(price.textContent.replace(/[$,]/g, ''));
+                const newPrice = randomChange(current, 0.1);
+                if (newPrice > 1000) {
+                    price.textContent = '$' + newPrice.toLocaleString('en-US', {maximumFractionDigits: 0});
+                } else {
+                    price.textContent = '$' + newPrice.toFixed(2);
+                }
+            });
+        }, 5000);
+    </script>
+</body>
+</html>

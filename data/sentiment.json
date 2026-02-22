@@ -1,0 +1,30 @@
+{
+  "timestamp": "2026-02-22T05:10:00.000000+00:00",
+  "assets": {
+    "AAPL": {
+      "sentiment": 90,
+      "trend": "bullish",
+      "confidence": 0.9
+    },
+    "NVDA": {
+      "sentiment": 90,
+      "trend": "bullish",
+      "confidence": 0.9
+    },
+    "BTC": {
+      "sentiment": 65,
+      "trend": "bullish",
+      "confidence": 0.65
+    },
+    "ETH": {
+      "sentiment": 60,
+      "trend": "bullish",
+      "confidence": 0.6
+    }
+  },
+  "overall": {
+    "sentiment": 76,
+    "label": "Bullish"
+  },
+  "themes": ["AI", "Earnings", "Tech"]
+}
