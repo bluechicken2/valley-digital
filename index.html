@@ -1126,6 +1126,112 @@
             }
             .starfield { display: none; }
         }
+    
+
+        /* ============================================
+           SENTIMENT DISPLAY
+           ============================================ */
+        .sentiment-gauge {
+            width: 120px;
+            height: 60px;
+            margin: 0 auto 16px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sentiment-gauge-bg {
+            width: 120px;
+            height: 60px;
+            border-radius: 60px 60px 0 0;
+            background: conic-gradient(from 180deg at 50% 100%, 
+                var(--solar-red) 0deg, 
+                var(--aurora-gold) 90deg, 
+                var(--aurora-green) 180deg);
+            position: absolute;
+            top: 0; left: 0;
+        }
+
+        .sentiment-gauge-needle {
+            width: 4px;
+            height: 50px;
+            background: var(--text-starlight);
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform-origin: bottom center;
+            transform: translateX(-50%) rotate(0deg);
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 2px;
+            z-index: 2;
+        }
+
+        .sentiment-gauge-center {
+            width: 16px;
+            height: 16px;
+            background: var(--galaxy-nebula);
+            border: 3px solid var(--text-starlight);
+            border-radius: 50%;
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 3;
+        }
+
+        .sentiment-overall {
+            text-align: center;
+            padding: 16px;
+            background: rgba(26, 34, 53, 0.5);
+            border-radius: 12px;
+            margin-bottom: 16px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .sentiment-overall-value {
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .sentiment-overall-value.bullish { color: var(--aurora-green); }
+        .sentiment-overall-value.bearish { color: var(--solar-red); }
+        .sentiment-overall-value.neutral { color: var(--aurora-gold); }
+
+        .sentiment-overall-label {
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            color: var(--text-twilight);
+        }
+
+        .sentiment-themes {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+            justify-content: center;
+        }
+
+        .sentiment-theme-tag {
+            padding: 4px 12px;
+            background: rgba(168, 85, 247, 0.15);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 16px;
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--nebula-purple);
+        }
+
+        .sentiment-last-update {
+            text-align: center;
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            color: var(--text-shadow);
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--glass-border);
+        }
+
     </style>
     <!-- Chart.js for live charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
@@ -1350,7 +1456,32 @@
         </section>
 
         <!-- Features -->
-        <section class="features-grid">
+        
+        <!-- Sentiment Analysis Panel -->
+        <section class="sentiment-section">
+            <div class="sentiment-overall">
+                    <div class="sentiment-gauge">
+                        <div class="sentiment-gauge-bg"></div>
+                        <div class="sentiment-gauge-needle" id="sentiment-needle"></div>
+                        <div class="sentiment-gauge-center"></div>
+                    </div>
+                    <div class="sentiment-overall-value bullish" id="overall-sentiment-value">--</div>
+                    <div class="sentiment-overall-label" id="overall-sentiment-label">Loading...</div>
+                    <div class="sentiment-themes" id="sentiment-themes"></div>
+                </div>
+
+                <!-- Asset Sentiments (Dynamic) -->
+                <div id="sentiment-assets">
+                    <!-- Populated by JavaScript -->
+                </div>
+
+                <div class="sentiment-last-update">
+                    Last updated: <span id="sentiment-timestamp">--</span>
+                </div>
+            </div>
+        </div>
+        </section>
+<section class="features-grid">
             <div class="feature-card">
                 <div class="feature-icon" style="background: rgba(63, 185, 80, 0.2);">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--brand-green)" stroke-width="2">
@@ -1401,6 +1532,93 @@
     </footer>
 
     <script>
+        async function fetchSentiment() {
+            try {
+                const response = await fetch('data/sentiment.json?t=' + Date.now());
+                if (!response.ok) throw new Error('Failed to fetch sentiment');
+
+                const data = await response.json();
+                updateSentimentDisplay(data);
+            } catch (error) {
+                console.error('Sentiment fetch error:', error);
+            }
+        }
+
+        function updateSentimentDisplay(data) {
+            // Update overall sentiment
+            const overallValue = document.getElementById('overall-sentiment-value');
+            const overallLabel = document.getElementById('overall-sentiment-label');
+            const needle = document.getElementById('sentiment-needle');
+            const themesEl = document.getElementById('sentiment-themes');
+            const assetsEl = document.getElementById('sentiment-assets');
+            const timestampEl = document.getElementById('sentiment-timestamp');
+
+            // Overall sentiment value
+            const sentiment = data.overall?.sentiment || 50;
+            const label = data.overall?.label || 'Neutral';
+
+            overallValue.textContent = sentiment + '%';
+            overallValue.className = 'sentiment-overall-value';
+
+            if (sentiment >= 60) {
+                overallValue.classList.add('bullish');
+                overallLabel.textContent = label + ' 📈';
+            } else if (sentiment <= 40) {
+                overallValue.classList.add('bearish');
+                overallLabel.textContent = label + ' 📉';
+            } else {
+                overallValue.classList.add('neutral');
+                overallLabel.textContent = label + ' ⏸️';
+            }
+
+            // Rotate needle (-90deg = 0, 0deg = 50, +90deg = 100)
+            const needleRotation = (sentiment / 100) * 180 - 90;
+            needle.style.transform = `translateX(-50%) rotate(${needleRotation}deg)`;
+
+            // Update themes
+            const themes = data.themes || [];
+            themesEl.innerHTML = themes.map(t => 
+                `<span class="sentiment-theme-tag">${t}</span>`
+            ).join('');
+
+            // Update assets
+            const assets = data.assets || {};
+            assetsEl.innerHTML = Object.entries(assets).map(([symbol, info]) => {
+                const score = info.sentiment || 50;
+                const trend = info.trend || 'neutral';
+                const confidence = info.confidence || 0;
+                const isBullish = trend === 'bullish' || score >= 50;
+
+                return `
+                    <div class="sentiment-item">
+                        <div class="sentiment-left">
+                            <span class="sentiment-asset">${symbol}</span>
+                            <span class="sentiment-score ${isBullish ? 'bullish' : 'bearish'}">${score}% ${trend}</span>
+                        </div>
+                        <div class="sentiment-bar">
+                            <div class="sentiment-bar-fill ${isBullish ? 'bullish' : 'bearish'}" style="width: ${score}%"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Update timestamp
+            if (data.timestamp) {
+                const date = new Date(data.timestamp);
+                timestampEl.textContent = date.toLocaleTimeString();
+            }
+        }
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+        document.addEventListener('DOMContentLoaded', () => {
+            initCharts();
+            fetchSentiment();  // Load sentiment on page load
+            setInterval(updatePrices, 5000);
+            setInterval(updateCharts, 3000);
+            setInterval(fetchSentiment, 5 * 60 * 1000);
+
     // ============================================
     // STATE & CONFIGURATION
     // ============================================
