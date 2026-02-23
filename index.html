@@ -928,7 +928,7 @@
             var h = '';
             for(var i=0;i<data.length;i++) {
                 var a = data[i];
-                h += '<div class="holding-row"><span><strong>'+a.sym+'</strong> - '+a.name+'</span><span><input type="number" class="holding-input" id="hold-'+a.sym+'" value="'+a.hold+'" step="0.01" onchange="updateHolding(''+a.sym+'',this.value)"> '+a.type+'</span></div>';
+                h += '<div class="holding-row"><span><strong>'+a.sym+'</strong> - '+a.name+'</span><span><input type="number" class="holding-input" id="hold-'+a.sym+'" value="'+a.hold+'" step="0.01" data-sym="'+a.sym+'" onchange="updateHolding(this.dataset.sym,this.value)"> '+a.type+'</span></div>';
             }
             $('holdings-list').innerHTML = h;
             $('portfolio-modal').classList.add('show');
@@ -961,7 +961,7 @@
         window.hideAddAsset = function() { $('add-asset-modal').classList.remove('show'); };
 
         window.searchAssets = function() {
-            var q = ($('asset-search')?.value||'').toLowerCase();
+            var q = ''; try{q=$('asset-search').value||'';}catch(e){} q=q.toLowerCase();
             var popular = [
                 {sym:'BTC',name:'Bitcoin',type:'crypto'},
                 {sym:'ETH',name:'Ethereum',type:'crypto'},
@@ -989,9 +989,9 @@
             for(var i=0;i<filtered.length;i++) {
                 var a = filtered[i];
                 var exists = data.find(function(d){return d.sym===a.sym;});
-                h += '<div class="asset-option" onclick="addAssetToList(''+a.sym+'',''+a.name+'',''+a.type+'')"><span><strong>'+a.sym+'</strong> - '+a.name+'</span><span style="color:'+(exists?'var(--green)':'var(--text-dim)')+'">'+(exists?'In Portfolio':a.type.toUpperCase())+'</span></div>';
+                h += '<div class="asset-option" data-sym="'+a.sym+'" data-name="'+a.name+'" data-type="'+a.type+'"><span><strong>'+a.sym+'</strong> - '+a.name+'</span><span style="color:'+(exists?'var(--green)':'var(--text-dim)')+'">'+(exists?'In Portfolio':a.type.toUpperCase())+'</span></div>';
             }
-            $('asset-options').innerHTML = h;
+            $('asset-options').innerHTML = h; document.querySelectorAll('.asset-option').forEach(function(el){el.onclick=function(){addAssetToList(this.dataset.sym,this.dataset.name,this.dataset.type);};});
         };
 
         window.addAssetToList = function(sym, name, type) {
