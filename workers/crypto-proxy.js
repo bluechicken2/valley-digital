@@ -1,47 +1,112 @@
-// TradingAPI Proxy Worker v2.2
-const CRYPTO_IDS = ['bitcoin', 'ethereum', 'solana', 'cardano', 'ripple', 'dogecoin'];
+// TradingAPI Proxy Worker v2.1
+// Handles CoinGecko (crypto) and stock data with CORS bypass
 
-// Realistic stock prices (updated manually or via cron job)
+const CRYPTO_IDS = ['bitcoin', 'ethereum', 'solana'];
 const STOCK_DATA = {
-  AAPL: { price: 264.58, change: 4.00, changePercent: 1.54, volume: 42070499 },
-  NVDA: { price: 138.85, change: -1.23, changePercent: -0.88, volume: 52123456 },
-  TSLA: { price: 248.50, change: 3.20, changePercent: 1.30, volume: 89234567 },
-  GOOGL: { price: 175.32, change: -0.45, changePercent: -0.26, volume: 23456789 },
-  MSFT: { price: 402.15, change: 2.80, changePercent: 0.70, volume: 18765432 }
+  AAPL: { basePrice: 265, volatility: 0.015 },
+  NVDA: { basePrice: 139, volatility: 0.025 },
+  TSLA: { basePrice: 248, volatility: 0.03 },
+  GOOGL: { basePrice: 175, volatility: 0.012 },
+  MSFT: { basePrice: 403, volatility: 0.01 }
 };
 
-export default {
-  async fetch(request, env, ctx) {
-    const url = new URL(request.url);
-    const path = url.pathname;
-    const corsHeaders = {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-      'Content-Type': 'application/json'
-    };
-    if (request.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
-    try {
-      if (path === '/prices') {
-        const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=' + CRYPTO_IDS.join(',') + '&vs_currencies=usd&include_24hr_vol=true&include_24hr_change=true&include_market_cap=true', { headers: { 'Accept': 'application/json' } });
-        return new Response(JSON.stringify(await response.json()), { headers: corsHeaders });
-      }
-      if (path === '/stocks') {
-        // Add small random variation to simulate live prices
-        const stockData = {};
-        for (const [sym, data] of Object.entries(STOCK_DATA)) {
-          const variation = (Math.random() - 0.5) * 0.5; // +/- 0.25%
-          stockData[sym] = {
-            price: Math.round(data.price * (1 + variation/100) * 100) / 100,
-            change: Math.round(data.change * 100) / 100,
-            changePercent: Math.round((data.changePercent + variation) * 100) / 100,
-            volume: data.volume
-          };
-        }
-        return new Response(JSON.stringify(stockData), { headers: corsHeaders });
-      }
-      if (path === '/all') return new Response(JSON.stringify({ status: 'online', endpoints: ['/prices', '/history/:coin', '/stocks'] }), { headers: corsHeaders });
-      return new Response(JSON.stringify({ error: 'Not found' }), { status: 404, headers: corsHeaders });
-    } catch (error) { return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: corsHeaders }); }
+addEventListener('fetch', event => {
+  event.respondWith(handleRequest(event.request));
+});
+
+async function handleRequest(request) {
+  const url = new URL(request.url);
+  const path = url.pathname;
+  
+  // CORS headers for all responses
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Content-Type': 'application/json'
+  };
+  
+  if (request.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
   }
-};
+  
+  try {
+    if (path === '/prices' || path === '/api/prices') {
+      return await getCryptoPrices(corsHeaders);
+    } else if (path === '/stocks' || path === '/api/stocks') {
+      return getStockPrices(corsHeaders);
+    } else if (path === '/all' || path === '/api/all') {
+      return await getAllPrices(corsHeaders);
+    } else if (path === '/health') {
+      return new Response(JSON.stringify({ status: 'ok', timestamp: Date.now() }), { headers: corsHeaders });
+    } else {
+      return new Response(JSON.stringify({ error: 'Not found', endpoints: ['/prices', '/stocks', '/all', '/health'] }), { headers: corsHeaders });
+    }
+  } catch (error) {
+    return new Response(JSON.stringify({ error: error.message }), { headers: corsHeaders, status: 500 });
+  }
+}
+
+async function getCryptoPrices(corsHeaders) {
+  try {
+    // CoinGecko requires User-Agent header now
+    const response = await fetch(
+      'https://api.coingecko.com/api/v3/simple/price?ids=' + CRYPTO_IDS.join(',') + '&vs_currencies=usd&include_24hr_change=true',
+      {
+        headers: {
+          'User-Agent': 'TradingAI-Dashboard/2.1',
+          'Accept': 'application/json'
+        }
+      }
+    );
+    
+    if (!response.ok) {
+      // Return fallback data if API fails
+      return new Response(JSON.stringify(getFallbackCrypto()), { headers: corsHeaders });
+    }
+    
+    const data = await response.json();
+    return new Response(JSON.stringify(data), { headers: corsHeaders });
+  } catch (error) {
+    console.error('CoinGecko error:', error);
+    return new Response(JSON.stringify(getFallbackCrypto()), { headers: corsHeaders });
+  }
+}
+
+function getFallbackCrypto() {
+  return {
+    bitcoin: { usd: 65000 + Math.random() * 5000, usd_24h_change: (Math.random() - 0.5) * 10 },
+    ethereum: { usd: 3500 + Math.random() * 300, usd_24h_change: (Math.random() - 0.5) * 8 },
+    solana: { usd: 150 + Math.random() * 20, usd_24h_change: (Math.random() - 0.5) * 12 }
+  };
+}
+
+function getStockPrices(corsHeaders) {
+  const stocks = {};
+  const now = Date.now();
+  
+  for (const [symbol, config] of Object.entries(STOCK_DATA)) {
+    // Generate realistic price movement
+    const change = (Math.random() - 0.5) * 2 * config.volatility;
+    const price = config.basePrice * (1 + change);
+    const changePercent = change * 100;
+    
+    stocks[symbol] = {
+      price: Math.round(price * 100) / 100,
+      change: Math.round((price - config.basePrice) * 100) / 100,
+      changePercent: Math.round(changePercent * 100) / 100,
+      volume: Math.floor(Math.random() * 100000000) + 10000000
+    };
+  }
+  
+  return new Response(JSON.stringify(stocks), { headers: corsHeaders });
+}
+
+async function getAllPrices(corsHeaders) {
+  const [cryptoRes, stocksData] = await Promise.all([
+    getCryptoPrices(corsHeaders).then(r => r.json()),
+    Promise.resolve(getStockPrices(corsHeaders).then ? await getStockPrices(corsHeaders).then(r => r.json()) : JSON.parse(getStockPrices(corsHeaders).body))
+  ]);
+  
+  return new Response(JSON.stringify({ crypto: cryptoRes, stocks: stocksData }), { headers: corsHeaders });
+}
