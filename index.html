@@ -674,7 +674,7 @@
         window.selectTier = function(t) { document.querySelectorAll('.tier-option').forEach(function(o){o.classList.remove('selected');});event.currentTarget.classList.add('selected'); };
         
         function checkSession() { var t=localStorage.getItem('sb_token'),u=localStorage.getItem('sb_user'); if(t&&u){user=JSON.parse(u);userTier='pro';return true;} return false; }
-        function showDashboard() { $('loading').style.display='none';$('auth-login').style.display='none';$('auth-signup').style.display='none';$('auth-reset').style.display='none';$('dashboard').style.display='block';$('dashboard').classList.add('fade-in'); if(user){$('header-email').textContent=user.email;$('profile-email').textContent=user.email;$('profile-tier').textContent=userTier.toUpperCase();$('profile-since').textContent=new Date(user.created_at||Date.now()).toLocaleDateString();} renderAll();refreshPrices();setInterval(refreshPrices,60000);updateTime();setInterval(updateTime,1000); }
+        async function showDashboard() { $('loading').style.display='none';$('auth-login').style.display='none';$('auth-signup').style.display='none';$('auth-reset').style.display='none';$('dashboard').style.display='block';$('dashboard').classList.add('fade-in'); if(user){$('header-email').textContent=user.email;$('profile-email').textContent=user.email;$('profile-tier').textContent=userTier.toUpperCase();$('profile-since').textContent=new Date(user.created_at||Date.now()).toLocaleDateString();await loadPortfolioFromSupabase();} renderAll();refreshPrices();setInterval(refreshPrices,60000);updateTime();setInterval(updateTime,1000); }
         function updateTime() { $('time').textContent = new Date().toLocaleTimeString(); }
         
         async function refreshPrices() {
@@ -996,7 +996,7 @@
             $('asset-options').innerHTML = h; document.querySelectorAll('.asset-option').forEach(function(el){el.onclick=function(){addAssetToList(this.dataset.sym,this.dataset.name,this.dataset.type);};});
         };
 
-        window.addAssetToList = function(sym, name, type) {
+        window.addAssetToList = async function(sym, name, type) {
             var exists = data.find(function(d){return d.sym===sym;});
             if(exists) {
                 showToast(sym+' already in portfolio');
@@ -1011,8 +1011,10 @@
                 hold:0, fav:false,
                 mktCap:0, vol24h:0
             });
+            await savePortfolioToSupabase();
             renderAssets();
             renderPortfolio();
+            renderAlloc();
             searchAssets();
             hideAddAsset();
             showToast(sym+' added to portfolio!');
@@ -1048,7 +1050,95 @@
             $('pr-branch').value=''; $('pr-title').value=''; $('pr-desc').value='';
         };
 
+        // Save portfolio to Supabase
+        async function savePortfolioToSupabase() {
+            var token = localStorage.getItem('sb_token');
+            if(!token || !user) return;
+
+            var holdings = {};
+            for(var i=0;i<data.length;i++) {
+                if(data[i].hold > 0) {
+                    holdings[data[i].sym] = data[i].hold;
+                }
+            }
+
+            try {
+                // First, delete existing portfolio entries for this user
+                await fetch(SUPABASE_URL+'/rest/v1/portfolios?user_id=eq.'+user.id, {
+                    method: 'DELETE',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': 'Bearer '+token,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=minimal'
+                    }
+                });
+
+                // Then insert new entries
+                var entries = [];
+                for(var sym in holdings) {
+                    var asset = data.find(function(a){return a.sym===sym;});
+                    if(asset) {
+                        entries.push({
+                            user_id: user.id,
+                            symbol: sym,
+                            holdings: holdings[sym],
+                            favorite: asset.fav || false
+                        });
+                    }
+                }
+
+                if(entries.length > 0) {
+                    await fetch(SUPABASE_URL+'/rest/v1/portfolios', {
+                        method: 'POST',
+                        headers: {
+                            'apikey': SUPABASE_KEY,
+                            'Authorization': 'Bearer '+token,
+                            'Content-Type': 'application/json',
+                            'Prefer': 'return=minimal'
+                        },
+                        body: JSON.stringify(entries)
+                    });
+                }
+
+                console.log('Portfolio saved to Supabase');
+            } catch(e) {
+                console.error('Failed to save portfolio:', e);
+            }
+        }
+
+        // Load portfolio from Supabase
+        async function loadPortfolioFromSupabase() {
+            var token = localStorage.getItem('sb_token');
+            if(!token || !user) return;
+
+            try {
+                var r = await fetch(SUPABASE_URL+'/rest/v1/portfolios?user_id=eq.'+user.id, {
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': 'Bearer '+token
+                    }
+                });
+
+                if(r.ok) {
+                    var portfolio = await r.json();
+                    for(var i=0;i<portfolio.length;i++) {
+                        var entry = portfolio[i];
+                        var asset = data.find(function(a){return a.sym===entry.symbol;});
+                        if(asset) {
+                            asset.hold = entry.holdings || 0;
+                            asset.fav = entry.favorite || false;
+                        }
+                    }
+                    console.log('Portfolio loaded from Supabase:', portfolio.length, 'assets');
+                }
+            } catch(e) {
+                console.error('Failed to load portfolio:', e);
+            }
+        }
+
         function loadSavedHoldings() {
+            // Legacy localStorage fallback
             var saved = localStorage.getItem('holdings');
             if(saved) {
                 var holdings = JSON.parse(saved);
