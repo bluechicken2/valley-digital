@@ -3,323 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TradingAI - Neural Nexus Intelligence Platform</title>
+    <title>TradingAI - Neural Nexus v2.0</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.4/build/global/luxon.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.3.1/dist/chartjs-adapter-luxon.umd.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
         :root {
-            --bg-void: #030508;
-            --bg-deep: #0a0d14;
-            --bg-panel: #0f1218;
-            --bg-surface: #151922;
-            --bg-elevated: #1a1f2a;
-            --border-dim: #1e242f;
-            --border-mid: #2a3241;
-            --border-bright: #3d4a5f;
-            --text-dim: #6a7a8e;
-            --text-sec: #9aacc0;
-            --text-prim: #d0dce8;
-            --text-bright: #ffffff;
-            --cyan: #00f0ff;
-            --cyan-dim: #00a8b3;
-            --purple: #a855f7;
-            --purple-dim: #7c3aed;
-            --pink: #ec4899;
-            --green: #00ff88;
-            --green-dim: #00cc6a;
-            --red: #ff3366;
-            --red-dim: #cc2952;
-            --gold: #ffd700;
-            --orange: #ff8c00;
-            --font-dis: 'Orbitron', sans-serif;
-            --font-body: 'Space Grotesk', sans-serif;
-            --font-mono: 'JetBrains Mono', monospace;
+            --bg-void: #030508; --bg-deep: #0a0d14; --bg-panel: #0f1218; --bg-surface: #151922; --bg-elevated: #1a1f2a;
+            --border-dim: #1e242f; --border-mid: #2a3241; --border-bright: #3d4a5f;
+            --text-dim: #6a7a8e; --text-sec: #9aacc0; --text-prim: #d0dce8; --text-bright: #ffffff;
+            --cyan: #00f0ff; --cyan-dim: #00a8b3; --purple: #a855f7; --purple-dim: #7c3aed;
+            --pink: #ec4899; --green: #00ff88; --green-dim: #00cc6a; --red: #ff3366; --red-dim: #cc2952;
+            --gold: #ffd700; --orange: #ff8c00;
+            --font-dis: 'Orbitron', sans-serif; --font-body: 'Space Grotesk', sans-serif; --font-mono: 'JetBrains Mono', monospace;
         }
-        
-        body {
-            background: var(--bg-void);
-            color: var(--text-prim);
-            font-family: var(--font-body);
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-        
-        body::before {
-            content: "";
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 240, 255, 0.008) 2px, rgba(0, 240, 255, 0.008) 4px);
-            pointer-events: none;
-            z-index: 9999;
-        }
-        
-        .header {
-            background: linear-gradient(180deg, rgba(10, 13, 20, 0.98), rgba(10, 13, 20, 0.9));
-            border-bottom: 1px solid var(--border-mid);
-            padding: 16px 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            backdrop-filter: blur(20px);
-        }
-        
-        .logo {
-            font-family: var(--font-dis);
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--cyan);
-            text-shadow: 0 0 20px rgba(0, 240, 255, 0.5);
-            letter-spacing: 3px;
-        }
-        
+        body { background: var(--bg-void); color: var(--text-prim); font-family: var(--font-body); min-height: 100vh; overflow-x: hidden; }
+        body::before { content: ""; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 240, 255, 0.008) 2px, rgba(0, 240, 255, 0.008) 4px); pointer-events: none; z-index: 9999; }
+        .header { background: linear-gradient(180deg, rgba(10, 13, 20, 0.98), rgba(10, 13, 20, 0.9)); border-bottom: 1px solid var(--border-mid); padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; backdrop-filter: blur(20px); }
+        .logo { font-family: var(--font-dis); font-size: 1.5rem; font-weight: 700; color: var(--cyan); text-shadow: 0 0 20px rgba(0, 240, 255, 0.5); letter-spacing: 3px; cursor: pointer; }
         .logo span { color: var(--text-dim); font-weight: 400; }
-        
         .header-status { display: flex; gap: 28px; align-items: center; }
-        
-        .status-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-family: var(--font-mono);
-            font-size: 0.85rem;
-            color: var(--text-sec);
-        }
-        
-        .status-dot {
-            width: 8px; height: 8px;
-            border-radius: 50%;
-            background: var(--green);
-            box-shadow: 0 0 10px var(--green);
-            animation: pulse 2s infinite;
-        }
-        
+        .status-item { display: flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 0.85rem; color: var(--text-sec); }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 10px var(--green); animation: pulse 2s infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-        
-        .ticker-wrap {
-            background: linear-gradient(90deg, rgba(0, 240, 255, 0.04), rgba(168, 85, 247, 0.04));
-            border-bottom: 1px solid var(--border-dim);
-            overflow: hidden;
-            height: 42px;
-        }
-        
-        .ticker {
-            display: flex;
-            animation: ticker 60s linear infinite;
-            height: 100%;
-            align-items: center;
-        }
-        
+        .alert-bell { position: relative; cursor: pointer; padding: 8px; border-radius: 8px; background: var(--bg-surface); border: 1px solid var(--border-dim); transition: all 0.2s; }
+        .alert-bell:hover { border-color: var(--cyan-dim); }
+        .alert-bell .badge { position: absolute; top: -4px; right: -4px; width: 18px; height: 18px; background: var(--red); border-radius: 50%; font-size: 0.65rem; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; }
+        .ticker-wrap { background: linear-gradient(90deg, rgba(0, 240, 255, 0.04), rgba(168, 85, 247, 0.04)); border-bottom: 1px solid var(--border-dim); overflow: hidden; height: 42px; }
+        .ticker { display: flex; animation: ticker 60s linear infinite; height: 100%; align-items: center; }
         @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-        
-        .ticker-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 0 36px;
-            font-family: var(--font-mono);
-            font-size: 0.9rem;
-            white-space: nowrap;
-        }
-        
+        .ticker-item { display: flex; align-items: center; gap: 10px; padding: 0 36px; font-family: var(--font-mono); font-size: 0.9rem; white-space: nowrap; cursor: pointer; }
+        .ticker-item:hover { color: var(--cyan); }
         .ticker-sym { color: var(--cyan); font-weight: 600; }
         .ticker-price { color: var(--text-prim); }
         .ticker-up { color: var(--green); }
         .ticker-down { color: var(--red); }
-        
-        .main {
-            display: grid;
-            grid-template-columns: 340px 1fr 340px;
-            gap: 18px;
-            padding: 18px;
-            max-width: 1920px;
-            margin: 0 auto;
-        }
-        
-        .panel {
-            background: var(--bg-panel);
-            border: 1px solid var(--border-dim);
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        
-        .panel-header {
-            background: linear-gradient(90deg, rgba(0, 240, 255, 0.1), transparent);
-            border-bottom: 1px solid var(--border-dim);
-            padding: 14px 18px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .panel-title {
-            font-family: var(--font-dis);
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: var(--cyan);
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-        }
-        
-        .panel-badge {
-            font-family: var(--font-mono);
-            font-size: 0.75rem;
-            padding: 4px 10px;
-            background: rgba(0, 240, 255, 0.12);
-            border: 1px solid var(--cyan-dim);
-            border-radius: 5px;
-            color: var(--cyan);
-        }
-        
+        .ticker-star { color: var(--gold); margin-right: 4px; }
+        .main { display: grid; grid-template-columns: 340px 1fr 340px; gap: 18px; padding: 18px; max-width: 1920px; margin: 0 auto; }
+        .panel { background: var(--bg-panel); border: 1px solid var(--border-dim); border-radius: 10px; overflow: hidden; }
+        .panel-header { background: linear-gradient(90deg, rgba(0, 240, 255, 0.1), transparent); border-bottom: 1px solid var(--border-dim); padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; }
+        .panel-title { font-family: var(--font-dis); font-size: 0.9rem; font-weight: 600; color: var(--cyan); letter-spacing: 1.5px; text-transform: uppercase; }
+        .panel-badge { font-family: var(--font-mono); font-size: 0.75rem; padding: 4px 10px; background: rgba(0, 240, 255, 0.12); border: 1px solid var(--cyan-dim); border-radius: 5px; color: var(--cyan); }
         .panel-content { padding: 18px; }
-        
         .left-col { display: flex; flex-direction: column; gap: 18px; }
-        
-        .hex-container { display: flex; flex-direction: column; align-items: center; padding: 24px; }
-        
-        .hexagon {
-            width: 150px; height: 130px;
-            background: linear-gradient(135deg, var(--bg-elevated), var(--bg-surface));
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-            box-shadow: 0 0 40px rgba(0, 240, 255, 0.25);
-        }
-        
-        .hexagon::before {
-            content: '';
-            position: absolute;
-            inset: 2px;
-            background: var(--bg-panel);
-            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-        }
-        
-        .hex-value {
-            font-family: var(--font-dis);
-            font-size: 2.8rem;
-            font-weight: 800;
-            color: var(--cyan);
-            text-shadow: 0 0 25px var(--cyan);
-            position: relative;
-            z-index: 1;
-        }
-        
-        .hex-label {
-            font-family: var(--font-mono);
-            font-size: 0.8rem;
-            color: var(--text-sec);
-            margin-top: 14px;
-            text-transform: uppercase;
-            letter-spacing: 2.5px;
-        }
-        
+        .portfolio-value { text-align: center; padding: 20px; background: linear-gradient(135deg, rgba(0, 240, 255, 0.08), rgba(168, 85, 247, 0.08)); border-radius: 10px; margin-bottom: 10px; }
+        .portfolio-label { font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1.5px; }
+        .portfolio-total { font-family: var(--font-dis); font-size: 2.2rem; font-weight: 800; color: var(--cyan); text-shadow: 0 0 20px rgba(0, 240, 255, 0.4); margin: 8px 0; }
+        .portfolio-change { font-family: var(--font-mono); font-size: 0.9rem; padding: 4px 12px; border-radius: 5px; display: inline-block; }
+        .portfolio-change.up { background: rgba(0, 255, 136, 0.2); color: var(--green); }
+        .portfolio-change.down { background: rgba(255, 51, 102, 0.2); color: var(--red); }
+        .hex-container { display: flex; flex-direction: column; align-items: center; padding: 16px 0; }
+        .hexagon { width: 150px; height: 130px; background: linear-gradient(135deg, var(--bg-elevated), var(--bg-surface)); position: relative; display: flex; align-items: center; justify-content: center; clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); box-shadow: 0 0 40px rgba(0, 240, 255, 0.25); }
+        .hexagon::before { content: ''; position: absolute; inset: 2px; background: var(--bg-panel); clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); }
+        .hex-value { font-family: var(--font-dis); font-size: 2.8rem; font-weight: 800; color: var(--cyan); text-shadow: 0 0 25px var(--cyan); position: relative; z-index: 1; }
+        .hex-label { font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-sec); margin-top: 14px; text-transform: uppercase; letter-spacing: 2.5px; }
         .asset-list { display: flex; flex-direction: column; gap: 10px; }
-        
-        .asset-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 14px;
-            background: var(--bg-surface);
-            border: 1px solid var(--border-dim);
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        
+        .asset-item { display: flex; align-items: center; justify-content: space-between; padding: 14px; background: var(--bg-surface); border: 1px solid var(--border-dim); border-radius: 8px; cursor: pointer; transition: all 0.2s; position: relative; }
         .asset-item:hover { border-color: var(--cyan-dim); background: var(--bg-elevated); }
         .asset-item.active { border-color: var(--cyan); box-shadow: 0 0 18px rgba(0, 240, 255, 0.18); }
-        
+        .asset-item.favorite::before { content: '*'; position: absolute; left: -8px; top: 50%; transform: translateY(-50%); color: var(--gold); font-size: 0.7rem; }
         .asset-left { display: flex; align-items: center; gap: 14px; }
-        
-        .asset-icon {
-            width: 40px; height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: var(--font-dis);
-            font-size: 0.75rem;
-            font-weight: 700;
-        }
-        
+        .asset-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--font-dis); font-size: 0.75rem; font-weight: 700; }
         .asset-info { display: flex; flex-direction: column; gap: 3px; }
         .asset-symbol { font-family: var(--font-dis); font-size: 1rem; font-weight: 600; color: var(--text-bright); }
         .asset-name { font-size: 0.8rem; color: var(--text-dim); }
-        
         .asset-right { text-align: right; }
         .asset-price { font-family: var(--font-mono); font-size: 1rem; font-weight: 600; color: var(--text-prim); }
         .asset-change { font-family: var(--font-mono); font-size: 0.8rem; padding: 3px 8px; border-radius: 4px; margin-top: 5px; display: inline-block; }
         .asset-change.up { background: rgba(0, 255, 136, 0.18); color: var(--green); }
         .asset-change.down { background: rgba(255, 51, 102, 0.18); color: var(--red); }
-        
+        .star-btn { background: none; border: none; cursor: pointer; font-size: 1rem; opacity: 0.3; transition: all 0.2s; padding: 4px; color: var(--gold); }
+        .star-btn:hover { opacity: 0.7; }
+        .star-btn.active { opacity: 1; }
         .center-col { display: flex; flex-direction: column; gap: 18px; }
-        .chart-container { height: 380px; position: relative; }
-        
+        .chart-container { height: 350px; position: relative; }
+        .chart-controls { display: flex; gap: 8px; margin-bottom: 12px; }
+        .chart-btn { font-family: var(--font-mono); font-size: 0.7rem; padding: 5px 12px; background: var(--bg-surface); border: 1px solid var(--border-dim); border-radius: 5px; color: var(--text-sec); cursor: pointer; transition: all 0.2s; }
+        .chart-btn:hover { border-color: var(--cyan-dim); }
+        .chart-btn.active { background: rgba(0, 240, 255, 0.15); border-color: var(--cyan); color: var(--cyan); }
+        .volume-container { height: 80px; position: relative; margin-top: 10px; }
         .indicators-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
-        
-        .indicator-card {
-            background: var(--bg-surface);
-            border: 1px solid var(--border-dim);
-            border-radius: 8px;
-            padding: 16px;
-            text-align: center;
-        }
-        
+        .indicator-card { background: var(--bg-surface); border: 1px solid var(--border-dim); border-radius: 8px; padding: 16px; text-align: center; }
         .ind-label { font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
         .ind-value { font-family: var(--font-dis); font-size: 1.5rem; font-weight: 700; }
         .ind-value.bullish { color: var(--green); }
         .ind-value.bearish { color: var(--red); }
         .ind-value.neutral { color: var(--cyan); }
         .ind-sub { font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-sec); margin-top: 5px; }
-        
         .right-col { display: flex; flex-direction: column; gap: 18px; }
-        
-        .insight-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border-dim); }
-        .insight-item:last-child { border-bottom: none; }
-        
-        .insight-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
-        .insight-icon.pattern { background: rgba(168, 85, 247, 0.22); color: var(--purple); }
-        .insight-icon.action { background: rgba(0, 240, 255, 0.22); color: var(--cyan); }
-        .insight-icon.alert { background: rgba(255, 51, 102, 0.22); color: var(--red); }
-        
-        .insight-text { flex: 1; }
-        .insight-title { font-family: var(--font-body); font-size: 0.9rem; font-weight: 600; color: var(--text-prim); margin-bottom: 3px; }
-        .insight-desc { font-size: 0.8rem; color: var(--text-sec); }
-        
         .fg-container { padding: 18px; text-align: center; }
         .fg-value { font-family: var(--font-dis); font-size: 3.2rem; font-weight: 800; }
         .fg-label { font-family: var(--font-dis); font-size: 1.1rem; letter-spacing: 2.5px; margin-top: 8px; }
         .fg-bar { height: 10px; background: linear-gradient(90deg, var(--red), var(--orange), var(--gold), var(--green)); border-radius: 5px; margin-top: 14px; position: relative; }
         .fg-marker { position: absolute; top: -5px; width: 20px; height: 20px; background: var(--text-bright); border-radius: 50%; transform: translateX(-50%); box-shadow: 0 0 12px rgba(255, 255, 255, 0.6); }
-        
         .regime-badge { display: inline-flex; align-items: center; gap: 10px; padding: 10px 18px; border-radius: 8px; font-family: var(--font-dis); font-size: 1rem; font-weight: 600; letter-spacing: 1.5px; }
         .regime-badge.bull { background: rgba(0, 255, 136, 0.18); border: 1px solid var(--green); color: var(--green); }
         .regime-badge.bear { background: rgba(255, 51, 102, 0.18); border: 1px solid var(--red); color: var(--red); }
         .regime-badge.neutral { background: rgba(0, 240, 255, 0.18); border: 1px solid var(--cyan); color: var(--cyan); }
-        
         .pred-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border-dim); }
         .pred-row:last-child { border-bottom: none; }
         .pred-label { font-size: 0.9rem; color: var(--text-sec); }
         .pred-value { font-family: var(--font-dis); font-size: 1.1rem; font-weight: 600; }
-        
         .sector-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
         .sector-cell { padding: 14px; border-radius: 8px; text-align: center; background: var(--bg-surface); border: 1px solid var(--border-dim); }
         .sector-name { font-size: 0.75rem; color: var(--text-sec); text-transform: uppercase; margin-bottom: 6px; }
         .sector-chg { font-family: var(--font-dis); font-size: 1.1rem; font-weight: 700; }
         .sector-chg.up { color: var(--green); }
         .sector-chg.down { color: var(--red); }
-        
-        .allocation-container { height: 200px; display: flex; align-items: center; justify-content: center; }
-        
+        .allocation-container { height: 180px; display: flex; align-items: center; justify-content: center; }
         .action-item { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--bg-surface); border-radius: 8px; margin-bottom: 10px; }
         .action-badge { padding: 5px 12px; border-radius: 5px; font-family: var(--font-dis); font-size: 0.75rem; font-weight: 700; letter-spacing: 1.5px; }
         .action-badge.buy { background: rgba(0, 255, 136, 0.22); color: var(--green); }
@@ -327,55 +122,72 @@
         .action-badge.hold { background: rgba(0, 240, 255, 0.22); color: var(--cyan); }
         .action-text { flex: 1; font-size: 0.9rem; color: var(--text-prim); }
         .action-conf { font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-sec); }
-        
         .pattern-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border-dim); }
         .pattern-name { font-size: 0.9rem; color: var(--text-prim); }
         .pattern-status { font-family: var(--font-mono); font-size: 0.8rem; padding: 4px 10px; border-radius: 5px; }
         .pattern-status.active { background: rgba(0, 255, 136, 0.22); color: var(--green); }
         .pattern-status.inactive { background: rgba(90, 106, 126, 0.22); color: var(--text-dim); }
-        
         .sharpe-display { text-align: center; padding: 18px; }
         .sharpe-value { font-family: var(--font-dis); font-size: 2.5rem; font-weight: 800; }
         .sharpe-label { font-size: 0.85rem; color: var(--text-sec); margin-top: 5px; }
         .sharpe-bar { height: 8px; background: var(--bg-elevated); border-radius: 4px; margin-top: 14px; overflow: hidden; }
         .sharpe-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
-        
         .weight-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; }
         .weight-label { width: 55px; font-size: 0.9rem; color: var(--text-prim); }
         .weight-bar { flex: 1; height: 10px; background: var(--bg-elevated); border-radius: 5px; overflow: hidden; }
         .weight-fill { height: 100%; border-radius: 5px; }
         .weight-pct { width: 50px; text-align: right; font-family: var(--font-mono); font-size: 0.85rem; color: var(--cyan); }
-        
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.8); display: none; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: var(--bg-panel); border: 1px solid var(--border-mid); border-radius: 12px; padding: 24px; max-width: 450px; width: 90%; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-title { font-family: var(--font-dis); font-size: 1.1rem; color: var(--cyan); }
+        .modal-close { background: none; border: none; color: var(--text-dim); font-size: 1.5rem; cursor: pointer; }
+        .alert-form { display: flex; flex-direction: column; gap: 14px; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-label { font-size: 0.8rem; color: var(--text-sec); text-transform: uppercase; }
+        .form-input, .form-select { background: var(--bg-surface); border: 1px solid var(--border-dim); border-radius: 6px; padding: 10px 14px; color: var(--text-prim); font-family: var(--font-mono); font-size: 0.9rem; }
+        .form-input:focus, .form-select:focus { outline: none; border-color: var(--cyan); }
+        .btn-primary { background: linear-gradient(90deg, var(--cyan-dim), var(--cyan)); border: none; border-radius: 6px; padding: 12px; color: var(--bg-void); font-family: var(--font-dis); font-size: 0.9rem; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+        .btn-primary:hover { box-shadow: 0 0 20px rgba(0, 240, 255, 0.4); }
+        .alert-list { margin-top: 20px; }
+        .alert-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: var(--bg-surface); border-radius: 6px; margin-bottom: 8px; }
+        .alert-item-info { font-size: 0.85rem; }
+        .alert-item-delete { background: none; border: none; color: var(--red); cursor: pointer; font-size: 1rem; }
+        .shortcuts-hint { position: fixed; bottom: 20px; right: 20px; background: var(--bg-panel); border: 1px solid var(--border-dim); border-radius: 8px; padding: 12px 16px; font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-dim); opacity: 0.8; }
+        .shortcuts-hint kbd { background: var(--bg-surface); border: 1px solid var(--border-mid); border-radius: 3px; padding: 2px 6px; margin: 0 2px; }
         @media (max-width: 1400px) { .main { grid-template-columns: 300px 1fr 300px; } }
         @media (max-width: 1200px) { .main { grid-template-columns: 1fr; } .indicators-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 768px) { .shortcuts-hint { display: none; } }
     </style>
 </head>
 <body>
     <div class="header">
-        <div class="logo">TRADING<span>AI</span></div>
+        <div class="logo" onclick="location.reload()">TRADING<span>AI</span></div>
         <div class="header-status">
-            <div class="status-item"><div class="status-dot"></div><span>NEURAL NEXUS ACTIVE</span></div>
-            <div class="status-item"><span id="datetime">2026-02-22 20:45:00</span></div>
+            <div class="status-item"><div class="status-dot"></div><span>NEURAL NEXUS v2.0</span></div>
+            <div class="status-item"><span id="datetime">2026-02-22 21:00:00</span></div>
+            <div class="alert-bell" onclick="toggleAlertModal()"><span>[!]</span><span class="badge" id="alert-count">0</span></div>
         </div>
     </div>
-    
     <div class="ticker-wrap"><div class="ticker" id="ticker"></div></div>
-    
     <div class="main">
         <div class="left-col">
             <div class="panel">
-                <div class="panel-header"><div class="panel-title">Intel Score</div><div class="panel-badge">AI</div></div>
-                <div class="hex-container">
-                    <div class="hexagon"><span class="hex-value" id="intel-score">76</span></div>
-                    <div class="hex-label">Bullish Sentiment</div>
+                <div class="panel-header"><div class="panel-title">Portfolio Value</div><div class="panel-badge">LIVE</div></div>
+                <div class="panel-content">
+                    <div class="portfolio-value">
+                        <div class="portfolio-label">Total Value</div>
+                        <div class="portfolio-total" id="portfolio-total">$125,432.67</div>
+                        <div class="portfolio-change up" id="portfolio-change">+$2,341.23 (1.9%)</div>
+                    </div>
+                    <div class="hex-container"><div class="hexagon"><span class="hex-value" id="intel-score">76</span></div><div class="hex-label">Intel Score</div></div>
                 </div>
             </div>
-            
             <div class="panel">
-                <div class="panel-header"><div class="panel-title">Portfolio</div><div class="panel-badge" id="asset-count">8 ASSETS</div></div>
+                <div class="panel-header"><div class="panel-title">Assets</div><div class="panel-badge" id="asset-count">8 ASSETS</div></div>
                 <div class="panel-content"><div class="asset-list" id="asset-list"></div></div>
             </div>
-            
             <div class="panel">
                 <div class="panel-header"><div class="panel-title">Market Sentiment</div></div>
                 <div class="fg-container">
@@ -385,43 +197,42 @@
                 </div>
             </div>
         </div>
-        
         <div class="center-col">
             <div class="panel">
                 <div class="panel-header"><div class="panel-title">Price Analysis</div><div class="panel-badge" id="chart-symbol">BTC</div></div>
-                <div class="panel-content"><div class="chart-container"><canvas id="priceChart"></canvas></div></div>
-            </div>
-            
-            <div class="panel">
-                <div class="panel-header">
-                    <div class="panel-title">Technical Indicators</div>
-                    <div class="regime-badge bull" id="regime-badge"><span>●</span> BULL MARKET</div>
+                <div class="panel-content">
+                    <div class="chart-controls">
+                        <button class="chart-btn active" onclick="setTimeframe('1H')">1H</button>
+                        <button class="chart-btn" onclick="setTimeframe('4H')">4H</button>
+                        <button class="chart-btn" onclick="setTimeframe('1D')">1D</button>
+                        <button class="chart-btn" onclick="setTimeframe('1W')">1W</button>
+                    </div>
+                    <div class="chart-container"><canvas id="priceChart"></canvas></div>
+                    <div class="volume-container"><canvas id="volumeChart"></canvas></div>
                 </div>
+            </div>
+            <div class="panel">
+                <div class="panel-header"><div class="panel-title">Technical Indicators</div><div class="regime-badge bull" id="regime-badge"><span>*</span> BULL MARKET</div></div>
                 <div class="panel-content"><div class="indicators-grid" id="indicators"></div></div>
             </div>
-            
             <div class="panel">
                 <div class="panel-header"><div class="panel-title">Sector Performance</div></div>
                 <div class="panel-content"><div class="sector-grid" id="sector-grid"></div></div>
             </div>
         </div>
-        
         <div class="right-col">
             <div class="panel">
                 <div class="panel-header"><div class="panel-title">AI Recommendations</div><div class="panel-badge">LIVE</div></div>
                 <div class="panel-content" id="ai-actions"></div>
             </div>
-            
             <div class="panel">
                 <div class="panel-header"><div class="panel-title">Pattern Detection</div></div>
                 <div class="panel-content" id="patterns"></div>
             </div>
-            
             <div class="panel">
                 <div class="panel-header"><div class="panel-title">Price Predictions</div></div>
                 <div class="panel-content" id="predictions"></div>
             </div>
-            
             <div class="panel">
                 <div class="panel-header"><div class="panel-title">Risk Parity Weights</div></div>
                 <div class="panel-content">
@@ -433,186 +244,101 @@
                     <div id="risk-weights"></div>
                 </div>
             </div>
-            
             <div class="panel">
                 <div class="panel-header"><div class="panel-title">Portfolio Allocation</div></div>
                 <div class="panel-content"><div class="allocation-container"><canvas id="allocationChart"></canvas></div></div>
             </div>
         </div>
     </div>
-    
+    <div class="modal-overlay" id="alertModal">
+        <div class="modal">
+            <div class="modal-header"><div class="modal-title">Price Alerts</div><button class="modal-close" onclick="toggleAlertModal()">x</button></div>
+            <div class="alert-form">
+                <div class="form-group"><label class="form-label">Asset</label><select class="form-select" id="alertAsset"></select></div>
+                <div class="form-group"><label class="form-label">Condition</label><select class="form-select" id="alertCondition"><option value="above">Price Above</option><option value="below">Price Below</option></select></div>
+                <div class="form-group"><label class="form-label">Target Price</label><input type="number" class="form-input" id="alertPrice" placeholder="0.00"></div>
+                <button class="btn-primary" onclick="addAlert()">CREATE ALERT</button>
+            </div>
+            <div class="alert-list" id="alertList"></div>
+        </div>
+    </div>
+    <div class="shortcuts-hint">[Up/Down] Navigate | [F] Favorite | [A] Alert | [R] Refresh</div>
     <script>
         const assets = [
-            { symbol: "BTC", name: "Bitcoin", type: "crypto", price: 98542, change: 3.2, color: "#f7931a" },
-            { symbol: "ETH", name: "Ethereum", type: "crypto", price: 3421, change: 2.8, color: "#627eea" },
-            { symbol: "AAPL", name: "Apple Inc", type: "stock", price: 248.32, change: 1.5, color: "#555555" },
-            { symbol: "NVDA", name: "NVIDIA Corp", type: "stock", price: 892.45, change: 4.2, color: "#76b900" },
-            { symbol: "TSLA", name: "Tesla Inc", type: "stock", price: 356.78, change: -1.2, color: "#cc0000" },
-            { symbol: "GOOGL", name: "Alphabet Inc", type: "stock", price: 175.23, change: 0.8, color: "#4285f4" },
-            { symbol: "MSFT", name: "Microsoft Corp", type: "stock", price: 415.67, change: 1.1, color: "#00a4ef" },
-            { symbol: "SOL", name: "Solana", type: "crypto", price: 178.45, change: 5.4, color: "#9945ff" }
+            { symbol: "BTC", name: "Bitcoin", type: "crypto", price: 98542, change: 3.2, color: "#f7931a", favorite: true, holdings: 0.85 },
+            { symbol: "ETH", name: "Ethereum", type: "crypto", price: 3421, change: 2.8, color: "#627eea", favorite: true, holdings: 5.2 },
+            { symbol: "AAPL", name: "Apple Inc", type: "stock", price: 248.32, change: 1.5, color: "#555555", favorite: false, holdings: 25 },
+            { symbol: "NVDA", name: "NVIDIA Corp", type: "stock", price: 892.45, change: 4.2, color: "#76b900", favorite: true, holdings: 15 },
+            { symbol: "TSLA", name: "Tesla Inc", type: "stock", price: 356.78, change: -1.2, color: "#cc0000", favorite: false, holdings: 10 },
+            { symbol: "GOOGL", name: "Alphabet Inc", type: "stock", price: 175.23, change: 0.8, color: "#4285f4", favorite: false, holdings: 30 },
+            { symbol: "MSFT", name: "Microsoft Corp", type: "stock", price: 415.67, change: 1.1, color: "#00a4ef", favorite: true, holdings: 20 },
+            { symbol: "SOL", name: "Solana", type: "crypto", price: 178.45, change: 5.4, color: "#9945ff", favorite: false, holdings: 50 }
         ];
-        
-        let selectedAsset = assets[0];
-        
+        let selectedAsset = assets[0], selectedAssetIndex = 0;
+        let priceAlerts = JSON.parse(localStorage.getItem('priceAlerts') || '[]');
+        let timeframe = '1H', priceChart, volumeChart, allocationChart;
+
         function calculateIndicators(asset) {
             const rsi = 35 + Math.random() * 50;
-            return {
-                rsi: rsi.toFixed(1),
-                macd: Math.random() > 0.5 ? "Bullish" : "Bearish",
-                trend: asset.change >= 0 ? "Uptrend" : "Downtrend",
-                support: (asset.price * 0.92).toFixed(2),
-                resistance: (asset.price * 1.08).toFixed(2)
-            };
+            return { rsi: rsi.toFixed(1), macd: Math.random() > 0.5 ? "Bullish" : "Bearish", trend: asset.change >= 0 ? "Uptrend" : "Downtrend", support: (asset.price * 0.92).toFixed(2), resistance: (asset.price * 1.08).toFixed(2), volume: (Math.random() * 500 + 100).toFixed(1) + "M" };
         }
-        
-        function detectPatterns() {
-            return [
-                { name: "RSI Oversold", active: Math.random() > 0.6 },
-                { name: "RSI Overbought", active: Math.random() > 0.7 },
-                { name: "MACD Cross", active: Math.random() > 0.5 },
-                { name: "Golden Cross", active: Math.random() > 0.8 },
-                { name: "5-Day High", active: Math.random() > 0.4 },
-                { name: "Support Test", active: Math.random() > 0.5 }
-            ];
-        }
-        
+        function detectPatterns() { return [{ name: "RSI Oversold", active: Math.random() > 0.6 }, { name: "RSI Overbought", active: Math.random() > 0.7 }, { name: "MACD Cross", active: Math.random() > 0.5 }, { name: "Golden Cross", active: Math.random() > 0.8 }, { name: "5-Day High", active: Math.random() > 0.4 }, { name: "Support Test", active: Math.random() > 0.5 }]; }
         function generateAIActions(asset) {
-            const actions = [];
-            const rsi = parseFloat(calculateIndicators(asset).rsi);
-            if (rsi < 35) actions.push({ action: "BUY", text: asset.symbol + " showing oversold conditions", conf: 0.85 });
-            else if (rsi > 70) actions.push({ action: "SELL", text: asset.symbol + " approaching overbought", conf: 0.78 });
-            else actions.push({ action: "HOLD", text: asset.symbol + " in neutral territory", conf: 0.72 });
-            if (asset.change > 3) actions.push({ action: "HOLD", text: "Strong momentum, ride the trend", conf: 0.81 });
-            if (asset.change < -2) actions.push({ action: "BUY", text: "Potential dip buying opportunity", conf: 0.76 });
-            actions.push({ action: "HOLD", text: "Rebalance portfolio allocation", conf: 0.68 });
+            const actions = [], rsi = parseFloat(calculateIndicators(asset).rsi);
+            if (rsi < 35) actions.push({ action: "BUY", text: asset.symbol + " oversold", conf: 0.85 }); else if (rsi > 70) actions.push({ action: "SELL", text: asset.symbol + " overbought", conf: 0.78 }); else actions.push({ action: "HOLD", text: asset.symbol + " neutral", conf: 0.72 });
+            if (asset.change > 3) actions.push({ action: "HOLD", text: "Ride momentum", conf: 0.81 });
+            if (asset.change < -2) actions.push({ action: "BUY", text: "Dip opportunity", conf: 0.76 });
+            actions.push({ action: "HOLD", text: "Rebalance portfolio", conf: 0.68 });
             return actions;
         }
-        
         function generatePredictions(asset) {
             const base = asset.price;
-            return [
-                { label: "24H Forecast", value: (base * (1 + (Math.random() * 0.04 - 0.02))).toFixed(2), up: Math.random() > 0.5 },
-                { label: "7D Forecast", value: (base * (1 + (Math.random() * 0.1 - 0.05))).toFixed(2), up: Math.random() > 0.5 },
-                { label: "30D Forecast", value: (base * (1 + (Math.random() * 0.2 - 0.1))).toFixed(2), up: Math.random() > 0.5 }
-            ];
+            return [{ label: "24H", value: (base * (1 + (Math.random() * 0.04 - 0.02))).toFixed(2), up: Math.random() > 0.5 }, { label: "7D", value: (base * (1 + (Math.random() * 0.1 - 0.05))).toFixed(2), up: Math.random() > 0.5 }, { label: "30D", value: (base * (1 + (Math.random() * 0.2 - 0.1))).toFixed(2), up: Math.random() > 0.5 }];
         }
-        
-        const sectors = [
-            { name: "Crypto", chg: 4.2 }, { name: "Tech", chg: 2.1 }, { name: "AI", chg: 5.8 },
-            { name: "EV", chg: -0.8 }, { name: "Finance", chg: 1.2 }, { name: "Cloud", chg: 3.4 }
-        ];
-        
-        function calculateRiskWeights() {
-            return [
-                { symbol: "BTC", weight: 28 }, { symbol: "ETH", weight: 18 }, { symbol: "NVDA", weight: 16 },
-                { symbol: "AAPL", weight: 14 }, { symbol: "MSFT", weight: 12 }, { symbol: "GOOGL", weight: 8 }, { symbol: "TSLA", weight: 4 }
-            ];
+        const sectors = [{ name: "Crypto", chg: 4.2 }, { name: "Tech", chg: 2.1 }, { name: "AI", chg: 5.8 }, { name: "EV", chg: -0.8 }, { name: "Finance", chg: 1.2 }, { name: "Cloud", chg: 3.4 }];
+        function calculateRiskWeights() { return [{ symbol: "BTC", weight: 28 }, { symbol: "ETH", weight: 18 }, { symbol: "NVDA", weight: 16 }, { symbol: "AAPL", weight: 14 }, { symbol: "MSFT", weight: 12 }, { symbol: "GOOGL", weight: 8 }, { symbol: "TSLA", weight: 4 }]; }
+        function calculatePortfolioValue() { let total = 0, totalChange = 0; assets.forEach(a => { total += a.price * a.holdings; totalChange += (a.price * a.holdings * a.change / 100); }); return { total, totalChange, pct: (totalChange / total * 100) }; }
+        function updatePortfolioDisplay() {
+            const port = calculatePortfolioValue();
+            document.getElementById('portfolio-total').textContent = '$' + port.total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            const changeEl = document.getElementById('portfolio-change');
+            changeEl.textContent = (port.totalChange >= 0 ? '+' : '') + '$' + Math.abs(port.totalChange).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' (' + (port.pct >= 0 ? '+' : '') + port.pct.toFixed(2) + '%)';
+            changeEl.className = 'portfolio-change ' + (port.totalChange >= 0 ? 'up' : 'down');
         }
-        
+        function toggleAlertModal() { const modal = document.getElementById('alertModal'); modal.classList.toggle('active'); if (modal.classList.contains('active')) { populateAlertAssets(); renderAlerts(); } }
+        function populateAlertAssets() { document.getElementById('alertAsset').innerHTML = assets.map(a => '<option value="' + a.symbol + '">' + a.symbol + '</option>').join(''); }
+        function addAlert() { const symbol = document.getElementById('alertAsset').value, condition = document.getElementById('alertCondition').value, price = parseFloat(document.getElementById('alertPrice').value); if (!price) return; priceAlerts.push({ symbol, condition, price, id: Date.now() }); localStorage.setItem('priceAlerts', JSON.stringify(priceAlerts)); renderAlerts(); updateAlertCount(); document.getElementById('alertPrice').value = ''; }
+        function deleteAlert(id) { priceAlerts = priceAlerts.filter(a => a.id !== id); localStorage.setItem('priceAlerts', JSON.stringify(priceAlerts)); renderAlerts(); updateAlertCount(); }
+        function renderAlerts() { document.getElementById('alertList').innerHTML = priceAlerts.map(a => '<div class="alert-item"><div class="alert-item-info"><strong>' + a.symbol + '</strong> ' + (a.condition === 'above' ? 'above' : 'below') + ' $' + a.price.toLocaleString() + '</div><button class="alert-item-delete" onclick="deleteAlert(' + a.id + ')">x</button></div>').join(''); }
+        function updateAlertCount() { document.getElementById('alert-count').textContent = priceAlerts.length; }
+        function checkAlerts() { priceAlerts.forEach(alert => { const asset = assets.find(a => a.symbol === alert.symbol); if (!asset) return; const triggered = (alert.condition === 'above' && asset.price >= alert.price) || (alert.condition === 'below' && asset.price <= alert.price); if (triggered && Notification.permission === 'granted') { new Notification('TradingAI Alert', { body: alert.symbol + ' is ' + (alert.condition === 'above' ? 'above' : 'below') + ' $' + alert.price }); deleteAlert(alert.id); } }); }
+        if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
         function renderAssets() {
-            const container = document.getElementById("asset-list");
-            container.innerHTML = assets.map(asset => `
-                <div class="asset-item ${asset.symbol === selectedAsset.symbol ? 'active' : ''}" onclick="selectAsset('${asset.symbol}')">
-                    <div class="asset-left">
-                        <div class="asset-icon" style="background: ${asset.color}20; color: ${asset.color}">${asset.symbol.substring(0, 2)}</div>
-                        <div class="asset-info">
-                            <div class="asset-symbol">${asset.symbol}</div>
-                            <div class="asset-name">${asset.name}</div>
-                        </div>
-                    </div>
-                    <div class="asset-right">
-                        <div class="asset-price">$${asset.price.toLocaleString()}</div>
-                        <div class="asset-change ${asset.change >= 0 ? 'up' : 'down'}">${asset.change >= 0 ? '+' : ''}${asset.change}%</div>
-                    </div>
-                </div>
-            `).join('');
-            document.getElementById("asset-count").textContent = assets.length + " ASSETS";
+            document.getElementById('asset-list').innerHTML = assets.map((asset, i) => '<div class="asset-item ' + (asset.symbol === selectedAsset.symbol ? 'active' : '') + ' ' + (asset.favorite ? 'favorite' : '') + '" onclick="selectAsset('' + asset.symbol + '')"><div class="asset-left"><div class="asset-icon" style="background: ' + asset.color + '20; color: ' + asset.color + '">' + asset.symbol.substring(0, 2) + '</div><div class="asset-info"><div class="asset-symbol">' + asset.symbol + '</div><div class="asset-name">' + asset.name + '</div></div></div><div class="asset-right"><div class="asset-price">$' + asset.price.toLocaleString() + '</div><div class="asset-change ' + (asset.change >= 0 ? 'up' : 'down') + '">' + (asset.change >= 0 ? '+' : '') + asset.change + '%</div></div><button class="star-btn ' + (asset.favorite ? 'active' : '') + '" onclick="event.stopPropagation(); toggleFavorite(' + i + ')">*</button></div>').join('');
+            document.getElementById('asset-count').textContent = assets.length + ' ASSETS';
         }
-        
-        function renderIndicators() {
-            const ind = calculateIndicators(selectedAsset);
-            const container = document.getElementById("indicators");
-            const rsiClass = ind.rsi < 35 ? "bullish" : ind.rsi > 70 ? "bearish" : "neutral";
-            const macdClass = ind.macd === "Bullish" ? "bullish" : "bearish";
-            const trendClass = ind.trend === "Uptrend" ? "bullish" : "bearish";
-            container.innerHTML = `
-                <div class="indicator-card"><div class="ind-label">RSI (14)</div><div class="ind-value ${rsiClass}">${ind.rsi}</div><div class="ind-sub">${ind.rsi < 35 ? "Oversold" : ind.rsi > 70 ? "Overbought" : "Neutral"}</div></div>
-                <div class="indicator-card"><div class="ind-label">MACD</div><div class="ind-value ${macdClass}">${ind.macd}</div><div class="ind-sub">Signal Cross</div></div>
-                <div class="indicator-card"><div class="ind-label">Trend</div><div class="ind-value ${trendClass}">${ind.trend}</div><div class="ind-sub">Short-term</div></div>
-                <div class="indicator-card"><div class="ind-label">Support</div><div class="ind-value neutral">$${ind.support}</div><div class="ind-sub">Resistance: $${ind.resistance}</div></div>
-            `;
-        }
-        
-        function renderPatterns() {
-            const patterns = detectPatterns();
-            document.getElementById("patterns").innerHTML = patterns.map(p => `<div class="pattern-item"><span class="pattern-name">${p.name}</span><span class="pattern-status ${p.active ? 'active' : 'inactive'}">${p.active ? 'ACTIVE' : 'INACTIVE'}</span></div>`).join('');
-        }
-        
-        function renderAIActions() {
-            const actions = generateAIActions(selectedAsset);
-            document.getElementById("ai-actions").innerHTML = actions.map(a => `<div class="action-item"><span class="action-badge ${a.action.toLowerCase()}">${a.action}</span><span class="action-text">${a.text}</span><span class="action-conf">${(a.conf * 100).toFixed(0)}%</span></div>`).join('');
-        }
-        
-        function renderPredictions() {
-            const preds = generatePredictions(selectedAsset);
-            document.getElementById("predictions").innerHTML = preds.map(p => `<div class="pred-row"><span class="pred-label">${p.label}</span><span class="pred-value" style="color: var(${p.up ? '--green' : '--red'})">$${p.value}</span></div>`).join('');
-        }
-        
-        function renderSectors() {
-            document.getElementById("sector-grid").innerHTML = sectors.map(s => `<div class="sector-cell"><div class="sector-name">${s.name}</div><div class="sector-chg ${s.chg >= 0 ? 'up' : 'down'}">${s.chg >= 0 ? '+' : ''}${s.chg}%</div></div>`).join('');
-        }
-        
-        function renderRiskWeights() {
-            const weights = calculateRiskWeights();
-            const colors = ["var(--cyan)", "var(--purple)", "var(--green)", "var(--pink)", "var(--gold)", "var(--orange)", "var(--red)"];
-            document.getElementById("risk-weights").innerHTML = weights.map((w, i) => `<div class="weight-row"><span class="weight-label">${w.symbol}</span><div class="weight-bar"><div class="weight-fill" style="width: ${w.weight}%; background: ${colors[i]}"></div></div><span class="weight-pct">${w.weight}%</span></div>`).join('');
-        }
-        
-        function renderTicker() {
-            const items = [...assets, ...assets].map(a => `<div class="ticker-item"><span class="ticker-sym">${a.symbol}</span><span class="ticker-price">$${a.price.toLocaleString()}</span><span class="${a.change >= 0 ? 'ticker-up' : 'ticker-down'}">${a.change >= 0 ? '▲' : '▼'} ${Math.abs(a.change)}%</span></div>`).join('');
-            document.getElementById("ticker").innerHTML = items + items;
-        }
-        
-        let priceChart, allocationChart;
-        
+        function toggleFavorite(index) { assets[index].favorite = !assets[index].favorite; renderAssets(); renderTicker(); }
+        function renderIndicators() { const ind = calculateIndicators(selectedAsset), rsiClass = ind.rsi < 35 ? "bullish" : ind.rsi > 70 ? "bearish" : "neutral", macdClass = ind.macd === "Bullish" ? "bullish" : "bearish", trendClass = ind.trend === "Uptrend" ? "bullish" : "bearish"; document.getElementById('indicators').innerHTML = '<div class="indicator-card"><div class="ind-label">RSI (14)</div><div class="ind-value ' + rsiClass + '">' + ind.rsi + '</div><div class="ind-sub">' + (ind.rsi < 35 ? "Oversold" : ind.rsi > 70 ? "Overbought" : "Neutral") + '</div></div><div class="indicator-card"><div class="ind-label">MACD</div><div class="ind-value ' + macdClass + '">' + ind.macd + '</div><div class="ind-sub">Signal</div></div><div class="indicator-card"><div class="ind-label">Trend</div><div class="ind-value ' + trendClass + '">' + ind.trend + '</div><div class="ind-sub">Short-term</div></div><div class="indicator-card"><div class="ind-label">Volume</div><div class="ind-value neutral">' + ind.volume + '</div><div class="ind-sub">24H</div></div>'; }
+        function renderPatterns() { document.getElementById('patterns').innerHTML = detectPatterns().map(p => '<div class="pattern-item"><span class="pattern-name">' + p.name + '</span><span class="pattern-status ' + (p.active ? 'active' : 'inactive') + '">' + (p.active ? 'ACTIVE' : 'INACTIVE') + '</span></div>').join(''); }
+        function renderAIActions() { document.getElementById('ai-actions').innerHTML = generateAIActions(selectedAsset).map(a => '<div class="action-item"><span class="action-badge ' + a.action.toLowerCase() + '">' + a.action + '</span><span class="action-text">' + a.text + '</span><span class="action-conf">' + (a.conf * 100).toFixed(0) + '%</span></div>').join(''); }
+        function renderPredictions() { document.getElementById('predictions').innerHTML = generatePredictions(selectedAsset).map(p => '<div class="pred-row"><span class="pred-label">' + p.label + '</span><span class="pred-value" style="color: var(' + (p.up ? '--green' : '--red') + ')">$' + p.value + '</span></div>').join(''); }
+        function renderSectors() { document.getElementById('sector-grid').innerHTML = sectors.map(s => '<div class="sector-cell"><div class="sector-name">' + s.name + '</div><div class="sector-chg ' + (s.chg >= 0 ? 'up' : 'down') + '">' + (s.chg >= 0 ? '+' : '') + s.chg + '%</div></div>').join(''); }
+        function renderRiskWeights() { const weights = calculateRiskWeights(), colors = ["var(--cyan)", "var(--purple)", "var(--green)", "var(--pink)", "var(--gold)", "var(--orange)", "var(--red)"]; document.getElementById('risk-weights').innerHTML = weights.map((w, i) => '<div class="weight-row"><span class="weight-label">' + w.symbol + '</span><div class="weight-bar"><div class="weight-fill" style="width: ' + w.weight + '%; background: ' + colors[i] + '"></div></div><span class="weight-pct">' + w.weight + '%</span></div>').join(''); }
+        function renderTicker() { const items = [...assets, ...assets].map(a => '<div class="ticker-item" onclick="selectAsset('' + a.symbol + '')">' + (a.favorite ? '<span class="ticker-star">*</span>' : '') + '<span class="ticker-sym">' + a.symbol + '</span><span class="ticker-price">$' + a.price.toLocaleString() + '</span><span class="' + (a.change >= 0 ? 'ticker-up' : 'ticker-down') + '">' + (a.change >= 0 ? '+' : '') + a.change + '%</span></div>').join(''); document.getElementById('ticker').innerHTML = items + items; }
         function initPriceChart() {
-            const ctx = document.getElementById("priceChart").getContext("2d");
-            const labels = [], data = [];
-            let price = selectedAsset.price * 0.9;
-            for (let i = 0; i < 24; i++) { labels.push(i + ":00"); price = price * (1 + (Math.random() * 0.02 - 0.01)); data.push(price); }
-            if (priceChart) priceChart.destroy();
-            priceChart = new Chart(ctx, {
-                type: "line",
-                data: { labels, datasets: [{ label: selectedAsset.symbol, data, borderColor: "#00f0ff", backgroundColor: "rgba(0, 240, 255, 0.08)", fill: true, tension: 0.4, pointRadius: 0, borderWidth: 2 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: "rgba(255,255,255,0.04)" }, ticks: { color: "#5a6a7e", font: { family: "JetBrains Mono", size: 10 } } }, y: { grid: { color: "rgba(255,255,255,0.04)" }, ticks: { color: "#5a6a7e", font: { family: "JetBrains Mono", size: 10 } } } } }
-            });
+            const ctx = document.getElementById('priceChart').getContext('2d'), vCtx = document.getElementById('volumeChart').getContext('2d');
+            const labels = [], priceData = [], volumeData = []; let price = selectedAsset.price * 0.9;
+            for (let i = 0; i < 24; i++) { labels.push(i + ':00'); price = price * (1 + (Math.random() * 0.02 - 0.01)); priceData.push(price); volumeData.push(Math.random() * 400 + 100); }
+            if (priceChart) priceChart.destroy(); if (volumeChart) volumeChart.destroy();
+            priceChart = new Chart(ctx, { type: 'line', data: { labels, datasets: [{ label: selectedAsset.symbol, data: priceData, borderColor: '#00f0ff', backgroundColor: 'rgba(0, 240, 255, 0.08)', fill: true, tension: 0.4, pointRadius: 0, borderWidth: 2 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#5a6a7e', font: { family: 'JetBrains Mono', size: 10 } } }, y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#5a6a7e', font: { family: 'JetBrains Mono', size: 10 } } } } } });
+            volumeChart = new Chart(vCtx, { type: 'bar', data: { labels, datasets: [{ data: volumeData, backgroundColor: priceData.map((p, i) => i > 0 && p >= priceData[i-1] ? 'rgba(0, 255, 136, 0.5)' : 'rgba(255, 51, 102, 0.5)'), borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#5a6a7e', font: { family: 'JetBrains Mono', size: 9 } } } } } });
         }
-        
-        function initAllocationChart() {
-            const ctx = document.getElementById("allocationChart").getContext("2d");
-            const weights = calculateRiskWeights();
-            if (allocationChart) allocationChart.destroy();
-            allocationChart = new Chart(ctx, {
-                type: "doughnut",
-                data: { labels: weights.map(w => w.symbol), datasets: [{ data: weights.map(w => w.weight), backgroundColor: ["#00f0ff", "#a855f7", "#00ff88", "#ec4899", "#ffd700", "#ff8c00", "#ff3366"], borderWidth: 0 }] },
-                options: { responsive: true, maintainAspectRatio: false, cutout: "70%", plugins: { legend: { display: false } } }
-            });
-        }
-        
-        function selectAsset(symbol) {
-            selectedAsset = assets.find(a => a.symbol === symbol);
-            document.getElementById("chart-symbol").textContent = symbol;
-            renderAssets(); renderIndicators(); renderPatterns(); renderAIActions(); renderPredictions(); initPriceChart();
-        }
-        
-        function init() {
-            renderAssets(); renderIndicators(); renderPatterns(); renderAIActions(); renderPredictions(); renderSectors(); renderRiskWeights(); renderTicker(); initPriceChart(); initAllocationChart();
-            setInterval(() => { document.getElementById("datetime").textContent = new Date().toISOString().replace("T", " ").substring(0, 19); }, 1000);
-            setInterval(() => { assets.forEach(a => { a.price = a.price * (1 + (Math.random() * 0.002 - 0.001)); a.change = a.change + (Math.random() * 0.1 - 0.05); }); renderAssets(); renderTicker(); }, 5000);
-        }
-        
-        document.addEventListener("DOMContentLoaded", init);
+        function setTimeframe(tf) { timeframe = tf; initPriceChart(); }
+        function initAllocationChart() { const ctx = document.getElementById('allocationChart').getContext('2d'), weights = calculateRiskWeights(); if (allocationChart) allocationChart.destroy(); allocationChart = new Chart(ctx, { type: 'doughnut', data: { labels: weights.map(w => w.symbol), datasets: [{ data: weights.map(w => w.weight), backgroundColor: ['#00f0ff', '#a855f7', '#00ff88', '#ec4899', '#ffd700', '#ff8c00', '#ff3366'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { display: false } } } }); }
+        function selectAsset(symbol) { selectedAsset = assets.find(a => a.symbol === symbol); selectedAssetIndex = assets.findIndex(a => a.symbol === symbol); document.getElementById('chart-symbol').textContent = symbol; renderAssets(); renderIndicators(); renderPatterns(); renderAIActions(); renderPredictions(); initPriceChart(); }
+        document.addEventListener('keydown', (e) => { if (e.target.tagName === 'INPUT') return; switch(e.key) { case 'ArrowUp': selectedAssetIndex = Math.max(0, selectedAssetIndex - 1); selectAsset(assets[selectedAssetIndex].symbol); break; case 'ArrowDown': selectedAssetIndex = Math.min(assets.length - 1, selectedAssetIndex + 1); selectAsset(assets[selectedAssetIndex].symbol); break; case 'f': case 'F': toggleFavorite(selectedAssetIndex); break; case 'a': case 'A': toggleAlertModal(); break; case 'r': case 'R': location.reload(); break; } });
+        function init() { renderAssets(); renderIndicators(); renderPatterns(); renderAIActions(); renderPredictions(); renderSectors(); renderRiskWeights(); renderTicker(); initPriceChart(); initAllocationChart(); updatePortfolioDisplay(); updateAlertCount(); setInterval(() => { document.getElementById('datetime').textContent = new Date().toISOString().replace('T', ' ').substring(0, 19); }, 1000); setInterval(() => { assets.forEach(a => { a.price = a.price * (1 + (Math.random() * 0.002 - 0.001)); a.change = parseFloat((a.change + (Math.random() * 0.1 - 0.05)).toFixed(2)); }); renderAssets(); renderTicker(); updatePortfolioDisplay(); checkAlerts(); }, 5000); }
+        document.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
 </html>
