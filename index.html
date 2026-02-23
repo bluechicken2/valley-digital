@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TradingAI - Neural Nexus v3.2</title>
+    <title>TradingAI - Neural Nexus v4.0 | Real-Time</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Space+Grotesk:wght@400;500;600&family=JetBrains+Mono&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -12,26 +12,33 @@
             --bg-void: #030508; --bg-panel: #0f1218; --bg-surface: #151922;
             --border: #2a3241; --text-dim: #6a7a8e; --text: #9aacc0; --text-bright: #e8f0ff;
             --cyan: #00f0ff; --green: #00ff88; --red: #ff3366; --purple: #a855f7; --gold: #ffd700;
+            --orange: #ff8c00;
         }
         body { background: var(--bg-void); color: var(--text); font-family: 'Space Grotesk', sans-serif; min-height: 100vh; }
         
         .header { background: rgba(10, 13, 20, 0.95); border-bottom: 1px solid var(--border); padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; }
         .logo { font-family: 'Orbitron', sans-serif; font-size: 1.4rem; font-weight: 700; color: var(--cyan); letter-spacing: 3px; }
-        .status { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--text-dim); }
-        .status-dot { width: 8px; height: 8px; background: var(--green); border-radius: 50%; display: inline-block; margin-right: 8px; animation: pulse 2s infinite; }
+        .status { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--text-dim); display: flex; align-items: center; gap: 20px; }
+        .status-item { display: flex; align-items: center; gap: 8px; }
+        .status-dot { width: 8px; height: 8px; background: var(--green); border-radius: 50%; animation: pulse 2s infinite; }
+        .status-dot.offline { background: var(--orange); }
+        .status-dot.error { background: var(--red); }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
         
         .ticker { background: linear-gradient(90deg, rgba(0,240,255,0.03), rgba(168,85,247,0.03)); border-bottom: 1px solid var(--border); padding: 10px 0; overflow: hidden; }
         .ticker-inner { display: flex; animation: scroll 40s linear infinite; }
         @keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-        .ticker-item { padding: 0 30px; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; white-space: nowrap; }
+        .ticker-item { padding: 0 30px; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; white-space: nowrap; cursor: pointer; }
+        .ticker-item:hover { color: var(--cyan); }
         .ticker-sym { color: var(--cyan); font-weight: 600; }
         
         .main { display: grid; grid-template-columns: 320px 1fr 320px; gap: 16px; padding: 16px; max-width: 1800px; margin: 0 auto; }
         
         .panel { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
-        .panel-head { background: linear-gradient(90deg, rgba(0,240,255,0.08), transparent); border-bottom: 1px solid var(--border); padding: 12px 16px; }
+        .panel-head { background: linear-gradient(90deg, rgba(0,240,255,0.08), transparent); border-bottom: 1px solid var(--border); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; }
         .panel-title { font-family: 'Orbitron', sans-serif; font-size: 0.8rem; font-weight: 600; color: var(--cyan); letter-spacing: 1px; text-transform: uppercase; }
+        .panel-badge { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; padding: 3px 8px; border-radius: 4px; background: rgba(0,240,255,0.15); color: var(--cyan); }
+        .panel-badge.live { background: rgba(0,255,136,0.15); color: var(--green); }
         .panel-body { padding: 16px; }
         
         .portfolio { text-align: center; padding: 20px; background: linear-gradient(135deg, rgba(0,240,255,0.06), rgba(168,85,247,0.06)); border-radius: 8px; margin-bottom: 12px; }
@@ -105,16 +112,7 @@
         
         .donut-wrap { height: 160px; display: flex; align-items: center; justify-content: center; }
         
-        .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 1000; }
-        .modal-bg.show { display: flex; }
-        .modal { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 12px; padding: 20px; max-width: 400px; width: 90%; }
-        .modal-head { display: flex; justify-content: space-between; margin-bottom: 16px; }
-        .modal-title { font-family: 'Orbitron', sans-serif; font-size: 1rem; color: var(--cyan); }
-        .modal-close { background: none; border: none; color: var(--text-dim); font-size: 1.4rem; cursor: pointer; }
-        .form-grp { margin-bottom: 12px; }
-        .form-lbl { display: block; font-size: 0.75rem; color: var(--text-dim); margin-bottom: 4px; }
-        .form-in { width: 100%; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; color: var(--text); font-family: 'JetBrains Mono', monospace; }
-        .btn { width: 100%; background: linear-gradient(90deg, #00a8b3, var(--cyan)); border: none; border-radius: 6px; padding: 10px; color: #030508; font-family: 'Orbitron', sans-serif; font-size: 0.85rem; font-weight: 700; cursor: pointer; }
+        .last-update { font-size: 0.7rem; color: var(--text-dim); margin-top: 8px; }
         
         @media (max-width: 1200px) { .main { grid-template-columns: 1fr; } }
     </style>
@@ -122,7 +120,10 @@
 <body>
     <div class="header">
         <div class="logo">TRADING<span style="color:var(--text-dim)">AI</span></div>
-        <div class="status"><span class="status-dot"></span>NEURAL NEXUS v3.2 <span id="time"></span></div>
+        <div class="status">
+            <div class="status-item"><span class="status-dot" id="status-dot"></span><span id="status-text">CONNECTING</span></div>
+            <div class="status-item" id="time"></div>
+        </div>
     </div>
     
     <div class="ticker"><div class="ticker-inner" id="ticker"></div></div>
@@ -130,7 +131,7 @@
     <div class="main">
         <div class="left">
             <div class="panel">
-                <div class="panel-head"><span class="panel-title">Portfolio</span></div>
+                <div class="panel-head"><span class="panel-title">Portfolio</span><span class="panel-badge" id="data-badge">--</span></div>
                 <div class="panel-body">
                     <div class="portfolio">
                         <div class="portfolio-label">Total Value</div>
@@ -169,6 +170,7 @@
                         <button class="chart-btn" onclick="setTf('1W')">1W</button>
                     </div>
                     <div class="chart-box"><canvas id="priceCt"></canvas></div>
+                    <div class="last-update" id="last-update">Last update: --</div>
                 </div>
             </div>
             
@@ -219,11 +221,16 @@
     
     <script>
     (function() {
-        // Data
+        // API Configuration - Worker URL (update after Kali deploys)
+        var API_BASE = 'https://tradingapi-proxy.workers.dev';
+        // Fallback to direct CoinGecko if worker not available
+        var USE_WORKER = true;
+        
+        // Default data (shown immediately, updated from API)
         var data = [
-            {sym:'BTC',name:'Bitcoin',type:'crypto',price:64822,chg:-4.73,color:'#f7931a',hold:0.85},
-            {sym:'ETH',name:'Ethereum',type:'crypto',price:1865.7,chg:-5.56,color:'#627eea',hold:5.2},
-            {sym:'SOL',name:'Solana',type:'crypto',price:77.93,chg:-8.44,color:'#9945ff',hold:50},
+            {sym:'BTC',name:'Bitcoin',type:'crypto',cg:'bitcoin',price:64822,chg:-4.73,color:'#f7931a',hold:0.85},
+            {sym:'ETH',name:'Ethereum',type:'crypto',cg:'ethereum',price:1865.7,chg:-5.56,color:'#627eea',hold:5.2},
+            {sym:'SOL',name:'Solana',type:'crypto',cg:'solana',price:77.93,chg:-8.44,color:'#9945ff',hold:50},
             {sym:'AAPL',name:'Apple',type:'stock',price:248.32,chg:1.5,color:'#555',hold:25},
             {sym:'NVDA',name:'NVIDIA',type:'stock',price:892.45,chg:4.2,color:'#76b900',hold:15},
             {sym:'TSLA',name:'Tesla',type:'stock',price:356.78,chg:-1.2,color:'#c00',hold:10},
@@ -233,6 +240,8 @@
         var sel = data[0];
         var history = {};
         var priceCt, allocCt;
+        var lastUpdate = 0;
+        var isLive = false;
         
         // Helpers
         function $(id) { return document.getElementById(id); }
@@ -257,6 +266,136 @@
                 if (d > 0) g += d; else l -= d;
             }
             return 100 - (100 / (1 + g / (l || 0.001)));
+        }
+        
+        // API Functions
+        function setStatus(status, text) {
+            $('status-dot').className = 'status-dot ' + status;
+            $('status-text').textContent = text;
+        }
+        
+        async function fetchFromWorker() {
+            try {
+                var response = await fetch(API_BASE + '/all', { 
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' }
+                });
+                
+                if (!response.ok) throw new Error('Worker response not OK');
+                
+                var result = await response.json();
+                
+                // Update crypto prices
+                if (result.crypto) {
+                    if (result.crypto.bitcoin) {
+                        var btc = data.find(function(a) { return a.sym === 'BTC'; });
+                        btc.price = result.crypto.bitcoin.usd;
+                        btc.chg = result.crypto.bitcoin.usd_24h_change || 0;
+                    }
+                    if (result.crypto.ethereum) {
+                        var eth = data.find(function(a) { return a.sym === 'ETH'; });
+                        eth.price = result.crypto.ethereum.usd;
+                        eth.chg = result.crypto.ethereum.usd_24h_change || 0;
+                    }
+                    if (result.crypto.solana) {
+                        var sol = data.find(function(a) { return a.sym === 'SOL'; });
+                        sol.price = result.crypto.solana.usd;
+                        sol.chg = result.crypto.solana.usd_24h_change || 0;
+                    }
+                }
+                
+                // Update stock prices (mock from worker)
+                if (result.stocks) {
+                    for (var sym in result.stocks) {
+                        var asset = data.find(function(a) { return a.sym === sym; });
+                        if (asset) {
+                            asset.price = result.stocks[sym].price;
+                            asset.chg = result.stocks[sym].change;
+                        }
+                    }
+                }
+                
+                lastUpdate = result.timestamp || Date.now();
+                isLive = true;
+                setStatus('', 'LIVE DATA');
+                $('data-badge').textContent = 'LIVE';
+                $('data-badge').className = 'panel-badge live';
+                
+                return true;
+            } catch (e) {
+                console.log('Worker fetch failed:', e.message);
+                return false;
+            }
+        }
+        
+        async function fetchDirectCoinGecko() {
+            try {
+                var response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd&include_24hr_change=true');
+                if (!response.ok) throw new Error('CoinGecko response not OK');
+                
+                var result = await response.json();
+                
+                if (result.bitcoin) {
+                    var btc = data.find(function(a) { return a.sym === 'BTC'; });
+                    btc.price = result.bitcoin.usd;
+                    btc.chg = result.bitcoin.usd_24h_change || 0;
+                }
+                if (result.ethereum) {
+                    var eth = data.find(function(a) { return a.sym === 'ETH'; });
+                    eth.price = result.ethereum.usd;
+                    eth.chg = result.ethereum.usd_24h_change || 0;
+                }
+                if (result.solana) {
+                    var sol = data.find(function(a) { return a.sym === 'SOL'; });
+                    sol.price = result.solana.usd;
+                    sol.chg = result.solana.usd_24h_change || 0;
+                }
+                
+                lastUpdate = Date.now();
+                isLive = true;
+                setStatus('offline', 'CORS FALLBACK');
+                $('data-badge').textContent = 'DIRECT';
+                
+                return true;
+            } catch (e) {
+                console.log('Direct CoinGecko failed:', e.message);
+                return false;
+            }
+        }
+        
+        async function refreshPrices() {
+            setStatus('', 'UPDATING...');
+            
+            var success = false;
+            if (USE_WORKER) {
+                success = await fetchFromWorker();
+            }
+            
+            if (!success) {
+                success = await fetchDirectCoinGecko();
+            }
+            
+            if (success) {
+                // Update displays
+                renderAssets();
+                renderPortfolio();
+                renderTicker();
+                renderFG();
+                renderInds();
+                renderActions();
+                renderPatterns();
+                renderPreds();
+                renderChart();
+                updateLastUpdate();
+            } else {
+                setStatus('error', 'OFFLINE');
+                $('data-badge').textContent = 'CACHED';
+            }
+        }
+        
+        function updateLastUpdate() {
+            var d = new Date(lastUpdate || Date.now());
+            $('last-update').textContent = 'Last update: ' + d.toLocaleTimeString();
         }
         
         // Renders
@@ -295,7 +434,7 @@
             for (var i = 0; i < data.length * 2; i++) {
                 var a = data[i % data.length];
                 var chgCls = a.chg >= 0 ? 'color:var(--green)' : 'color:var(--red)';
-                h += '<span class="ticker-item"><span class="ticker-sym">' + a.sym + '</span> ';
+                h += '<span class="ticker-item" onclick="selAsset(\'' + a.sym + '\')"><span class="ticker-sym">' + a.sym + '</span> ';
                 h += '$' + fmt(a.price) + ' <span style="' + chgCls + '">' + (a.chg >= 0 ? '+' : '') + a.chg.toFixed(1) + '%</span></span>';
             }
             $('ticker').innerHTML = h + h;
@@ -506,6 +645,7 @@
                 if (!history[data[i].sym]) history[data[i].sym] = genHistory(data[i].price, 100);
             }
             
+            // Render with default data first
             renderAssets();
             renderPortfolio();
             renderTicker();
@@ -519,7 +659,14 @@
             renderChart();
             renderAlloc();
             
-            console.log('TradingAI Neural Nexus v3.2 initialized');
+            // Then try to fetch real data
+            refreshPrices();
+            
+            // Refresh every 60 seconds
+            setInterval(refreshPrices, 60000);
+            
+            console.log('TradingAI Neural Nexus v4.0 initialized');
+            console.log('API Base:', API_BASE);
         }
         
         if (document.readyState === 'loading') {

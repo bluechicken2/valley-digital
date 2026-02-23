@@ -1,0 +1,11 @@
+name = "tradingapi-proxy"
+main = "crypto-proxy.js"
+compatibility_date = "2024-01-01"
+
+[vars]
+ENVIRONMENT = "production"
+
+# Routes - uncomment and modify after deployment
+# [[routes]]
+# pattern = "api.ottawav.com/*"
+# zone_name = "ottawav.com"
