@@ -911,7 +911,7 @@
             if(!q) return;
             aiHistory.push({role:'user',text:q});
             $('ai-input').value='';
-            loadSavedHoldings();renderAIChat();
+            renderAIChat();
             setTimeout(function() {
                 var rsi = calcRSI(history[sel.sym]||genHistory(sel.price,100));
                 var resp = 'Based on current conditions, RSI of '+sel.sym+' is '+rsi.toFixed(1)+' ('+(rsi<30?'oversold':rsi>70?'overbought':'neutral')+'). ';
