@@ -134,14 +134,15 @@
         .star.active { color: var(--gold); }
         
         /* Charts */
-        .chart-area { height: 300px; position: relative; }
-        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .chart-sym { font-family: 'Orbitron', sans-serif; font-size: 1.2rem; color: var(--cyan); }
+        .chart-area { height: 320px; position: relative; background: linear-gradient(180deg, rgba(0,240,255,0.02) 0%, transparent 100%); border-radius: 8px; padding: 10px; border: 1px solid rgba(48,54,61,0.5); }
+        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 0 4px; }
+        .chart-sym { font-family: 'Orbitron', sans-serif; font-size: 1.3rem; color: var(--cyan); text-shadow: 0 0 10px rgba(0,240,255,0.3); }
         .chart-btns { display: flex; gap: 6px; }
-        .chart-btn { background: var(--bg-surface); border: 1px solid var(--border); border-radius: 4px; padding: 4px 10px; color: var(--text-dim); font-size: 0.7rem; cursor: pointer; transition: all var(--transition); }
-        .chart-btn:hover { border-color: var(--cyan); color: var(--cyan); }
-        .chart-btn.on { background: var(--cyan); color: var(--bg-void); border-color: var(--cyan); }
-        .chart-type-btn { margin-left: 8px; }
+        .chart-btn { background: var(--bg-surface); border: 1px solid var(--border); border-radius: 6px; padding: 6px 12px; color: var(--text-dim); font-size: 0.7rem; font-family: 'JetBrains Mono', monospace; cursor: pointer; transition: all var(--transition); }
+        .chart-btn:hover { border-color: var(--cyan); color: var(--cyan); background: rgba(0,240,255,0.1); }
+        .chart-btn.on { background: linear-gradient(135deg, var(--cyan), var(--purple)); color: var(--bg-void); border-color: transparent; font-weight: 700; }
+        .chart-type-btn { margin-left: 8px; background: rgba(168,85,247,0.2) !important; border-color: var(--purple) !important; color: var(--purple) !important; }
+        .chart-type-btn:hover { background: rgba(168,85,247,0.3) !important; }
         .volume-area { height: 80px; margin-top: 8px; }
         
         /* Indicators Grid */
@@ -199,6 +200,7 @@
         .weight-pct { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--text-dim); width: 30px; text-align: right; }
         
         /* Allocation */
+        .vol-chart { height: 60px; margin-top: 8px; border-radius: 6px; background: rgba(0,0,0,0.2); padding: 4px; }
         .alloc-chart { height: 140px; }
         
         /* Ticker */
@@ -479,7 +481,7 @@
                                     <button class="chart-btn chart-type-btn" onclick="toggleChartType()" id="chart-type-btn">LINE</button>
                                 </div>
                             </div>
-                            <div class="chart-area"><canvas id="priceCt"></canvas></div>
+                            <div class="chart-area"><canvas id="priceCt"></canvas><div class="vol-chart"><canvas id="volCt"></canvas></div></div>
                             <div class="volume-area"><canvas id="volCt"></canvas></div>
                             <div style="text-align:center;font-size:0.7rem;color:var(--text-dim);margin-top:8px" id="last-update"></div>
                         </div>
