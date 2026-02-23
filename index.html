@@ -291,6 +291,14 @@
         /* Responsive */
         @media (max-width: 1200px) { .grid-2 { grid-template-columns: 1fr; } .grid-3 { grid-template-columns: 1fr; } .analytics-grid { grid-template-columns: repeat(3, 1fr); } }
         @media (max-width: 768px) {
+            .header { flex-wrap: wrap; gap: 6px; padding: 8px 12px; justify-content: flex-start; }
+            .header-controls { flex-wrap: wrap; gap: 6px; width: 100%; justify-content: flex-start; }
+            .status { order: 3; width: 100%; font-size: 0.65rem; gap: 6px; }
+            .header-btn { padding: 4px 6px; font-size: 0.6rem; }
+            .header-btn .badge { display: none; }
+            .user-menu-btn { padding: 4px 8px; font-size: 0.7rem; }
+            .theme-toggle { padding: 4px 6px; }
+            .logo { font-size: 1rem; }
             .header { flex-wrap: wrap; gap: 8px; padding: 10px 14px; }
             .status { flex-wrap: wrap; gap: 8px; font-size: 0.7rem; }
             .header-btn { padding: 4px 8px; font-size: 0.65rem; }
