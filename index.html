@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TradingAI - Neural Nexus v4.0 | Real-Time</title>
+    <title>TradingAI - Neural Nexus v5.0 | Connected</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Space+Grotesk:wght@400;500;600&family=JetBrains+Mono&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -21,7 +21,7 @@
         .status { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--text-dim); display: flex; align-items: center; gap: 20px; }
         .status-item { display: flex; align-items: center; gap: 8px; }
         .status-dot { width: 8px; height: 8px; background: var(--green); border-radius: 50%; animation: pulse 2s infinite; }
-        .status-dot.offline { background: var(--orange); }
+        .status-dot.syncing { background: var(--orange); }
         .status-dot.error { background: var(--red); }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
         
@@ -39,6 +39,7 @@
         .panel-title { font-family: 'Orbitron', sans-serif; font-size: 0.8rem; font-weight: 600; color: var(--cyan); letter-spacing: 1px; text-transform: uppercase; }
         .panel-badge { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; padding: 3px 8px; border-radius: 4px; background: rgba(0,240,255,0.15); color: var(--cyan); }
         .panel-badge.live { background: rgba(0,255,136,0.15); color: var(--green); }
+        .panel-badge.synced { background: rgba(168,85,247,0.15); color: var(--purple); }
         .panel-body { padding: 16px; }
         
         .portfolio { text-align: center; padding: 20px; background: linear-gradient(135deg, rgba(0,240,255,0.06), rgba(168,85,247,0.06)); border-radius: 8px; margin-bottom: 12px; }
@@ -61,6 +62,8 @@
         .asset-type { font-size: 0.75rem; color: var(--text-dim); }
         .asset-price { font-family: 'JetBrains Mono', monospace; font-size: 0.95rem; color: var(--text-bright); }
         .asset-chg { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; padding: 2px 8px; border-radius: 4px; margin-top: 4px; display: inline-block; }
+        .star { color: var(--gold); margin-left: 8px; opacity: 0.3; cursor: pointer; }
+        .star.active { opacity: 1; }
         
         .chart-box { height: 280px; }
         .chart-btns { display: flex; gap: 8px; margin-bottom: 12px; }
@@ -114,6 +117,10 @@
         
         .last-update { font-size: 0.7rem; color: var(--text-dim); margin-top: 8px; }
         
+        .user-info { background: var(--bg-surface); border-radius: 8px; padding: 12px; margin-bottom: 12px; text-align: center; }
+        .user-email { font-size: 0.85rem; color: var(--text); }
+        .user-tier { font-family: 'Orbitron', sans-serif; font-size: 0.75rem; color: var(--purple); margin-top: 4px; }
+        
         @media (max-width: 1200px) { .main { grid-template-columns: 1fr; } }
     </style>
 </head>
@@ -122,6 +129,7 @@
         <div class="logo">TRADING<span style="color:var(--text-dim)">AI</span></div>
         <div class="status">
             <div class="status-item"><span class="status-dot" id="status-dot"></span><span id="status-text">CONNECTING</span></div>
+            <div class="status-item" id="db-status"><span style="color:var(--purple)">[DB]</span> OFFLINE</div>
             <div class="status-item" id="time"></div>
         </div>
     </div>
@@ -133,6 +141,10 @@
             <div class="panel">
                 <div class="panel-head"><span class="panel-title">Portfolio</span><span class="panel-badge" id="data-badge">--</span></div>
                 <div class="panel-body">
+                    <div class="user-info">
+                        <div class="user-email" id="user-email">demo@tradingai.com</div>
+                        <div class="user-tier" id="user-tier">PRO TIER</div>
+                    </div>
                     <div class="portfolio">
                         <div class="portfolio-label">Total Value</div>
                         <div class="portfolio-value" id="port-val">$0.00</div>
@@ -146,7 +158,7 @@
             </div>
             
             <div class="panel">
-                <div class="panel-head"><span class="panel-title">Assets</span></div>
+                <div class="panel-head"><span class="panel-title">Assets</span><span class="panel-badge synced" id="sync-badge">SYNCED</span></div>
                 <div class="panel-body" id="assets"></div>
             </div>
             
@@ -221,31 +233,128 @@
     
     <script>
     (function() {
-        // API Configuration - Worker URL (update after Kali deploys)
-        var API_BASE = 'https://tradingapi-proxy.workers.dev';
-        // Fallback to direct CoinGecko if worker not available
-        var USE_WORKER = true;
+        // Supabase Configuration
+        var SUPABASE_URL = 'https://dkxydhuojaspmbpjfyoz.supabase.co';
+        var SUPABASE_KEY = 'sb_publishable_ydepQXbHFjFA-_TIwOYNHg_SwN0m5PL';
         
-        // Default data (shown immediately, updated from API)
-        var data = [
-            {sym:'BTC',name:'Bitcoin',type:'crypto',cg:'bitcoin',price:64822,chg:-4.73,color:'#f7931a',hold:0.85},
-            {sym:'ETH',name:'Ethereum',type:'crypto',cg:'ethereum',price:1865.7,chg:-5.56,color:'#627eea',hold:5.2},
-            {sym:'SOL',name:'Solana',type:'crypto',cg:'solana',price:77.93,chg:-8.44,color:'#9945ff',hold:50},
-            {sym:'AAPL',name:'Apple',type:'stock',price:248.32,chg:1.5,color:'#555',hold:25},
-            {sym:'NVDA',name:'NVIDIA',type:'stock',price:892.45,chg:4.2,color:'#76b900',hold:15},
-            {sym:'TSLA',name:'Tesla',type:'stock',price:356.78,chg:-1.2,color:'#c00',hold:10},
-            {sym:'GOOGL',name:'Alphabet',type:'stock',price:175.23,chg:0.8,color:'#4285f4',hold:30},
-            {sym:'MSFT',name:'Microsoft',type:'stock',price:415.67,chg:1.1,color:'#00a4ef',hold:20}
+        // Demo user ID (from database)
+        var DEMO_USER_ID = null;
+        
+        // API Configuration
+        var API_BASE = 'https://tradingapi-proxy.workers.dev';
+        
+        // Default asset data
+        var defaultAssets = [
+            {sym:'BTC',name:'Bitcoin',type:'crypto',cg:'bitcoin',price:64822,chg:-4.73,color:'#f7931a',hold:0.85,fav:true},
+            {sym:'ETH',name:'Ethereum',type:'crypto',cg:'ethereum',price:1865.7,chg:-5.56,color:'#627eea',hold:5.2,fav:true},
+            {sym:'SOL',name:'Solana',type:'crypto',cg:'solana',price:77.93,chg:-8.44,color:'#9945ff',hold:50,fav:false},
+            {sym:'AAPL',name:'Apple',type:'stock',price:248.32,chg:1.5,color:'#555',hold:25,fav:false},
+            {sym:'NVDA',name:'NVIDIA',type:'stock',price:892.45,chg:4.2,color:'#76b900',hold:15,fav:true},
+            {sym:'TSLA',name:'Tesla',type:'stock',price:356.78,chg:-1.2,color:'#c00',hold:10,fav:false},
+            {sym:'GOOGL',name:'Alphabet',type:'stock',price:175.23,chg:0.8,color:'#4285f4',hold:30,fav:false},
+            {sym:'MSFT',name:'Microsoft',type:'stock',price:415.67,chg:1.1,color:'#00a4ef',hold:20,fav:true}
         ];
+        
+        var data = defaultAssets.slice();
         var sel = data[0];
         var history = {};
         var priceCt, allocCt;
         var lastUpdate = 0;
-        var isLive = false;
+        var dbConnected = false;
         
         // Helpers
         function $(id) { return document.getElementById(id); }
         function fmt(n) { return n.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
+        
+        // Supabase Client
+        var supabaseHeaders = {
+            'apikey': SUPABASE_KEY,
+            'Authorization': 'Bearer ' + SUPABASE_KEY,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=representation'
+        };
+        
+        async function supabaseRequest(endpoint, options) {
+            options = options || {};
+            var response = await fetch(SUPABASE_URL + endpoint, {
+                method: options.method || 'GET',
+                headers: supabaseHeaders,
+                body: options.body ? JSON.stringify(options.body) : undefined
+            });
+            
+            if (!response.ok) {
+                var err = await response.json();
+                console.error('Supabase error:', err);
+                throw new Error(err.message || 'Supabase request failed');
+            }
+            
+            if (response.status === 204) return null;
+            return response.json();
+        }
+        
+        async function loadUserPortfolio() {
+            try {
+                $('db-status').innerHTML = '<span style="color:var(--orange)">[DB]</span> SYNCING';
+                
+                // Get demo user
+                var users = await supabaseRequest('/rest/v1/users?email=eq.demo@tradingai.com');
+                if (users && users.length > 0) {
+                    DEMO_USER_ID = users[0].id;
+                    $('user-email').textContent = users[0].email;
+                    $('user-tier').textContent = users[0].tier.toUpperCase() + ' TIER';
+                    
+                    // Load portfolio
+                    var portfolios = await supabaseRequest('/rest/v1/portfolios?user_id=eq.' + DEMO_USER_ID);
+                    
+                    if (portfolios && portfolios.length > 0) {
+                        // Merge database data with asset data
+                        for (var i = 0; i < portfolios.length; i++) {
+                            var p = portfolios[i];
+                            for (var j = 0; j < data.length; j++) {
+                                if (data[j].sym === p.symbol) {
+                                    data[j].hold = parseFloat(p.quantity) || 0;
+                                    data[j].fav = p.favorite || false;
+                                    data[j].dbId = p.id;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    
+                    dbConnected = true;
+                    $('db-status').innerHTML = '<span style="color:var(--green)">[DB]</span> SYNCED';
+                    $('sync-badge').textContent = 'SYNCED';
+                    $('sync-badge').className = 'panel-badge synced';
+                }
+            } catch (e) {
+                console.error('Database load error:', e);
+                $('db-status').innerHTML = '<span style="color:var(--red)">[DB]</span> ERROR';
+                $('sync-badge').textContent = 'LOCAL';
+            }
+        }
+        
+        async function toggleFavorite(symbol) {
+            for (var i = 0; i < data.length; i++) {
+                if (data[i].sym === symbol) {
+                    data[i].fav = !data[i].fav;
+                    
+                    // Update in database if connected
+                    if (dbConnected && data[i].dbId) {
+                        try {
+                            await supabaseRequest('/rest/v1/portfolios?id=eq.' + data[i].dbId, {
+                                method: 'PATCH',
+                                body: { favorite: data[i].fav }
+                            });
+                        } catch (e) {
+                            console.error('Failed to save favorite:', e);
+                        }
+                    }
+                    
+                    renderAssets();
+                    break;
+                }
+            }
+        }
         
         function genHistory(p, n) {
             var arr = [];
@@ -268,24 +377,17 @@
             return 100 - (100 / (1 + g / (l || 0.001)));
         }
         
-        // API Functions
-        function setStatus(status, text) {
-            $('status-dot').className = 'status-dot ' + status;
-            $('status-text').textContent = text;
-        }
-        
-        async function fetchFromWorker() {
+        // Price fetching
+        async function refreshPrices() {
+            $('status-dot').className = 'status-dot syncing';
+            $('status-text').textContent = 'UPDATING...';
+            
             try {
-                var response = await fetch(API_BASE + '/all', { 
-                    method: 'GET',
-                    headers: { 'Accept': 'application/json' }
-                });
-                
-                if (!response.ok) throw new Error('Worker response not OK');
+                var response = await fetch(API_BASE + '/all');
+                if (!response.ok) throw new Error('API failed');
                 
                 var result = await response.json();
                 
-                // Update crypto prices
                 if (result.crypto) {
                     if (result.crypto.bitcoin) {
                         var btc = data.find(function(a) { return a.sym === 'BTC'; });
@@ -304,7 +406,6 @@
                     }
                 }
                 
-                // Update stock prices (mock from worker)
                 if (result.stocks) {
                     for (var sym in result.stocks) {
                         var asset = data.find(function(a) { return a.sym === sym; });
@@ -315,87 +416,19 @@
                     }
                 }
                 
-                lastUpdate = result.timestamp || Date.now();
-                isLive = true;
-                setStatus('', 'LIVE DATA');
+                lastUpdate = Date.now();
+                $('status-dot').className = 'status-dot';
+                $('status-text').textContent = 'LIVE';
                 $('data-badge').textContent = 'LIVE';
                 $('data-badge').className = 'panel-badge live';
                 
-                return true;
+                renderAll();
             } catch (e) {
-                console.log('Worker fetch failed:', e.message);
-                return false;
-            }
-        }
-        
-        async function fetchDirectCoinGecko() {
-            try {
-                var response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd&include_24hr_change=true');
-                if (!response.ok) throw new Error('CoinGecko response not OK');
-                
-                var result = await response.json();
-                
-                if (result.bitcoin) {
-                    var btc = data.find(function(a) { return a.sym === 'BTC'; });
-                    btc.price = result.bitcoin.usd;
-                    btc.chg = result.bitcoin.usd_24h_change || 0;
-                }
-                if (result.ethereum) {
-                    var eth = data.find(function(a) { return a.sym === 'ETH'; });
-                    eth.price = result.ethereum.usd;
-                    eth.chg = result.ethereum.usd_24h_change || 0;
-                }
-                if (result.solana) {
-                    var sol = data.find(function(a) { return a.sym === 'SOL'; });
-                    sol.price = result.solana.usd;
-                    sol.chg = result.solana.usd_24h_change || 0;
-                }
-                
-                lastUpdate = Date.now();
-                isLive = true;
-                setStatus('offline', 'CORS FALLBACK');
-                $('data-badge').textContent = 'DIRECT';
-                
-                return true;
-            } catch (e) {
-                console.log('Direct CoinGecko failed:', e.message);
-                return false;
-            }
-        }
-        
-        async function refreshPrices() {
-            setStatus('', 'UPDATING...');
-            
-            var success = false;
-            if (USE_WORKER) {
-                success = await fetchFromWorker();
-            }
-            
-            if (!success) {
-                success = await fetchDirectCoinGecko();
-            }
-            
-            if (success) {
-                // Update displays
-                renderAssets();
-                renderPortfolio();
-                renderTicker();
-                renderFG();
-                renderInds();
-                renderActions();
-                renderPatterns();
-                renderPreds();
-                renderChart();
-                updateLastUpdate();
-            } else {
-                setStatus('error', 'OFFLINE');
+                console.log('Price refresh failed:', e);
+                $('status-dot').className = 'status-dot error';
+                $('status-text').textContent = 'CACHED';
                 $('data-badge').textContent = 'CACHED';
             }
-        }
-        
-        function updateLastUpdate() {
-            var d = new Date(lastUpdate || Date.now());
-            $('last-update').textContent = 'Last update: ' + d.toLocaleTimeString();
         }
         
         // Renders
@@ -405,10 +438,12 @@
                 var a = data[i];
                 var cls = a.sym === sel.sym ? ' asset active' : 'asset';
                 var chgCls = a.chg >= 0 ? 'up' : 'down';
+                var starCls = a.fav ? 'active' : '';
                 h += '<div class="' + cls + '" onclick="selAsset(\'' + a.sym + '\')">';
                 h += '<div style="display:flex;align-items:center">';
                 h += '<div class="asset-icon" style="background:' + a.color + '22;color:' + a.color + '">' + a.sym.substr(0,2) + '</div>';
-                h += '<div><div class="asset-name">' + a.sym + '</div><div class="asset-type">' + a.name + '</div></div></div>';
+                h += '<div><div class="asset-name">' + a.sym + '<span class="star ' + starCls + '" onclick="event.stopPropagation();toggleFav(\'' + a.sym + '\')">*</span></div>';
+                h += '<div class="asset-type">' + a.name + '</div></div></div>';
                 h += '<div style="text-align:right"><div class="asset-price">$' + fmt(a.price) + '</div>';
                 h += '<div class="asset-chg ' + chgCls + '">' + (a.chg >= 0 ? '+' : '') + a.chg.toFixed(2) + '%</div></div></div>';
             }
@@ -464,8 +499,6 @@
             var rsi = calcRSI(arr);
             var rsiCls = rsi < 35 ? 'bull' : rsi > 70 ? 'bear' : 'neut';
             var rsiLbl = rsi < 35 ? 'Oversold' : rsi > 70 ? 'Overbought' : 'Neutral';
-            var trend = sel.chg >= 0 ? 'Uptrend' : 'Downtrend';
-            var trendCls = sel.chg >= 0 ? 'bull' : 'bear';
             
             var h = '<div class="ind-card"><div class="ind-label">RSI (14)</div>';
             h += '<div class="ind-val ' + rsiCls + '">' + rsi.toFixed(1) + '</div>';
@@ -473,7 +506,7 @@
             h += '<div class="ind-card"><div class="ind-label">MACD</div>';
             h += '<div class="ind-val ' + (sel.chg >= 0 ? 'bull' : 'bear') + '">' + (sel.chg >= 0 ? 'Bullish' : 'Bearish') + '</div></div>';
             h += '<div class="ind-card"><div class="ind-label">Trend</div>';
-            h += '<div class="ind-val ' + trendCls + '">' + trend + '</div></div>';
+            h += '<div class="ind-val ' + (sel.chg >= 0 ? 'bull' : 'bear') + '">' + (sel.chg >= 0 ? 'Uptrend' : 'Downtrend') + '</div></div>';
             h += '<div class="ind-card"><div class="ind-label">Volume</div>';
             h += '<div class="ind-val neut">' + (Math.random() * 500 + 100).toFixed(0) + 'M</div></div>';
             $('inds').innerHTML = h;
@@ -484,9 +517,8 @@
             var h = '';
             for (var i = 0; i < secs.length; i++) {
                 var s = secs[i];
-                var cls = s.c >= 0 ? 'bull' : 'bear';
                 h += '<div class="sector"><div class="sector-name">' + s.n + '</div>';
-                h += '<div class="sector-chg ' + cls + '">' + (s.c >= 0 ? '+' : '') + s.c.toFixed(1) + '%</div></div>';
+                h += '<div class="sector-chg ' + (s.c >= 0 ? 'bull' : 'bear') + '">' + (s.c >= 0 ? '+' : '') + s.c.toFixed(1) + '%</div></div>';
             }
             $('sectors').innerHTML = h;
         }
@@ -541,9 +573,8 @@
             var h = '';
             for (var i = 0; i < preds.length; i++) {
                 var p = preds[i];
-                var cls = p.v >= base ? 'bull' : 'bear';
                 h += '<div class="pred-row"><span>' + p.l + '</span>';
-                h += '<span class="pred-val ' + cls + '">$' + fmt(p.v) + '</span></div>';
+                h += '<span class="pred-val ' + (p.v >= base ? 'bull' : 'bear') + '">$' + fmt(p.v) + '</span></div>';
             }
             $('preds').innerHTML = h;
         }
@@ -613,7 +644,25 @@
             });
         }
         
-        // Asset selection
+        function renderAll() {
+            renderAssets();
+            renderPortfolio();
+            renderTicker();
+            renderFG();
+            renderInds();
+            renderActions();
+            renderPatterns();
+            renderPreds();
+            renderChart();
+            updateLastUpdate();
+        }
+        
+        function updateLastUpdate() {
+            var d = new Date(lastUpdate || Date.now());
+            $('last-update').textContent = 'Last update: ' + d.toLocaleTimeString();
+        }
+        
+        // Global functions
         window.selAsset = function(sym) {
             for (var i = 0; i < data.length; i++) {
                 if (data[i].sym === sym) { sel = data[i]; break; }
@@ -628,6 +677,8 @@
             renderChart();
         };
         
+        window.toggleFav = toggleFavorite;
+        
         window.setTf = function(tf) {
             var btns = document.querySelectorAll('.chart-btn');
             for (var i = 0; i < btns.length; i++) btns[i].classList.remove('on');
@@ -636,37 +687,37 @@
         };
         
         // Init
-        function init() {
+        async function init() {
+            // Update time
             setInterval(function() {
                 $('time').textContent = new Date().toISOString().substr(11, 8);
             }, 1000);
             
+            // Generate history
             for (var i = 0; i < data.length; i++) {
                 if (!history[data[i].sym]) history[data[i].sym] = genHistory(data[i].price, 100);
             }
             
-            // Render with default data first
-            renderAssets();
-            renderPortfolio();
-            renderTicker();
-            renderFG();
-            renderInds();
+            // Initial render
+            renderAll();
             renderSectors();
-            renderActions();
-            renderPatterns();
-            renderPreds();
             renderWeights();
-            renderChart();
             renderAlloc();
             
-            // Then try to fetch real data
+            // Load from Supabase
+            await loadUserPortfolio();
+            
+            // Re-render with database data
+            renderAll();
+            
+            // Refresh prices
             refreshPrices();
             
-            // Refresh every 60 seconds
+            // Auto-refresh every 60 seconds
             setInterval(refreshPrices, 60000);
             
-            console.log('TradingAI Neural Nexus v4.0 initialized');
-            console.log('API Base:', API_BASE);
+            console.log('TradingAI Neural Nexus v5.0 initialized');
+            console.log('Supabase:', dbConnected ? 'Connected' : 'Offline');
         }
         
         if (document.readyState === 'loading') {
