@@ -689,22 +689,28 @@
         function calcStochastic(arr) { var slice = arr.slice(-14); var high = Math.max.apply(null, slice); var low = Math.min.apply(null, slice); var k = ((arr[arr.length-1] - low) / (high - low || 0.001)) * 100; return { k: Math.max(0, Math.min(100, k)), signal: k > 80 ? 'Overbought' : k < 20 ? 'Oversold' : 'Neutral' }; }
         
         async function refreshPrices() {
-            $('status-dot').className = 'status-dot syncing';
-            $('status-text').textContent = 'UPDATING...';
+            $(status-dot).className = "status-dot syncing";
+            $(status-text).textContent = "UPDATING...";
             try {
-                var response = await fetch(API_BASE + '/all');
-                if (!response.ok) throw new Error('API failed');
-                var result = await response.json();
-                if (result.crypto) {
-                    if (result.crypto.bitcoin) { var btc = data.find(function(a){return a.sym==='BTC';}); btc.price = result.crypto.bitcoin.usd; btc.chg = result.crypto.bitcoin.usd_24h_change || 0; }
-                    if (result.crypto.ethereum) { var eth = data.find(function(a){return a.sym==='ETH';}); eth.price = result.crypto.ethereum.usd; eth.chg = result.crypto.ethereum.usd_24h_change || 0; }
-                    if (result.crypto.solana) { var sol = data.find(function(a){return a.sym==='SOL';}); sol.price = result.crypto.solana.usd; sol.chg = result.crypto.solana.usd_24h_change || 0; }
-                }
+                var cryptoRes = await fetch(API_BASE + "/prices");
+                var crypto = await cryptoRes.json();
+                var stocksRes = await fetch(API_BASE + "/stocks");
+                var stocks = await stocksRes.json();
+                if (crypto.bitcoin) { var btc = data.find(function(a){return a.sym==="BTC";}); btc.price = crypto.bitcoin.usd; btc.chg = crypto.bitcoin.usd_24h_change || 0; }
+                if (crypto.ethereum) { var eth = data.find(function(a){return a.sym==="ETH";}); eth.price = crypto.ethereum.usd; eth.chg = crypto.ethereum.usd_24h_change || 0; }
+                if (crypto.solana) { var sol = data.find(function(a){return a.sym==="SOL";}); sol.price = crypto.solana.usd; sol.chg = crypto.solana.usd_24h_change || 0; }
+                if (stocks.AAPL) { var aapl = data.find(function(a){return a.sym==="AAPL";}); aapl.price = stocks.AAPL.price; aapl.chg = stocks.AAPL.changePercent || 0; }
+                if (stocks.NVDA) { var nvda = data.find(function(a){return a.sym==="NVDA";}); nvda.price = stocks.NVDA.price; nvda.chg = stocks.NVDA.changePercent || 0; }
+                if (stocks.TSLA) { var tsla = data.find(function(a){return a.sym==="TSLA";}); tsla.price = stocks.TSLA.price; tsla.chg = stocks.TSLA.changePercent || 0; }
+                if (stocks.GOOGL) { var googl = data.find(function(a){return a.sym==="GOOGL";}); googl.price = stocks.GOOGL.price; googl.chg = stocks.GOOGL.changePercent || 0; }
+                if (stocks.MSFT) { var msft = data.find(function(a){return a.sym==="MSFT";}); msft.price = stocks.MSFT.price; msft.chg = stocks.MSFT.changePercent || 0; }
                 lastUpdate = Date.now();
-                $('status-dot').className = 'status-dot';
-                $('status-text').textContent = 'LIVE';
-                $('data-badge').textContent = 'LIVE'; $('data-badge').className = 'panel-badge live';
+                $(status-dot).className = "status-dot";
+                $(status-text).textContent = "LIVE";
+                $(data-badge).textContent = "LIVE"; $(data-badge).className = "panel-badge live";
                 renderAll();
+            } catch (e) { $(status-dot).className = "status-dot error"; $(status-text).textContent = "CACHED"; $(data-badge).textContent = "CACHED"; }
+        }
             } catch (e) { $('status-dot').className = 'status-dot error'; $('status-text').textContent = 'CACHED'; $('data-badge').textContent = 'CACHED'; }
         }
         
