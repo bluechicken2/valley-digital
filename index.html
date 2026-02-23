@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="TradingAI Neural Nexus - AI-powered portfolio intelligence dashboard">
-    <title>TradingAI - Neural Nexus v12.0</title>
+    <title>TradingAI - Neural Nexus v12.1</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Space+Grotesk:wght@400;500;600&family=JetBrains+Mono&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial@0.1.1/dist/chartjs-chart-financial.min.js"></script>
@@ -339,6 +339,20 @@
         .ai-input { display: flex; gap: 8px; }
         .ai-input input { flex: 1; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 6px; padding: 10px; color: var(--text-bright); font-size: 0.85rem; }
         .ai-input button { background: var(--cyan); border: none; border-radius: 6px; padding: 10px 16px; color: var(--bg-void); font-family: 'Orbitron', sans-serif; font-size: 0.7rem; font-weight: 700; cursor: pointer; }
+
+        /* Portfolio Management */
+        .port-edit-btn { background: var(--bg-surface); border: 1px solid var(--border); border-radius: 4px; padding: 4px 8px; color: var(--text-dim); font-size: 0.65rem; cursor: pointer; margin-left: 8px; }
+        .port-edit-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+        .holding-row { display: flex; justify-content: space-between; align-items: center; padding: 8px; background: var(--bg-surface); border-radius: 6px; margin-bottom: 6px; }
+        .holding-input { width: 80px; background: var(--bg-panel); border: 1px solid var(--border); border-radius: 4px; padding: 4px 8px; color: var(--text-bright); font-size: 0.8rem; text-align: right; }
+        .add-asset-search { width: 100%; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 6px; padding: 10px; color: var(--text-bright); font-size: 0.9rem; margin-bottom: 12px; }
+        .asset-option { display: flex; justify-content: space-between; padding: 10px; background: var(--bg-surface); border-radius: 6px; margin-bottom: 6px; cursor: pointer; transition: all 0.2s; }
+        .asset-option:hover { background: var(--border); border-color: var(--cyan); }
+        .pr-list { max-height: 300px; overflow-y: auto; }
+        .pr-item { display: flex; justify-content: space-between; padding: 10px; background: var(--bg-surface); border-radius: 6px; margin-bottom: 6px; }
+        .pr-status { font-size: 0.65rem; padding: 2px 8px; border-radius: 10px; }
+        .pr-open { background: rgba(0,255,136,0.2); color: var(--green); }
+        .pr-merged { background: rgba(168,85,247,0.2); color: var(--purple); }
 </style>
 </head>
 <body>
@@ -411,7 +425,7 @@
                 <div class="user-menu">
                     <button class="user-menu-btn" onclick="toggleUserMenu()"><span id="header-email">User</span> v</button>
                     <div class="user-menu-dropdown" id="user-dropdown">
-                        <div class="user-menu-item" onclick="showWatchlists()">Watchlists</div>
+                        <div class="user-menu-item" onclick="showPRModal()">Pull Requests</div><div class="user-menu-item" onclick="showWatchlists()">Watchlists</div>
                         <div class="user-menu-item" onclick="showProfile()">Account Settings</div>
                         <div class="user-menu-item" onclick="showPricing()">Upgrade Plan</div>
                         <div class="user-menu-divider"></div>
@@ -436,7 +450,7 @@
             <div class="grid grid-2">
                 <div>
                     <div class="panel">
-                        <div class="panel-header"><span class="panel-title">Portfolio Value</span><span class="panel-badge live" id="data-badge">LIVE</span></div>
+                        <div class="panel-header"><span class="panel-title">Portfolio Value</span><button class="port-edit-btn" onclick="showPortfolioEdit()">EDIT</button><button class="port-edit-btn" onclick="showAddAsset()">+ ADD</button><span class="panel-badge live" id="data-badge">LIVE</span></div>
                         <div class="panel-body">
                             <div class="portfolio-value" id="port-val">$0.00</div>
                             <div class="portfolio-change up" id="port-chg">+$0.00 (0.00%)</div>
@@ -604,6 +618,14 @@
     <div class="modal-overlay" id="add-alert-modal"><div class="modal"><div class="modal-header"><span class="modal-title">Create Alert</span><button class="modal-close" onclick="hideAddAlert()">X</button></div><div class="modal-body"><div class="form-group"><label>Asset</label><select id="alert-asset"></select></div><div class="form-group"><label>Condition</label><select id="alert-cond"><option value="above">Price goes above</option><option value="below">Price goes below</option></select></div><div class="form-group"><label>Target Price ($)</label><input type="number" id="alert-price" placeholder="0.00"></div><button class="btn-primary" onclick="createAlert()">CREATE ALERT</button></div></div></div>
     <div class="modal-overlay" id="watchlists-modal"><div class="modal"><div class="modal-header"><span class="modal-title">Watchlists</span><button class="modal-close" onclick="hideWatchlists()">X</button></div><div class="modal-body"><div id="watchlists-list"></div><button class="btn-primary" style="margin-top:12px" onclick="createWatchlist()">Create Watchlist</button></div></div></div>
     
+        <!-- Portfolio Edit Modal -->
+    <div class="modal-overlay" id="portfolio-modal"><div class="modal modal-lg"><div class="modal-header"><span class="modal-title">Portfolio Holdings</span><button class="modal-close" onclick="hidePortfolioEdit()">X</button></div><div class="modal-body"><div id="holdings-list"></div><div style="margin-top:12px"><button class="btn-primary" onclick="saveHoldings()">SAVE CHANGES</button></div></div></div></div>
+
+    <!-- Add Asset Modal -->
+    <div class="modal-overlay" id="add-asset-modal"><div class="modal"><div class="modal-header"><span class="modal-title">Add Asset to Portfolio</span><button class="modal-close" onclick="hideAddAsset()">X</button></div><div class="modal-body"><input type="text" class="add-asset-search" id="asset-search" placeholder="Search assets..." oninput="searchAssets()"><div id="asset-options"></div></div></div></div>
+
+    <!-- PR Modal -->
+    <div class="modal-overlay" id="pr-modal"><div class="modal modal-lg"><div class="modal-header"><span class="modal-title">Create Pull Request</span><button class="modal-close" onclick="hidePRModal()">X</button></div><div class="modal-body"><div class="form-group"><label>Branch Name</label><input type="text" id="pr-branch" placeholder="feature/my-changes"></div><div class="form-group"><label>PR Title</label><input type="text" id="pr-title" placeholder="Add new feature"></div><div class="form-group"><label>Description</label><textarea id="pr-desc" style="width:100%;height:80px;background:var(--bg-surface);border:1px solid var(--border);border-radius:6px;padding:10px;color:var(--text-bright);resize:none" placeholder="Describe your changes..."></textarea></div><button class="btn-primary" onclick="createPR()">CREATE PULL REQUEST</button><div style="margin-top:16px"><span class="panel-title">Recent Pull Requests</span></div><div class="pr-list" id="pr-list" style="margin-top:8px"></div></div></div></div>
     <div class="toast" id="toast"></div>
     
     <script>
@@ -889,7 +911,7 @@
             if(!q) return;
             aiHistory.push({role:'user',text:q});
             $('ai-input').value='';
-            renderAIChat();
+            loadSavedHoldings();renderAIChat();
             setTimeout(function() {
                 var rsi = calcRSI(history[sel.sym]||genHistory(sel.price,100));
                 var resp = 'Based on current conditions, RSI of '+sel.sym+' is '+rsi.toFixed(1)+' ('+(rsi<30?'oversold':rsi>70?'overbought':'neutral')+'). ';
@@ -897,9 +919,142 @@
                 else if(rsi>70) resp += 'Consider taking profits. ';
                 resp += 'Portfolio shows '+$('port-chg').textContent+' today.';
                 aiHistory.push({role:'ai',text:resp});
-                renderAIChat();
+                loadSavedHoldings();renderAIChat();
             }, 800);
         };
+
+        // Portfolio Management Functions
+        window.showPortfolioEdit = function() {
+            var h = '';
+            for(var i=0;i<data.length;i++) {
+                var a = data[i];
+                h += '<div class="holding-row"><span><strong>'+a.sym+'</strong> - '+a.name+'</span><span><input type="number" class="holding-input" id="hold-'+a.sym+'" value="'+a.hold+'" step="0.01" onchange="updateHolding(''+a.sym+'',this.value)"> '+a.type+'</span></div>';
+            }
+            $('holdings-list').innerHTML = h;
+            $('portfolio-modal').classList.add('show');
+        };
+        window.hidePortfolioEdit = function() { $('portfolio-modal').classList.remove('show'); };
+
+        window.updateHolding = function(sym, val) {
+            for(var i=0;i<data.length;i++) {
+                if(data[i].sym===sym) { data[i].hold = parseFloat(val)||0; break; }
+            }
+        };
+
+        window.saveHoldings = function() {
+            for(var i=0;i<data.length;i++) {
+                var input = $('hold-'+data[i].sym);
+                if(input) data[i].hold = parseFloat(input.value)||0;
+            }
+            renderPortfolio();
+            renderWeights();
+            renderAlloc();
+            hidePortfolioEdit();
+            showToast('Portfolio saved!');
+            // Save to localStorage
+            var holdings = {};
+            for(var i=0;i<data.length;i++) holdings[data[i].sym] = data[i].hold;
+            localStorage.setItem('holdings', JSON.stringify(holdings));
+        };
+
+        window.showAddAsset = function() { $('add-asset-modal').classList.add('show'); searchAssets(); };
+        window.hideAddAsset = function() { $('add-asset-modal').classList.remove('show'); };
+
+        window.searchAssets = function() {
+            var q = ($('asset-search')?.value||'').toLowerCase();
+            var popular = [
+                {sym:'BTC',name:'Bitcoin',type:'crypto'},
+                {sym:'ETH',name:'Ethereum',type:'crypto'},
+                {sym:'SOL',name:'Solana',type:'crypto'},
+                {sym:'XRP',name:'Ripple',type:'crypto'},
+                {sym:'ADA',name:'Cardano',type:'crypto'},
+                {sym:'AVAX',name:'Avalanche',type:'crypto'},
+                {sym:'DOT',name:'Polkadot',type:'crypto'},
+                {sym:'MATIC',name:'Polygon',type:'crypto'},
+                {sym:'LINK',name:'Chainlink',type:'crypto'},
+                {sym:'AAPL',name:'Apple',type:'stock'},
+                {sym:'NVDA',name:'NVIDIA',type:'stock'},
+                {sym:'TSLA',name:'Tesla',type:'stock'},
+                {sym:'GOOGL',name:'Alphabet',type:'stock'},
+                {sym:'MSFT',name:'Microsoft',type:'stock'},
+                {sym:'AMZN',name:'Amazon',type:'stock'},
+                {sym:'META',name:'Meta',type:'stock'},
+                {sym:'GC1',name:'Gold',type:'commodity'},
+                {sym:'CL1',name:'Crude Oil',type:'commodity'}
+            ];
+            var h = '';
+            var filtered = popular.filter(function(a) {
+                return a.sym.toLowerCase().indexOf(q)>=0 || a.name.toLowerCase().indexOf(q)>=0;
+            });
+            for(var i=0;i<filtered.length;i++) {
+                var a = filtered[i];
+                var exists = data.find(function(d){return d.sym===a.sym;});
+                h += '<div class="asset-option" onclick="addAssetToList(''+a.sym+'',''+a.name+'',''+a.type+'')"><span><strong>'+a.sym+'</strong> - '+a.name+'</span><span style="color:'+(exists?'var(--green)':'var(--text-dim)')+'">'+(exists?'In Portfolio':a.type.toUpperCase())+'</span></div>';
+            }
+            $('asset-options').innerHTML = h;
+        };
+
+        window.addAssetToList = function(sym, name, type) {
+            var exists = data.find(function(d){return d.sym===sym;});
+            if(exists) {
+                showToast(sym+' already in portfolio');
+                return;
+            }
+            var colors = {crypto:'var(--cyan)',stock:'var(--gold)',commodity:'var(--orange)'};
+            data.push({
+                sym:sym, name:name, type:type,
+                price:type==='crypto'?Math.random()*1000:type==='stock'?Math.random()*500:Math.random()*100,
+                chg:(Math.random()*10-5),
+                color:colors[type]||'var(--cyan)',
+                hold:0, fav:false,
+                mktCap:0, vol24h:0
+            });
+            renderAssets();
+            renderPortfolio();
+            searchAssets();
+            hideAddAsset();
+            showToast(sym+' added to portfolio!');
+        };
+
+        // PR Functions
+        window.showPRModal = function() {
+            renderPRList();
+            $('pr-modal').classList.add('show');
+        };
+        window.hidePRModal = function() { $('pr-modal').classList.remove('show'); };
+
+        function renderPRList() {
+            var prs = JSON.parse(localStorage.getItem('prs')||'[]');
+            var h = '';
+            if(prs.length===0) h = '<div style="text-align:center;color:var(--text-dim);padding:20px">No pull requests yet</div>';
+            for(var i=0;i<prs.length;i++) {
+                h += '<div class="pr-item"><span>'+prs[i].title+'</span><span class="pr-status pr-'+prs[i].status+'">'+prs[i].status.toUpperCase()+'</span></div>';
+            }
+            $('pr-list').innerHTML = h;
+        }
+
+        window.createPR = function() {
+            var branch = $('pr-branch').value.trim();
+            var title = $('pr-title').value.trim();
+            var desc = $('pr-desc').value.trim();
+            if(!branch||!title) { showToast('Please fill branch and title'); return; }
+            var prs = JSON.parse(localStorage.getItem('prs')||'[]');
+            prs.unshift({branch:branch,title:title,desc:desc,status:'open',date:new Date().toISOString()});
+            localStorage.setItem('prs', JSON.stringify(prs.slice(0,10)));
+            renderPRList();
+            showToast('PR created: '+title);
+            $('pr-branch').value=''; $('pr-title').value=''; $('pr-desc').value='';
+        };
+
+        function loadSavedHoldings() {
+            var saved = localStorage.getItem('holdings');
+            if(saved) {
+                var holdings = JSON.parse(saved);
+                for(var i=0;i<data.length;i++) {
+                    if(holdings[data[i].sym]!==undefined) data[i].hold = holdings[data[i].sym];
+                }
+            }
+        }
 function init() { setTimeout(function(){if(checkSession()){showDashboard();}else{showLogin();}},500); }
         if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
     })();
