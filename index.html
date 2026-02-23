@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="TradingAI Neural Nexus - AI-powered portfolio intelligence dashboard">
-    <title>TradingAI - Neural Nexus v11.0</title>
+    <title>TradingAI - Neural Nexus v12.0</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Space+Grotesk:wght@400;500;600&family=JetBrains+Mono&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial@0.1.1/dist/chartjs-chart-financial.min.js"></script>
@@ -314,7 +314,32 @@
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
         }
-    </style>
+    
+        /* Screener */
+        .screener-filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+        .screener-filter { background: var(--bg-surface); border: 1px solid var(--border); border-radius: 6px; padding: 6px 12px; font-size: 0.75rem; color: var(--text); cursor: pointer; }
+        .screener-filter.on { border-color: var(--cyan); color: var(--cyan); }
+        .screener-result { display: flex; justify-content: space-between; padding: 8px; background: var(--bg-surface); border-radius: 6px; margin-bottom: 6px; }
+
+        /* Paper Trading */
+        .paper-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; }
+        .paper-stat { background: var(--bg-surface); border-radius: 6px; padding: 10px; text-align: center; }
+        .paper-stat-label { font-size: 0.6rem; color: var(--text-dim); text-transform: uppercase; }
+        .paper-stat-value { font-family: 'Orbitron', sans-serif; font-size: 0.9rem; font-weight: 700; }
+        .trade-btn { background: var(--green); border: none; border-radius: 6px; padding: 8px 16px; color: var(--bg-void); font-family: 'Orbitron', sans-serif; font-size: 0.7rem; font-weight: 700; cursor: pointer; margin-right: 8px; }
+        .trade-btn.sell { background: var(--red); }
+
+        /* AI Chat */
+        .ai-chat { height: 250px; overflow-y: auto; background: var(--bg-surface); border-radius: 8px; padding: 12px; margin-bottom: 12px; }
+        .ai-msg { margin-bottom: 10px; }
+        .ai-msg.user { text-align: right; }
+        .ai-msg-text { display: inline-block; padding: 8px 12px; border-radius: 8px; font-size: 0.8rem; max-width: 80%; }
+        .ai-msg.user .ai-msg-text { background: var(--cyan); color: var(--bg-void); }
+        .ai-msg.ai .ai-msg-text { background: var(--bg-panel); border: 1px solid var(--border); }
+        .ai-input { display: flex; gap: 8px; }
+        .ai-input input { flex: 1; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 6px; padding: 10px; color: var(--text-bright); font-size: 0.85rem; }
+        .ai-input button { background: var(--cyan); border: none; border-radius: 6px; padding: 10px 16px; color: var(--bg-void); font-family: 'Orbitron', sans-serif; font-size: 0.7rem; font-weight: 700; cursor: pointer; }
+</style>
 </head>
 <body>
     <div id="loading" class="loading"><div class="loading-spinner"></div><div class="loading-text">INITIALIZING</div></div>
@@ -398,6 +423,9 @@
         
         <nav class="nav-tabs">
             <div class="nav-tab active" onclick="switchTab('dashboard')" data-tab="dashboard">DASHBOARD</div>
+            <div class="nav-tab" onclick="switchTab('screener')" data-tab="screener">SCREENER</div>
+            <div class="nav-tab" onclick="switchTab('paper')" data-tab="paper">PAPER TRADE</div>
+            <div class="nav-tab" onclick="switchTab('ai')" data-tab="ai">AI CHAT</div>
             <div class="nav-tab" onclick="switchTab('analytics')" data-tab="analytics">ANALYTICS</div>
             <div class="nav-tab" onclick="switchTab('news')" data-tab="news">NEWS</div>
             <div class="nav-tab" onclick="switchTab('calendar')" data-tab="calendar">CALENDAR</div>
@@ -522,6 +550,46 @@
             <div class="panel">
                 <div class="panel-header"><span class="panel-title">Economic Calendar</span></div>
                 <div class="panel-body" id="calendar"></div>
+            </div>
+        </main>
+        
+        <!-- Screener Tab -->
+        <main class="main" id="tab-screener" style="display:none">
+            <div class="panel">
+                <div class="panel-header"><span class="panel-title">Asset Screener</span></div>
+                <div class="panel-body">
+                    <div class="screener-filters" id="screener-filters"></div>
+                    <div id="screener-results"></div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Paper Trading Tab -->
+        <main class="main" id="tab-paper" style="display:none">
+            <div class="panel">
+                <div class="panel-header"><span class="panel-title">Paper Trading</span></div>
+                <div class="panel-body">
+                    <div class="paper-stats" id="paper-stats"></div>
+                    <div id="paper-positions"></div>
+                    <div style="margin-top:12px">
+                        <button class="trade-btn" onclick="paperBuy()">BUY</button>
+                        <button class="trade-btn sell" onclick="paperSell()">SELL</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- AI Assistant Tab -->
+        <main class="main" id="tab-ai" style="display:none">
+            <div class="panel">
+                <div class="panel-header"><span class="panel-title">AI Portfolio Assistant</span></div>
+                <div class="panel-body">
+                    <div class="ai-chat" id="ai-chat"></div>
+                    <div class="ai-input">
+                        <input type="text" id="ai-input" placeholder="Ask about your portfolio..." onkeypress="if(event.key==='Enter')sendAI()">
+                        <button onclick="sendAI()">SEND</button>
+                    </div>
+                </div>
             </div>
         </main>
         
@@ -756,7 +824,83 @@
         
         document.querySelectorAll('.modal-overlay').forEach(function(o){o.addEventListener('click',function(e){if(e.target===o)o.classList.remove('show');});});
         
-        function init() { setTimeout(function(){if(checkSession()){showDashboard();}else{showLogin();}},500); }
+        
+        var screenerFilters = {rsi:false, volume:false, change:false};
+        var paperBalance = 100000, paperPositions = {};
+        var aiHistory = [];
+
+        window.toggleScreenerFilter = function(f) { screenerFilters[f] = !screenerFilters[f]; renderScreener(); };
+
+        function renderScreener() {
+            $('screener-filters').innerHTML = '<button class="screener-filter'+(screenerFilters.rsi?' on':'')+'" onclick="toggleScreenerFilter(\'rsi\')">RSI<30</button><button class="screener-filter'+(screenerFilters.volume?' on':'')+'" onclick="toggleScreenerFilter(\'volume\')">High Vol</button><button class="screener-filter'+(screenerFilters.change?' on':'')+'" onclick="toggleScreenerFilter(\'change\')">+5% Day</button>';
+            var results = data.filter(function(a) {
+                if(screenerFilters.rsi) { var arr=history[a.sym]||genHistory(a.price,100); history[a.sym]=arr; if(calcRSI(arr)>=30) return false; }
+                if(screenerFilters.volume && a.vol24h<1e9) return false;
+                if(screenerFilters.change && a.chg<5) return false;
+                return true;
+            });
+            var h = '';
+            for(var i=0;i<results.length;i++) h += '<div class="screener-result"><span>'+results[i].sym+' - '+results[i].name+'</span><span style="color:'+(results[i].chg>=0?'var(--green)':'var(--red)')+'">'+(results[i].chg>=0?'+':'')+results[i].chg.toFixed(2)+'%</span></div>';
+            if(results.length===0) h = '<div style="text-align:center;color:var(--text-dim);padding:20px">No matching assets</div>';
+            $('screener-results').innerHTML = h;
+        }
+
+        function renderPaper() {
+            var posVal = 0;
+            for(var k in paperPositions) { var d = data.find(function(a){return a.sym===k;}); if(d) posVal += paperPositions[k]*d.price; }
+            var total = paperBalance + posVal, pnl = total - 100000;
+            $('paper-stats').innerHTML = '<div class="paper-stat"><div class="paper-stat-label">Balance</div><div class="paper-stat-value" style="color:var(--cyan)">$'+fmt(paperBalance)+'</div></div><div class="paper-stat"><div class="paper-stat-label">Positions</div><div class="paper-stat-value">$'+fmt(posVal)+'</div></div><div class="paper-stat"><div class="paper-stat-label">Total</div><div class="paper-stat-value">$'+fmt(total)+'</div></div><div class="paper-stat"><div class="paper-stat-label">P&L</div><div class="paper-stat-value" style="color:'+(pnl>=0?'var(--green)':'var(--red)')+'">'+(pnl>=0?'+':'')+'$'+fmt(Math.abs(pnl))+'</div></div>';
+            var h = '';
+            for(var k in paperPositions) { var d = data.find(function(a){return a.sym===k;}); if(d) h += '<div class="screener-result"><span>'+k+': '+paperPositions[k]+' shares</span><span>$'+fmt(paperPositions[k]*d.price)+'</span></div>'; }
+            if(Object.keys(paperPositions).length===0) h = '<div style="text-align:center;color:var(--text-dim);padding:20px">No positions</div>';
+            $('paper-positions').innerHTML = h;
+        }
+
+        window.paperBuy = function() {
+            var amt = prompt('Buy '+sel.sym+' - Enter amount:');
+            if(amt && !isNaN(amt)) {
+                var cost = parseFloat(amt)*sel.price;
+                if(cost<=paperBalance) { paperBalance -= cost; paperPositions[sel.sym] = (paperPositions[sel.sym]||0) + parseFloat(amt); renderPaper(); showToast('Bought '+amt+' '+sel.sym); }
+                else showToast('Insufficient balance');
+            }
+        };
+        window.paperSell = function() {
+            if(paperPositions[sel.sym]) {
+                var amt = prompt('Sell '+sel.sym+' - Enter amount (have '+paperPositions[sel.sym]+'):');
+                if(amt && !isNaN(amt) && parseFloat(amt)<=paperPositions[sel.sym]) {
+                    paperBalance += parseFloat(amt)*sel.price;
+                    paperPositions[sel.sym] -= parseFloat(amt);
+                    if(paperPositions[sel.sym]<=0) delete paperPositions[sel.sym];
+                    renderPaper(); showToast('Sold '+amt+' '+sel.sym);
+                }
+            } else showToast('No '+sel.sym+' positions');
+        };
+
+        function renderAIChat() {
+            var h = '';
+            for(var i=0;i<aiHistory.length;i++) h += '<div class="ai-msg '+aiHistory[i].role+'"><span class="ai-msg-text">'+aiHistory[i].text+'</span></div>';
+            if(aiHistory.length===0) h = '<div class="ai-msg ai"><span class="ai-msg-text">Hello! Ask me about your portfolio, market conditions, or trading strategies.</span></div>';
+            $('ai-chat').innerHTML = h;
+            $('ai-chat').scrollTop = $('ai-chat').scrollHeight;
+        }
+
+        window.sendAI = function() {
+            var q = $('ai-input').value.trim();
+            if(!q) return;
+            aiHistory.push({role:'user',text:q});
+            $('ai-input').value='';
+            renderAIChat();
+            setTimeout(function() {
+                var rsi = calcRSI(history[sel.sym]||genHistory(sel.price,100));
+                var resp = 'Based on current conditions, RSI of '+sel.sym+' is '+rsi.toFixed(1)+' ('+(rsi<30?'oversold':rsi>70?'overbought':'neutral')+'). ';
+                if(rsi<30) resp += 'Potential buying opportunity. ';
+                else if(rsi>70) resp += 'Consider taking profits. ';
+                resp += 'Portfolio shows '+$('port-chg').textContent+' today.';
+                aiHistory.push({role:'ai',text:resp});
+                renderAIChat();
+            }, 800);
+        };
+function init() { setTimeout(function(){if(checkSession()){showDashboard();}else{showLogin();}},500); }
         if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
     })();
     </script>
