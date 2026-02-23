@@ -919,7 +919,7 @@
                 else if(rsi>70) resp += 'Consider taking profits. ';
                 resp += 'Portfolio shows '+$('port-chg').textContent+' today.';
                 aiHistory.push({role:'ai',text:resp});
-                loadSavedHoldings();renderAIChat();
+                renderAIChat();
             }, 800);
         };
 
