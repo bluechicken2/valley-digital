@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TradingAI - Neural Nexus v7.0</title>
+    <title>TradingAI - Neural Nexus v8.0</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Space+Grotesk:wght@400;500;600&family=JetBrains+Mono&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -12,15 +12,47 @@
             --bg-void: #030508; --bg-panel: #0f1218; --bg-surface: #151922;
             --border: #2a3241; --text-dim: #6a7a8e; --text: #9aacc0; --text-bright: #e8f0ff;
             --cyan: #00f0ff; --green: #00ff88; --red: #ff3366; --purple: #a855f7; --gold: #ffd700;
-            --orange: #ff8c00; --pink: #ff6b9d;
+            --orange: #ff8c00;
         }
         body { background: var(--bg-void); color: var(--text); font-family: 'Space Grotesk', sans-serif; min-height: 100vh; }
         
+        /* Auth Screens */
+        .auth-container { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .auth-box { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 16px; padding: 40px; width: 100%; max-width: 420px; }
+        .auth-logo { font-family: 'Orbitron', sans-serif; font-size: 1.8rem; font-weight: 800; color: var(--cyan); text-align: center; margin-bottom: 8px; letter-spacing: 3px; }
+        .auth-subtitle { text-align: center; color: var(--text-dim); margin-bottom: 32px; font-size: 0.9rem; }
+        .auth-title { font-family: 'Orbitron', sans-serif; font-size: 1.2rem; color: var(--text-bright); text-align: center; margin-bottom: 24px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 1px; }
+        .form-group input { width: 100%; padding: 14px 16px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 8px; color: var(--text-bright); font-size: 1rem; font-family: 'Space Grotesk', sans-serif; transition: border-color 0.2s; }
+        .form-group input:focus { outline: none; border-color: var(--cyan); }
+        .form-group input::placeholder { color: var(--text-dim); }
+        .btn-primary { width: 100%; padding: 14px; background: linear-gradient(135deg, var(--cyan), var(--purple)); border: none; border-radius: 8px; color: var(--bg-void); font-family: 'Orbitron', sans-serif; font-size: 0.9rem; font-weight: 700; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; letter-spacing: 1px; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,240,255,0.3); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .auth-divider { display: flex; align-items: center; margin: 24px 0; color: var(--text-dim); font-size: 0.8rem; }
+        .auth-divider::before, .auth-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+        .auth-divider span { padding: 0 16px; }
+        .auth-link { text-align: center; color: var(--text-dim); font-size: 0.9rem; }
+        .auth-link a { color: var(--cyan); text-decoration: none; cursor: pointer; }
+        .auth-link a:hover { text-decoration: underline; }
+        .auth-error { background: rgba(255,51,102,0.1); border: 1px solid var(--red); border-radius: 8px; padding: 12px; margin-bottom: 20px; color: var(--red); font-size: 0.85rem; display: none; }
+        .auth-error.show { display: block; }
+        .tier-select { display: flex; gap: 12px; margin-bottom: 20px; }
+        .tier-option { flex: 1; padding: 16px; background: var(--bg-surface); border: 2px solid var(--border); border-radius: 8px; cursor: pointer; text-align: center; transition: all 0.2s; }
+        .tier-option:hover { border-color: var(--cyan); }
+        .tier-option.selected { border-color: var(--cyan); background: rgba(0,240,255,0.1); }
+        .tier-option .name { font-family: 'Orbitron', sans-serif; font-size: 0.9rem; color: var(--text-bright); margin-bottom: 4px; }
+        .tier-option .price { font-size: 1.4rem; font-weight: 700; color: var(--cyan); }
+        .tier-option .price span { font-size: 0.8rem; color: var(--text-dim); }
+        
+        /* Loading */
         .loading { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; gap: 20px; }
         .loading-spinner { width: 60px; height: 60px; border: 3px solid var(--border); border-top-color: var(--cyan); border-radius: 50%; animation: spin 1s linear infinite; }
         .loading-text { font-family: 'Orbitron', sans-serif; font-size: 0.9rem; color: var(--cyan); letter-spacing: 2px; }
         @keyframes spin { to { transform: rotate(360deg); } }
         
+        /* Dashboard */
         .header { background: rgba(10, 13, 20, 0.95); border-bottom: 1px solid var(--border); padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
         .logo { font-family: 'Orbitron', sans-serif; font-size: 1.3rem; font-weight: 700; color: var(--cyan); letter-spacing: 2px; display: flex; align-items: center; gap: 10px; }
         .logo-dot { width: 8px; height: 8px; background: var(--cyan); border-radius: 50%; animation: pulse 2s infinite; }
@@ -34,11 +66,18 @@
         .header-btn { background: var(--bg-surface); border: 1px solid var(--border); border-radius: 6px; padding: 6px 12px; color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
         .header-btn:hover { border-color: var(--cyan); color: var(--cyan); }
         .header-btn .badge { background: var(--cyan); color: var(--bg-void); border-radius: 10px; padding: 1px 6px; font-size: 0.65rem; font-weight: 700; }
+        .user-menu { position: relative; }
+        .user-menu-btn { background: var(--bg-surface); border: 1px solid var(--border); border-radius: 6px; padding: 6px 12px; color: var(--text); font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+        .user-menu-dropdown { position: absolute; top: 100%; right: 0; margin-top: 8px; background: var(--bg-panel); border: 1px solid var(--border); border-radius: 8px; min-width: 180px; display: none; z-index: 101; }
+        .user-menu-dropdown.show { display: block; }
+        .user-menu-item { padding: 10px 14px; color: var(--text); cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 10px; }
+        .user-menu-item:hover { background: var(--bg-surface); color: var(--cyan); }
+        .user-menu-item.danger { color: var(--red); }
         
         .ticker { background: linear-gradient(90deg, rgba(0,240,255,0.03), rgba(168,85,247,0.03)); border-bottom: 1px solid var(--border); padding: 10px 0; overflow: hidden; }
         .ticker-inner { display: flex; animation: scroll 50s linear infinite; }
         @keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-        .ticker-item { padding: 0 24px; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; white-space: nowrap; cursor: pointer; transition: color 0.2s; }
+        .ticker-item { padding: 0 24px; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; white-space: nowrap; cursor: pointer; }
         .ticker-item:hover { color: var(--cyan); }
         .ticker-sym { color: var(--cyan); font-weight: 600; }
         
@@ -79,19 +118,15 @@
         .asset-chg { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; margin-top: 3px; display: inline-block; }
         .star { color: var(--gold); margin-left: 6px; opacity: 0.3; cursor: pointer; transition: opacity 0.2s; }
         .star.active { opacity: 1; }
-        .star:hover { opacity: 0.8; }
         
-        .chart-box { height: 220px; }
+        .chart-box { height: 200px; }
         .chart-btns { display: flex; gap: 6px; margin-bottom: 10px; }
-        .chart-btn { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; padding: 5px 12px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 4px; color: var(--text); cursor: pointer; transition: all 0.2s; }
-        .chart-btn:hover { border-color: var(--cyan); }
+        .chart-btn { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; padding: 5px 12px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 4px; color: var(--text); cursor: pointer; }
         .chart-btn.on { background: rgba(0,240,255,0.15); border-color: var(--cyan); color: var(--cyan); }
-        
-        .volume-box { height: 60px; margin-top: 10px; }
+        .volume-box { height: 50px; margin-top: 8px; }
         
         .ind-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-        .ind-card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px; text-align: center; transition: border-color 0.2s; }
-        .ind-card:hover { border-color: rgba(0,240,255,0.3); }
+        .ind-card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px; text-align: center; }
         .ind-label { font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; margin-bottom: 5px; }
         .ind-val { font-family: 'Orbitron', sans-serif; font-size: 1.1rem; font-weight: 700; }
         .ind-sub { font-size: 0.65rem; color: var(--text-dim); margin-top: 3px; }
@@ -103,16 +138,14 @@
         .fg-val { font-family: 'Orbitron', sans-serif; font-size: 2.4rem; font-weight: 800; }
         .fg-lbl { font-family: 'Orbitron', sans-serif; font-size: 0.85rem; letter-spacing: 2px; margin-top: 5px; }
         .fg-bar { height: 6px; background: linear-gradient(90deg, var(--red), var(--gold), var(--green)); border-radius: 3px; margin-top: 10px; position: relative; }
-        .fg-dot { position: absolute; top: -3px; width: 12px; height: 12px; background: white; border-radius: 50%; transform: translateX(-50%); box-shadow: 0 0 8px rgba(255,255,255,0.5); }
+        .fg-dot { position: absolute; top: -3px; width: 12px; height: 12px; background: white; border-radius: 50%; transform: translateX(-50%); }
         
         .sector-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
-        .sector { padding: 10px; background: var(--bg-surface); border-radius: 6px; text-align: center; transition: transform 0.2s; }
-        .sector:hover { transform: scale(1.02); }
+        .sector { padding: 10px; background: var(--bg-surface); border-radius: 6px; text-align: center; }
         .sector-name { font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; }
         .sector-chg { font-family: 'Orbitron', sans-serif; font-size: 0.9rem; font-weight: 700; margin-top: 3px; }
         
-        .action { display: flex; align-items: center; gap: 10px; padding: 9px; background: var(--bg-surface); border-radius: 6px; margin-bottom: 7px; transition: transform 0.2s; }
-        .action:hover { transform: translateX(3px); }
+        .action { display: flex; align-items: center; gap: 10px; padding: 9px; background: var(--bg-surface); border-radius: 6px; margin-bottom: 7px; }
         .action-badge { padding: 4px 10px; border-radius: 4px; font-family: 'Orbitron', sans-serif; font-size: 0.65rem; font-weight: 700; }
         .buy-badge { background: rgba(0,255,136,0.2); color: var(--green); }
         .sell-badge { background: rgba(255,51,102,0.2); color: var(--red); }
@@ -133,23 +166,11 @@
         .weight-row { display: flex; align-items: center; gap: 8px; padding: 5px 0; }
         .weight-sym { width: 42px; font-size: 0.8rem; }
         .weight-bar { flex: 1; height: 6px; background: var(--bg-surface); border-radius: 3px; overflow: hidden; }
-        .weight-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
+        .weight-fill { height: 100%; border-radius: 3px; }
         .weight-pct { width: 36px; text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--cyan); }
         
         .donut-wrap { height: 150px; display: flex; align-items: center; justify-content: center; }
-        
         .last-update { font-size: 0.65rem; color: var(--text-dim); margin-top: 6px; }
-        
-        /* Alerts List */
-        .alerts-list { max-height: 200px; overflow-y: auto; }
-        .alert-item { display: flex; align-items: center; justify-content: space-between; padding: 8px; background: var(--bg-surface); border-radius: 6px; margin-bottom: 6px; font-size: 0.8rem; }
-        .alert-item .sym { font-family: 'Orbitron', sans-serif; color: var(--cyan); }
-        .alert-item .cond { color: var(--text); }
-        .alert-item .price { font-family: 'JetBrains Mono', monospace; color: var(--green); }
-        .alert-item .del { color: var(--red); cursor: pointer; opacity: 0.5; }
-        .alert-item .del:hover { opacity: 1; }
-        .add-alert-btn { width: 100%; padding: 8px; background: var(--bg-surface); border: 1px dashed var(--border); border-radius: 6px; color: var(--text-dim); cursor: pointer; font-size: 0.8rem; transition: all 0.2s; }
-        .add-alert-btn:hover { border-color: var(--cyan); color: var(--cyan); }
         
         /* Modals */
         .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 1000; }
@@ -162,50 +183,98 @@
         .modal-close { margin-top: 16px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 6px; padding: 8px 16px; color: var(--text); cursor: pointer; width: 100%; }
         .modal-close:hover { border-color: var(--cyan); color: var(--cyan); }
         
-        /* Alert Modal Form */
-        .alert-form { display: flex; flex-direction: column; gap: 12px; }
-        .form-group label { display: block; font-size: 0.75rem; color: var(--text-dim); margin-bottom: 4px; text-transform: uppercase; }
-        .form-group select, .form-group input { width: 100%; padding: 10px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; }
-        .form-group select:focus, .form-group input:focus { outline: none; border-color: var(--cyan); }
-        .form-row { display: flex; gap: 10px; }
-        .form-row .form-group { flex: 1; }
-        .btn-primary { background: rgba(0,240,255,0.15); border: 1px solid var(--cyan); color: var(--cyan); padding: 10px 16px; border-radius: 6px; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 0.8rem; }
-        .btn-primary:hover { background: rgba(0,240,255,0.25); }
+        .alerts-list { max-height: 200px; overflow-y: auto; }
+        .alert-item { display: flex; align-items: center; justify-content: space-between; padding: 8px; background: var(--bg-surface); border-radius: 6px; margin-bottom: 6px; font-size: 0.8rem; }
+        .alert-item .sym { font-family: 'Orbitron', sans-serif; color: var(--cyan); }
+        .alert-item .cond { color: var(--text); }
+        .alert-item .price { font-family: 'JetBrains Mono', monospace; color: var(--green); }
+        .alert-item .del { color: var(--red); cursor: pointer; opacity: 0.5; }
+        .alert-item .del:hover { opacity: 1; }
+        .add-alert-btn { width: 100%; padding: 8px; background: var(--bg-surface); border: 1px dashed var(--border); border-radius: 6px; color: var(--text-dim); cursor: pointer; font-size: 0.8rem; }
+        .add-alert-btn:hover { border-color: var(--cyan); color: var(--cyan); }
         
-        /* Toast */
-        .toast { position: fixed; bottom: 20px; right: 20px; background: var(--bg-panel); border: 1px solid var(--cyan); border-radius: 8px; padding: 12px 20px; color: var(--text-bright); font-size: 0.85rem; transform: translateY(100px); opacity: 0; transition: all 0.3s; z-index: 1001; display: flex; align-items: center; gap: 10px; }
+        .toast { position: fixed; bottom: 20px; right: 20px; background: var(--bg-panel); border: 1px solid var(--cyan); border-radius: 8px; padding: 12px 20px; color: var(--text-bright); font-size: 0.85rem; transform: translateY(100px); opacity: 0; transition: all 0.3s; z-index: 1001; }
         .toast.show { transform: translateY(0); opacity: 1; }
         .toast.success { border-color: var(--green); }
-        .toast.warning { border-color: var(--gold); }
+        .toast.error { border-color: var(--red); }
         
-        /* Mobile */
         @media (max-width: 1200px) { .main { grid-template-columns: 1fr; } }
         @media (max-width: 768px) {
             .header { padding: 10px 14px; }
-            .logo { font-size: 1.1rem; }
-            .status { gap: 10px; font-size: 0.7rem; }
             .main { padding: 10px; gap: 10px; }
             .panel-body { padding: 10px; }
             .portfolio-value { font-size: 1.5rem; }
             .ind-grid { grid-template-columns: repeat(2, 1fr); }
             .sector-grid { grid-template-columns: repeat(2, 1fr); }
-            .chart-box { height: 180px; }
-        }
-        @media (max-width: 480px) {
-            .logo span { display: none; }
-            .portfolio { padding: 14px; }
-            .hex { width: 80px; height: 70px; }
-            .hex-num { font-size: 1.5rem; }
         }
     </style>
 </head>
 <body>
-    <div id="loading" class="loading">
-        <div class="loading-spinner"></div>
-        <div class="loading-text">INITIALIZING NEURAL NEXUS</div>
+    <!-- Auth: Login Screen -->
+    <div id="auth-login" class="auth-container" style="display:none">
+        <div class="auth-box">
+            <div class="auth-logo">TRADINGAI</div>
+            <div class="auth-subtitle">Neural Nexus Intelligence Platform</div>
+            <div class="auth-title">Sign In</div>
+            <div id="login-error" class="auth-error"></div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="login-email" placeholder="you@example.com">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="login-password" placeholder="Enter your password">
+            </div>
+            <button class="btn-primary" id="login-btn" onclick="handleLogin()">SIGN IN</button>
+            <div class="auth-divider"><span>or</span></div>
+            <div class="auth-link">Don't have an account? <a onclick="showSignup()">Create Account</a></div>
+        </div>
     </div>
     
-    <div id="app" style="display:none">
+    <!-- Auth: Signup Screen -->
+    <div id="auth-signup" class="auth-container" style="display:none">
+        <div class="auth-box">
+            <div class="auth-logo">TRADINGAI</div>
+            <div class="auth-subtitle">Neural Nexus Intelligence Platform</div>
+            <div class="auth-title">Create Account</div>
+            <div id="signup-error" class="auth-error"></div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="signup-email" placeholder="you@example.com">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="signup-password" placeholder="Min 6 characters">
+            </div>
+            <div class="form-group">
+                <label>Confirm Password</label>
+                <input type="password" id="signup-confirm" placeholder="Confirm your password">
+            </div>
+            <label style="font-size:0.75rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:8px;">Select Plan</label>
+            <div class="tier-select">
+                <div class="tier-option selected" data-tier="free" onclick="selectTier('free')">
+                    <div class="name">FREE</div>
+                    <div class="price">$0<span>/mo</span></div>
+                </div>
+                <div class="tier-option" data-tier="pro" onclick="selectTier('pro')">
+                    <div class="name">PRO</div>
+                    <div class="price">$19<span>/mo</span></div>
+                </div>
+            </div>
+            <button class="btn-primary" id="signup-btn" onclick="handleSignup()">CREATE ACCOUNT</button>
+            <div class="auth-divider"><span>or</span></div>
+            <div class="auth-link">Already have an account? <a onclick="showLogin()">Sign In</a></div>
+        </div>
+    </div>
+    
+    <!-- Loading Screen -->
+    <div id="loading" class="loading" style="display:none">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">INITIALIZING</div>
+    </div>
+    
+    <!-- Dashboard -->
+    <div id="dashboard" style="display:none">
     <div class="header">
         <div class="logo"><span class="logo-dot"></span>TRADING<span style="color:var(--text-dim)">AI</span></div>
         <div class="status">
@@ -213,7 +282,13 @@
             <div class="status-item" id="db-status"><span style="color:var(--purple)">[DB]</span> OFFLINE</div>
             <div class="status-item" id="time"></div>
             <button class="header-btn" onclick="showAlerts()">* ALERTS <span class="badge" id="alert-count">0</span></button>
-            <button class="header-btn" onclick="showHelp()">? HELP</button>
+            <div class="user-menu">
+                <button class="user-menu-btn" onclick="toggleUserMenu()"><span id="header-email">User</span> ▼</button>
+                <div class="user-menu-dropdown" id="user-dropdown">
+                    <div class="user-menu-item" onclick="showHelp()">? Keyboard Shortcuts</div>
+                    <div class="user-menu-item danger" onclick="handleLogout()">Logout</div>
+                </div>
+            </div>
         </div>
     </div>
     
@@ -225,8 +300,8 @@
                 <div class="panel-head"><span class="panel-title">Portfolio</span><span class="panel-badge" id="data-badge">--</span></div>
                 <div class="panel-body">
                     <div class="user-info">
-                        <div class="user-email" id="user-email">demo@tradingai.com</div>
-                        <div class="user-tier" id="user-tier">PRO TIER</div>
+                        <div class="user-email" id="user-email">user@example.com</div>
+                        <div class="user-tier" id="user-tier">FREE TIER</div>
                     </div>
                     <div class="portfolio">
                         <div class="portfolio-label">Total Value</div>
@@ -239,12 +314,10 @@
                     </div>
                 </div>
             </div>
-            
             <div class="panel">
                 <div class="panel-head"><span class="panel-title">Assets</span><span class="panel-badge synced" id="sync-badge">SYNCED</span></div>
                 <div class="panel-body" id="assets"></div>
             </div>
-            
             <div class="panel">
                 <div class="panel-head"><span class="panel-title">Fear & Greed</span></div>
                 <div class="fg-wrap">
@@ -269,12 +342,10 @@
                     <div class="last-update" id="last-update">Last update: --</div>
                 </div>
             </div>
-            
             <div class="panel">
                 <div class="panel-head"><span class="panel-title">Technical Indicators</span></div>
                 <div class="panel-body"><div class="ind-grid" id="inds"></div></div>
             </div>
-            
             <div class="panel">
                 <div class="panel-head"><span class="panel-title">Sector Performance</span></div>
                 <div class="panel-body"><div class="sector-grid" id="sectors"></div></div>
@@ -286,17 +357,14 @@
                 <div class="panel-head"><span class="panel-title">AI Actions</span></div>
                 <div class="panel-body" id="actions"></div>
             </div>
-            
             <div class="panel">
                 <div class="panel-head"><span class="panel-title">Patterns</span></div>
                 <div class="panel-body" id="patterns"></div>
             </div>
-            
             <div class="panel">
                 <div class="panel-head"><span class="panel-title">Predictions</span></div>
                 <div class="panel-body" id="preds"></div>
             </div>
-            
             <div class="panel">
                 <div class="panel-head"><span class="panel-title">Risk Weights</span></div>
                 <div class="panel-body">
@@ -307,7 +375,6 @@
                     <div id="weights"></div>
                 </div>
             </div>
-            
             <div class="panel">
                 <div class="panel-head"><span class="panel-title">Allocation</span></div>
                 <div class="panel-body"><div class="donut-wrap"><canvas id="allocCt"></canvas></div></div>
@@ -322,7 +389,7 @@
             <div class="modal-title">Keyboard Shortcuts</div>
             <div class="modal-row"><span class="modal-key">1-8</span><span class="modal-val">Select asset</span></div>
             <div class="modal-row"><span class="modal-key">F</span><span class="modal-val">Toggle favorite</span></div>
-            <div class="modal-row"><span class="modal-key">A</span><span class="modal-val">Add price alert</span></div>
+            <div class="modal-row"><span class="modal-key">A</span><span class="modal-val">Add alert</span></div>
             <div class="modal-row"><span class="modal-key">R</span><span class="modal-val">Refresh prices</span></div>
             <div class="modal-row"><span class="modal-key">?</span><span class="modal-val">Show help</span></div>
             <div class="modal-row"><span class="modal-key">ESC</span><span class="modal-val">Close modal</span></div>
@@ -335,7 +402,7 @@
         <div class="modal" onclick="event.stopPropagation()" style="max-width:450px">
             <div class="modal-title">Price Alerts</div>
             <div class="alerts-list" id="alerts-list"></div>
-            <button class="add-alert-btn" onclick="showAddAlert()">+ Add New Alert</button>
+            <button class="add-alert-btn" onclick="showAddAlert()">+ Add Alert</button>
             <button class="modal-close" onclick="hideAlerts()">Close</button>
         </div>
     </div>
@@ -344,26 +411,24 @@
     <div class="modal-overlay" id="add-alert-modal" onclick="hideAddAlert()">
         <div class="modal" onclick="event.stopPropagation()">
             <div class="modal-title">Create Price Alert</div>
-            <div class="alert-form">
-                <div class="form-group">
-                    <label>Asset</label>
-                    <select id="alert-asset"></select>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Condition</label>
-                        <select id="alert-cond">
-                            <option value="above">Price Above</option>
-                            <option value="below">Price Below</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Target Price</label>
-                        <input type="number" id="alert-price" step="0.01" placeholder="0.00">
-                    </div>
-                </div>
-                <button class="btn-primary" onclick="createAlert()">Create Alert</button>
+            <div class="form-group" style="margin-bottom:12px">
+                <label>Asset</label>
+                <select id="alert-asset" style="width:100%;padding:10px;background:var(--bg-surface);border:1px solid var(--border);border-radius:6px;color:var(--text)"></select>
             </div>
+            <div style="display:flex;gap:10px;margin-bottom:12px">
+                <div class="form-group" style="flex:1;margin-bottom:0">
+                    <label>Condition</label>
+                    <select id="alert-cond" style="width:100%;padding:10px;background:var(--bg-surface);border:1px solid var(--border);border-radius:6px;color:var(--text)">
+                        <option value="above">Above</option>
+                        <option value="below">Below</option>
+                    </select>
+                </div>
+                <div class="form-group" style="flex:1;margin-bottom:0">
+                    <label>Target Price</label>
+                    <input type="number" id="alert-price" step="0.01" placeholder="0.00">
+                </div>
+            </div>
+            <button class="btn-primary" onclick="createAlert()">Create Alert</button>
             <button class="modal-close" onclick="hideAddAlert()">Cancel</button>
         </div>
     </div>
@@ -374,205 +439,225 @@
     (function() {
         var SUPABASE_URL = 'https://dkxydhuojaspmbpjfyoz.supabase.co';
         var SUPABASE_KEY = 'sb_publishable_ydepQXbHFjFA-_TIwOYNHg_SwN0m5PL';
-        var DEMO_USER_ID = null;
         var API_BASE = 'https://tradingapi-proxy.workers.dev';
         
-        var defaultAssets = [
-            {sym:'BTC',name:'Bitcoin',type:'crypto',price:64822,chg:-4.73,color:'#f7931a',hold:0.85,fav:true},
-            {sym:'ETH',name:'Ethereum',type:'crypto',price:1865.7,chg:-5.56,color:'#627eea',hold:5.2,fav:true},
+        var currentUser = null;
+        var sessionToken = null;
+        var selectedTier = 'free';
+        var data = [
+            {sym:'BTC',name:'Bitcoin',type:'crypto',price:64822,chg:-4.73,color:'#f7931a',hold:0.5,fav:true},
+            {sym:'ETH',name:'Ethereum',type:'crypto',price:1865.7,chg:-5.56,color:'#627eea',hold:5,fav:true},
             {sym:'SOL',name:'Solana',type:'crypto',price:77.93,chg:-8.44,color:'#9945ff',hold:50,fav:false},
             {sym:'AAPL',name:'Apple',type:'stock',price:248.32,chg:1.5,color:'#555',hold:25,fav:false},
-            {sym:'NVDA',name:'NVIDIA',type:'stock',price:892.45,chg:4.2,color:'#76b900',hold:15,fav:true},
+            {sym:'NVDA',name:'NVIDIA',type:'stock',price:892.45,chg:4.2,color:'#76b900',hold:10,fav:true},
             {sym:'TSLA',name:'Tesla',type:'stock',price:356.78,chg:-1.2,color:'#c00',hold:10,fav:false},
             {sym:'GOOGL',name:'Alphabet',type:'stock',price:175.23,chg:0.8,color:'#4285f4',hold:30,fav:false},
             {sym:'MSFT',name:'Microsoft',type:'stock',price:415.67,chg:1.1,color:'#00a4ef',hold:20,fav:true}
         ];
-        
-        var data = defaultAssets.slice();
         var sel = data[0];
         var history = {};
         var priceCt, volCt, allocCt;
         var lastUpdate = 0;
-        var dbConnected = false;
         var alerts = [];
-        var notificationsEnabled = false;
         
         function $(id) { return document.getElementById(id); }
         function fmt(n) { return n.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
         
-        var supabaseHeaders = {
-            'apikey': SUPABASE_KEY,
-            'Authorization': 'Bearer ' + SUPABASE_KEY,
-            'Content-Type': 'application/json',
-            'Prefer': 'return=representation'
-        };
+        // Supabase Auth API
+        async function supabaseAuth(endpoint, body) {
+            var response = await fetch(SUPABASE_URL + '/auth/v1' + endpoint, {
+                method: 'POST',
+                headers: {
+                    'apikey': SUPABASE_KEY,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(body)
+            });
+            var result = await response.json();
+            if (!response.ok) throw new Error(result.message || result.error_description || 'Auth failed');
+            return result;
+        }
         
         async function supabaseRequest(endpoint, options) {
             options = options || {};
+            var headers = {
+                'apikey': SUPABASE_KEY,
+                'Content-Type': 'application/json'
+            };
+            if (sessionToken) headers['Authorization'] = 'Bearer ' + sessionToken;
             var response = await fetch(SUPABASE_URL + endpoint, {
                 method: options.method || 'GET',
-                headers: supabaseHeaders,
+                headers: headers,
                 body: options.body ? JSON.stringify(options.body) : undefined
             });
-            if (!response.ok) { var err = await response.json(); throw new Error(err.message || 'Failed'); }
+            if (!response.ok) { var err = await response.json(); throw new Error(err.message || 'Request failed'); }
             if (response.status === 204) return null;
             return response.json();
         }
         
-        async function loadUserPortfolio() {
+        // Auth Functions
+        window.showLogin = function() {
+            $('auth-signup').style.display = 'none';
+            $('auth-login').style.display = 'flex';
+        };
+        
+        window.showSignup = function() {
+            $('auth-login').style.display = 'none';
+            $('auth-signup').style.display = 'flex';
+        };
+        
+        window.selectTier = function(tier) {
+            selectedTier = tier;
+            var opts = document.querySelectorAll('.tier-option');
+            for (var i = 0; i < opts.length; i++) {
+                opts[i].classList.toggle('selected', opts[i].dataset.tier === tier);
+            }
+        };
+        
+        window.handleLogin = async function() {
+            var email = $('login-email').value.trim();
+            var password = $('login-password').value;
+            if (!email || !password) { showAuthError('login', 'Please fill in all fields'); return; }
+            
+            $('login-btn').disabled = true;
+            $('login-btn').textContent = 'SIGNING IN...';
+            
             try {
-                $('db-status').innerHTML = '<span style="color:var(--orange)">[DB]</span> SYNCING';
-                var users = await supabaseRequest('/rest/v1/users?email=eq.demo@tradingai.com');
-                if (users && users.length > 0) {
-                    DEMO_USER_ID = users[0].id;
-                    $('user-email').textContent = users[0].email;
-                    $('user-tier').textContent = users[0].tier.toUpperCase() + ' TIER';
-                    var portfolios = await supabaseRequest('/rest/v1/portfolios?user_id=eq.' + DEMO_USER_ID);
-                    if (portfolios && portfolios.length > 0) {
-                        for (var i = 0; i < portfolios.length; i++) {
-                            var p = portfolios[i];
-                            for (var j = 0; j < data.length; j++) {
-                                if (data[j].sym === p.symbol) {
-                                    data[j].hold = parseFloat(p.quantity) || 0;
-                                    data[j].fav = p.favorite || false;
-                                    data[j].dbId = p.id;
-                                    break;
-                                }
+                var result = await supabaseAuth('/token?grant_type=password', { email: email, password: password });
+                sessionToken = result.access_token;
+                currentUser = result.user;
+                localStorage.setItem('sb_token', sessionToken);
+                localStorage.setItem('sb_user', JSON.stringify(currentUser));
+                showDashboard();
+            } catch (e) {
+                showAuthError('login', e.message);
+            }
+            
+            $('login-btn').disabled = false;
+            $('login-btn').textContent = 'SIGN IN';
+        };
+        
+        window.handleSignup = async function() {
+            var email = $('signup-email').value.trim();
+            var password = $('signup-password').value;
+            var confirm = $('signup-confirm').value;
+            if (!email || !password || !confirm) { showAuthError('signup', 'Please fill in all fields'); return; }
+            if (password !== confirm) { showAuthError('signup', 'Passwords do not match'); return; }
+            if (password.length < 6) { showAuthError('signup', 'Password must be at least 6 characters'); return; }
+            
+            $('signup-btn').disabled = true;
+            $('signup-btn').textContent = 'CREATING ACCOUNT...';
+            
+            try {
+                var result = await supabaseAuth('/signup', { email: email, password: password });
+                sessionToken = result.access_token;
+                currentUser = result.user;
+                
+                // Create user record
+                await supabaseRequest('/rest/v1/users', {
+                    method: 'POST',
+                    body: { id: currentUser.id, email: email, tier: selectedTier }
+                });
+                
+                localStorage.setItem('sb_token', sessionToken);
+                localStorage.setItem('sb_user', JSON.stringify(currentUser));
+                showDashboard();
+            } catch (e) {
+                showAuthError('signup', e.message);
+            }
+            
+            $('signup-btn').disabled = false;
+            $('signup-btn').textContent = 'CREATE ACCOUNT';
+        };
+        
+        window.handleLogout = function() {
+            localStorage.removeItem('sb_token');
+            localStorage.removeItem('sb_user');
+            sessionToken = null;
+            currentUser = null;
+            $('dashboard').style.display = 'none';
+            showLogin();
+            showToast('Logged out successfully');
+        };
+        
+        function showAuthError(type, msg) {
+            var el = $(type + '-error');
+            el.textContent = msg;
+            el.classList.add('show');
+            setTimeout(function() { el.classList.remove('show'); }, 5000);
+        }
+        
+        function checkSession() {
+            var token = localStorage.getItem('sb_token');
+            var user = localStorage.getItem('sb_user');
+            if (token && user) {
+                sessionToken = token;
+                currentUser = JSON.parse(user);
+                return true;
+            }
+            return false;
+        }
+        
+        async function showDashboard() {
+            $('auth-login').style.display = 'none';
+            $('auth-signup').style.display = 'none';
+            $('loading').style.display = 'flex';
+            
+            // Update user info
+            $('user-email').textContent = currentUser.email;
+            $('header-email').textContent = currentUser.email.split('@')[0];
+            
+            // Load user data
+            try {
+                var userData = await supabaseRequest('/rest/v1/users?id=eq.' + currentUser.id);
+                if (userData && userData[0]) {
+                    $('user-tier').textContent = userData[0].tier.toUpperCase() + ' TIER';
+                }
+                
+                var portfolios = await supabaseRequest('/rest/v1/portfolios?user_id=eq.' + currentUser.id);
+                if (portfolios && portfolios.length > 0) {
+                    for (var i = 0; i < portfolios.length; i++) {
+                        var p = portfolios[i];
+                        for (var j = 0; j < data.length; j++) {
+                            if (data[j].sym === p.symbol) {
+                                data[j].hold = parseFloat(p.quantity) || 0;
+                                data[j].fav = p.favorite || false;
+                                break;
                             }
                         }
                     }
-                    // Load alerts
-                    var dbAlerts = await supabaseRequest('/rest/v1/alerts?user_id=eq.' + DEMO_USER_ID);
-                    if (dbAlerts && dbAlerts.length > 0) {
-                        alerts = dbAlerts.map(function(a) { return { id: a.id, sym: a.symbol, cond: a.condition, price: parseFloat(a.target_price), triggered: a.triggered }; });
-                        updateAlertCount();
-                    }
-                    dbConnected = true;
-                    $('db-status').innerHTML = '<span style="color:var(--green)">[DB]</span> SYNCED';
-                    $('sync-badge').textContent = 'SYNCED';
                 }
+                
+                var dbAlerts = await supabaseRequest('/rest/v1/alerts?user_id=eq.' + currentUser.id);
+                if (dbAlerts && dbAlerts.length > 0) {
+                    alerts = dbAlerts.map(function(a) { return { id: a.id, sym: a.symbol, cond: a.condition, price: parseFloat(a.target_price) }; });
+                    updateAlertCount();
+                }
+                
+                $('db-status').innerHTML = '<span style="color:var(--green)">[DB]</span> SYNCED';
             } catch (e) {
-                console.error('DB error:', e);
-                $('db-status').innerHTML = '<span style="color:var(--red)">[DB]</span> ERROR';
+                console.error('Data load error:', e);
             }
-        }
-        
-        async function toggleFavorite(symbol) {
+            
+            // Generate history
             for (var i = 0; i < data.length; i++) {
-                if (data[i].sym === symbol) {
-                    data[i].fav = !data[i].fav;
-                    if (dbConnected && data[i].dbId) {
-                        try { await supabaseRequest('/rest/v1/portfolios?id=eq.' + data[i].dbId, { method: 'PATCH', body: { favorite: data[i].fav } }); } catch(e) {}
-                    }
-                    renderAssets();
-                    showToast(data[i].fav ? symbol + ' added to favorites' : symbol + ' removed from favorites');
-                    break;
-                }
-            }
-        }
-        
-        // Alerts System
-        function updateAlertCount() { $('alert-count').textContent = alerts.length; }
-        
-        window.showAlerts = function() {
-            renderAlertsList();
-            $('alerts-modal').classList.add('show');
-        };
-        window.hideAlerts = function() { $('alerts-modal').classList.remove('show'); };
-        
-        window.showAddAlert = function() {
-            hideAlerts();
-            var opts = '';
-            for (var i = 0; i < data.length; i++) { opts += '<option value="' + data[i].sym + '">' + data[i].sym + ' - ' + data[i].name + '</option>'; }
-            $('alert-asset').innerHTML = opts;
-            $('alert-asset').value = sel.sym;
-            $('alert-price').value = '';
-            $('add-alert-modal').classList.add('show');
-        };
-        window.hideAddAlert = function() { $('add-alert-modal').classList.remove('show'); };
-        
-        window.createAlert = async function() {
-            var sym = $('alert-asset').value;
-            var cond = $('alert-cond').value;
-            var price = parseFloat($('alert-price').value);
-            if (!price || price <= 0) { showToast('Please enter a valid price', 'warning'); return; }
-            
-            var alert = { sym: sym, cond: cond, price: price, triggered: false };
-            
-            if (dbConnected && DEMO_USER_ID) {
-                try {
-                    var result = await supabaseRequest('/rest/v1/alerts', {
-                        method: 'POST',
-                        body: { user_id: DEMO_USER_ID, symbol: sym, condition: cond, target_price: price, triggered: false }
-                    });
-                    if (result && result[0]) alert.id = result[0].id;
-                } catch(e) { console.error('Failed to save alert:', e); }
+                if (!history[data[i].sym]) history[data[i].sym] = genHistory(data[i].price, 100);
             }
             
-            alerts.push(alert);
-            updateAlertCount();
-            hideAddAlert();
-            showToast('Alert created: ' + sym + ' ' + cond + ' $' + fmt(price), 'success');
-            requestNotificationPermission();
-        };
-        
-        window.deleteAlert = async function(id) {
-            if (dbConnected && id) {
-                try { await supabaseRequest('/rest/v1/alerts?id=eq.' + id, { method: 'DELETE' }); } catch(e) {}
-            }
-            alerts = alerts.filter(function(a) { return a.id !== id; });
-            updateAlertCount();
-            renderAlertsList();
-            showToast('Alert deleted');
-        };
-        
-        function renderAlertsList() {
-            var h = '';
-            if (alerts.length === 0) {
-                h = '<div style="text-align:center;padding:20px;color:var(--text-dim)">No alerts yet</div>';
-            } else {
-                for (var i = 0; i < alerts.length; i++) {
-                    var a = alerts[i];
-                    h += '<div class="alert-item">';
-                    h += '<span class="sym">' + a.sym + '</span>';
-                    h += '<span class="cond">' + (a.cond === 'above' ? '>' : '<') + '</span>';
-                    h += '<span class="price">$' + fmt(a.price) + '</span>';
-                    h += '<span class="del" onclick="deleteAlert(\'' + (a.id || '') + '\')">X</span>';
-                    h += '</div>';
-                }
-            }
-            $('alerts-list').innerHTML = h;
+            renderAll();
+            renderSectors();
+            renderWeights();
+            renderAlloc();
+            
+            $('loading').style.display = 'none';
+            $('dashboard').style.display = 'block';
+            
+            refreshPrices();
+            setInterval(refreshPrices, 60000);
+            setInterval(function() { $('time').textContent = new Date().toISOString().substr(11, 8); }, 1000);
         }
         
-        function checkAlerts() {
-            for (var i = 0; i < alerts.length; i++) {
-                var a = alerts[i];
-                var asset = data.find(function(d) { return d.sym === a.sym; });
-                if (!asset || a.triggered) continue;
-                var triggered = (a.cond === 'above' && asset.price >= a.price) || (a.cond === 'below' && asset.price <= a.price);
-                if (triggered) {
-                    a.triggered = true;
-                    sendNotification(a.sym + ' Alert!', a.sym + ' is now ' + a.cond + ' $' + fmt(a.price));
-                    showToast(a.sym + ' alert triggered!', 'warning');
-                }
-            }
-        }
-        
-        function requestNotificationPermission() {
-            if (!notificationsEnabled && 'Notification' in window && Notification.permission === 'default') {
-                Notification.requestPermission().then(function(p) { notificationsEnabled = p === 'granted'; });
-            }
-        }
-        
-        function sendNotification(title, body) {
-            if ('Notification' in window && Notification.permission === 'granted') {
-                new Notification(title, { body: body, icon: '/favicon.ico' });
-            }
-        }
-        
-        window.showHelp = function() { $('help-modal').classList.add('show'); };
-        window.hideHelp = function() { $('help-modal').classList.remove('show'); };
-        
+        // Dashboard Functions
         function genHistory(p, n) {
             var arr = [];
             var cur = p * 0.92;
@@ -586,13 +671,6 @@
             var g = 0, l = 0;
             for (var i = arr.length - 14; i < arr.length; i++) { var d = arr[i] - arr[i-1]; if (d > 0) g += d; else l -= d; }
             return 100 - (100 / (1 + g / (l || 0.001)));
-        }
-        
-        function calcBollinger(arr) {
-            var slice = arr.slice(-20);
-            var sma = slice.reduce(function(a,b){return a+b;}, 0) / 20;
-            var std = Math.sqrt(slice.map(function(x){ return Math.pow(x - sma, 2); }).reduce(function(a,b){return a+b;}, 0) / 20);
-            return { upper: sma + 2 * std, middle: sma, lower: sma - 2 * std, width: (2 * std * 2 / sma * 100) };
         }
         
         function calcStochastic(arr) {
@@ -620,7 +698,6 @@
                 $('status-text').textContent = 'LIVE';
                 $('data-badge').textContent = 'LIVE'; $('data-badge').className = 'panel-badge live';
                 renderAll();
-                checkAlerts();
             } catch (e) {
                 $('status-dot').className = 'status-dot error';
                 $('status-text').textContent = 'CACHED';
@@ -680,12 +757,11 @@
             var arr = history[sel.sym] || genHistory(sel.price, 100);
             history[sel.sym] = arr;
             var rsi = calcRSI(arr);
-            var bb = calcBollinger(arr);
             var stoch = calcStochastic(arr);
             var h = '<div class="ind-card"><div class="ind-label">RSI (14)</div><div class="ind-val ' + (rsi < 35 ? 'bull' : rsi > 70 ? 'bear' : 'neut') + '">' + rsi.toFixed(1) + '</div><div class="ind-sub">' + (rsi < 35 ? 'Oversold' : rsi > 70 ? 'Overbought' : 'Neutral') + '</div></div>';
-            h += '<div class="ind-card"><div class="ind-label">Bollinger</div><div class="ind-val neut">' + (sel.price > bb.upper ? 'Above' : sel.price < bb.lower ? 'Below' : 'Inside') + '</div><div class="ind-sub">W: ' + bb.width.toFixed(1) + '%</div></div>';
-            h += '<div class="ind-card"><div class="ind-label">Stochastic</div><div class="ind-val ' + (stoch.k > 80 ? 'bear' : stoch.k < 20 ? 'bull' : 'neut') + '">' + stoch.k.toFixed(0) + '</div><div class="ind-sub">' + stoch.signal + '</div></div>';
             h += '<div class="ind-card"><div class="ind-label">MACD</div><div class="ind-val ' + (sel.chg >= 0 ? 'bull' : 'bear') + '">' + (sel.chg >= 0 ? 'Bullish' : 'Bearish') + '</div></div>';
+            h += '<div class="ind-card"><div class="ind-label">Stochastic</div><div class="ind-val ' + (stoch.k > 80 ? 'bear' : stoch.k < 20 ? 'bull' : 'neut') + '">' + stoch.k.toFixed(0) + '</div><div class="ind-sub">' + stoch.signal + '</div></div>';
+            h += '<div class="ind-card"><div class="ind-label">Trend</div><div class="ind-val ' + (sel.chg >= 0 ? 'bull' : 'bear') + '">' + (sel.chg >= 0 ? 'Uptrend' : 'Downtrend') + '</div></div>';
             $('inds').innerHTML = h;
         }
         
@@ -704,8 +780,6 @@
             if (rsi < 30 || stoch.k < 20) acts.push({t:'BUY',txt:sel.sym+' oversold'});
             else if (rsi > 70 || stoch.k > 80) acts.push({t:'SELL',txt:sel.sym+' overbought'});
             else acts.push({t:'HOLD',txt:sel.sym+' neutral'});
-            if (sel.chg < -3) acts.push({t:'BUY',txt:'Dip opportunity'});
-            if (sel.chg > 3) acts.push({t:'HOLD',txt:'Ride momentum'});
             acts.push({t:'HOLD',txt:'Review risk'});
             var h = '';
             for (var i = 0; i < acts.length; i++) { h += '<div class="action"><span class="action-badge ' + acts[i].t.toLowerCase() + '-badge">' + acts[i].t + '</span><span class="action-text">' + acts[i].txt + '</span></div>'; }
@@ -778,13 +852,28 @@
             setTimeout(function(){ $('toast').classList.remove('show'); }, 3000);
         }
         
+        window.toggleUserMenu = function() { $('user-dropdown').classList.toggle('show'); };
+        window.showHelp = function() { $('help-modal').classList.add('show'); };
+        window.hideHelp = function() { $('help-modal').classList.remove('show'); };
+        
         window.selAsset = function(sym) {
             for (var i = 0; i < data.length; i++) { if (data[i].sym === sym) { sel = data[i]; break; } }
             $('chart-sym').textContent = sym;
             if (!history[sym]) history[sym] = genHistory(sel.price, 100);
             renderAssets(); renderInds(); renderActions(); renderPatterns(); renderPreds(); renderChart();
         };
-        window.toggleFav = toggleFavorite;
+        
+        window.toggleFav = async function(symbol) {
+            for (var i = 0; i < data.length; i++) {
+                if (data[i].sym === symbol) {
+                    data[i].fav = !data[i].fav;
+                    renderAssets();
+                    showToast(symbol + (data[i].fav ? ' added to' : ' removed from') + ' favorites');
+                    break;
+                }
+            }
+        };
+        
         window.setTf = function(tf) {
             var btns = document.querySelectorAll('.chart-btn');
             for (var i = 0; i < btns.length; i++) btns[i].classList.remove('on');
@@ -792,29 +881,71 @@
             renderChart();
         };
         
+        // Alerts
+        function updateAlertCount() { $('alert-count').textContent = alerts.length; }
+        window.showAlerts = function() { renderAlertsList(); $('alerts-modal').classList.add('show'); };
+        window.hideAlerts = function() { $('alerts-modal').classList.remove('show'); };
+        window.showAddAlert = function() {
+            hideAlerts();
+            var opts = '';
+            for (var i = 0; i < data.length; i++) { opts += '<option value="' + data[i].sym + '">' + data[i].sym + '</option>'; }
+            $('alert-asset').innerHTML = opts;
+            $('alert-asset').value = sel.sym;
+            $('alert-price').value = '';
+            $('add-alert-modal').classList.add('show');
+        };
+        window.hideAddAlert = function() { $('add-alert-modal').classList.remove('show'); };
+        
+        window.createAlert = async function() {
+            var sym = $('alert-asset').value;
+            var cond = $('alert-cond').value;
+            var price = parseFloat($('alert-price').value);
+            if (!price || price <= 0) { showToast('Please enter a valid price'); return; }
+            alerts.push({ sym: sym, cond: cond, price: price });
+            updateAlertCount();
+            hideAddAlert();
+            showToast('Alert created: ' + sym + ' ' + cond + ' $' + fmt(price), 'success');
+        };
+        
+        window.deleteAlert = function(idx) {
+            alerts.splice(idx, 1);
+            updateAlertCount();
+            renderAlertsList();
+        };
+        
+        function renderAlertsList() {
+            var h = '';
+            if (alerts.length === 0) {
+                h = '<div style="text-align:center;padding:20px;color:var(--text-dim)">No alerts</div>';
+            } else {
+                for (var i = 0; i < alerts.length; i++) {
+                    h += '<div class="alert-item"><span class="sym">' + alerts[i].sym + '</span>';
+                    h += '<span class="cond">' + (alerts[i].cond === 'above' ? '>' : '<') + '</span>';
+                    h += '<span class="price">$' + fmt(alerts[i].price) + '</span>';
+                    h += '<span class="del" onclick="deleteAlert(' + i + ')">X</span></div>';
+                }
+            }
+            $('alerts-list').innerHTML = h;
+        }
+        
+        // Keyboard shortcuts
         document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') { hideHelp(); hideAlerts(); hideAddAlert(); }
+            if (e.key === 'Escape') { hideHelp(); hideAlerts(); hideAddAlert(); $('user-dropdown').classList.remove('show'); }
             if (e.key === '?') showHelp();
             if (e.key === 'a' || e.key === 'A') showAlerts();
-            if (e.key === 'r' || e.key === 'R') { refreshPrices(); showToast('Refreshing prices...'); }
-            if (e.key === 'f' || e.key === 'F') toggleFavorite(sel.sym);
+            if (e.key === 'r' || e.key === 'R') { refreshPrices(); showToast('Refreshing...'); }
+            if (e.key === 'f' || e.key === 'F') toggleFav(sel.sym);
             var num = parseInt(e.key);
             if (num >= 1 && num <= 8) selAsset(data[num-1].sym);
         });
         
-        async function init() {
-            setInterval(function() { $('time').textContent = new Date().toISOString().substr(11, 8); }, 1000);
-            for (var i = 0; i < data.length; i++) { if (!history[data[i].sym]) history[data[i].sym] = genHistory(data[i].price, 100); }
-            renderAll(); renderSectors(); renderWeights(); renderAlloc();
-            await loadUserPortfolio();
-            renderAll();
-            refreshPrices();
-            setInterval(refreshPrices, 60000);
-            $('loading').style.display = 'none';
-            $('app').style.display = 'block';
-            showToast('Neural Nexus v7.0 loaded');
-            if ('Notification' in window && Notification.permission === 'granted') notificationsEnabled = true;
-            console.log('TradingAI Neural Nexus v7.0 initialized');
+        // Init
+        function init() {
+            if (checkSession()) {
+                showDashboard();
+            } else {
+                showLogin();
+            }
         }
         
         if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
