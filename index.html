@@ -943,20 +943,21 @@
             }
         };
 
-        window.saveHoldings = function() {
+        window.saveHoldings = async function() {
             for(var i=0;i<data.length;i++) {
                 var input = $('hold-'+data[i].sym);
                 if(input) data[i].hold = parseFloat(input.value)||0;
             }
-            renderPortfolio();
-            renderWeights();
-            renderAlloc();
-            hidePortfolioEdit();
-            showToast('Portfolio saved!');
             // Save to localStorage
             var holdings = {};
             for(var i=0;i<data.length;i++) holdings[data[i].sym] = data[i].hold;
             localStorage.setItem('holdings', JSON.stringify(holdings));
+            // Save to Supabase
+            await savePortfolioToSupabase();
+            renderPortfolio();
+            renderWeights();
+            renderAlloc();
+            hidePortfolioEdit();
         };
 
         window.showAddAsset = function() { $('add-asset-modal').classList.add('show'); searchAssets(); };
@@ -1056,10 +1057,16 @@
             console.log('savePortfolioToSupabase called, token:', token ? 'exists' : 'missing', 'user:', user ? user.id : 'missing');
             if(!token || !user) { console.log('Skipping save - no auth'); return; }
 
-            var holdings = {};
+            var entries = [];
             for(var i=0;i<data.length;i++) {
-                if(data[i].hold > 0) {
-                    holdings[data[i].sym] = data[i].hold;
+                // Save ALL assets that have holdings OR are favorites
+                if(data[i].hold > 0 || data[i].fav) {
+                    entries.push({
+                        user_id: user.id,
+                        symbol: data[i].sym,
+                        holdings: data[i].hold || 0,
+                        favorite: data[i].fav || false
+                    });
                 }
             }
             console.log('Holdings to save:', holdings);
@@ -1080,20 +1087,6 @@
                 console.log('DELETE status:', delRes.status);
                 var delData = await delRes.text();
                 console.log('DELETE response:', delData);
-
-                // Then insert new entries
-                var entries = [];
-                for(var sym in holdings) {
-                    var asset = data.find(function(a){return a.sym===sym;});
-                    if(asset) {
-                        entries.push({
-                            user_id: user.id,
-                            symbol: sym,
-                            holdings: holdings[sym],
-                            favorite: asset.fav || false
-                        });
-                    }
-                }
 
                 console.log('Entries to insert:', entries);
 
