@@ -674,7 +674,36 @@
         window.selectTier = function(t) { document.querySelectorAll('.tier-option').forEach(function(o){o.classList.remove('selected');});event.currentTarget.classList.add('selected'); };
         
         function checkSession() { var t=localStorage.getItem('sb_token'),u=localStorage.getItem('sb_user'); if(t&&u){user=JSON.parse(u);userTier='pro';return true;} return false; }
-        async function showDashboard() { $('loading').style.display='none';$('auth-login').style.display='none';$('auth-signup').style.display='none';$('auth-reset').style.display='none';$('dashboard').style.display='block';$('dashboard').classList.add('fade-in'); if(user){$('header-email').textContent=user.email;$('profile-email').textContent=user.email;$('profile-tier').textContent=userTier.toUpperCase();$('profile-since').textContent=new Date(user.created_at||Date.now()).toLocaleDateString();await loadPortfolioFromSupabase();} renderAll();refreshPrices();setInterval(refreshPrices,60000);updateTime();setInterval(updateTime,1000); }
+        async function showDashboard() { 
+            $('loading').style.display='none';
+            $('auth-login').style.display='none';
+            $('auth-signup').style.display='none';
+            $('auth-reset').style.display='none';
+            $('dashboard').style.display='block';
+            $('dashboard').classList.add('fade-in');
+
+            // Load from localStorage first (always works)
+            loadSavedHoldings();
+            console.log('Loaded from localStorage');
+
+            // Then try to load from Supabase (may override localStorage)
+            if(user){
+                $('header-email').textContent=user.email;
+                $('profile-email').textContent=user.email;
+                $('profile-tier').textContent=userTier.toUpperCase();
+                $('profile-since').textContent=new Date(user.created_at||Date.now()).toLocaleDateString();
+                try {
+                    await loadPortfolioFromSupabase();
+                } catch(e) {
+                    console.log('Supabase load failed, using localStorage data');
+                }
+            }
+            renderAll();
+            refreshPrices();
+            setInterval(refreshPrices,60000);
+            updateTime();
+            setInterval(updateTime,1000); 
+        }
         function updateTime() { $('time').textContent = new Date().toLocaleTimeString(); }
         
         async function refreshPrices() {
