@@ -1053,7 +1053,8 @@
         // Save portfolio to Supabase
         async function savePortfolioToSupabase() {
             var token = localStorage.getItem('sb_token');
-            if(!token || !user) return;
+            console.log('savePortfolioToSupabase called, token:', token ? 'exists' : 'missing', 'user:', user ? user.id : 'missing');
+            if(!token || !user) { console.log('Skipping save - no auth'); return; }
 
             var holdings = {};
             for(var i=0;i<data.length;i++) {
@@ -1061,18 +1062,24 @@
                     holdings[data[i].sym] = data[i].hold;
                 }
             }
+            console.log('Holdings to save:', holdings);
 
             try {
                 // First, delete existing portfolio entries for this user
-                await fetch(SUPABASE_URL+'/rest/v1/portfolios?user_id=eq.'+user.id, {
+                var delUrl = SUPABASE_URL+'/rest/v1/portfolios?user_id=eq.'+user.id;
+                console.log('DELETE URL:', delUrl);
+                var delRes = await fetch(delUrl, {
                     method: 'DELETE',
                     headers: {
                         'apikey': SUPABASE_KEY,
                         'Authorization': 'Bearer '+token,
                         'Content-Type': 'application/json',
-                        'Prefer': 'return=minimal'
+                        'Prefer': 'return=representation'
                     }
                 });
+                console.log('DELETE status:', delRes.status);
+                var delData = await delRes.text();
+                console.log('DELETE response:', delData);
 
                 // Then insert new entries
                 var entries = [];
@@ -1088,49 +1095,68 @@
                     }
                 }
 
+                console.log('Entries to insert:', entries);
+
                 if(entries.length > 0) {
-                    await fetch(SUPABASE_URL+'/rest/v1/portfolios', {
+                    var postRes = await fetch(SUPABASE_URL+'/rest/v1/portfolios', {
                         method: 'POST',
                         headers: {
                             'apikey': SUPABASE_KEY,
                             'Authorization': 'Bearer '+token,
                             'Content-Type': 'application/json',
-                            'Prefer': 'return=minimal'
+                            'Prefer': 'return=representation'
                         },
                         body: JSON.stringify(entries)
                     });
+                    console.log('POST status:', postRes.status);
+                    var postData = await postRes.text();
+                    console.log('POST response:', postData);
+                    if(postRes.ok) {
+                        showToast('Portfolio saved to cloud!');
+                    } else {
+                        showToast('Save failed - check console');
+                    }
+                } else {
+                    showToast('No holdings to save');
                 }
-
-                console.log('Portfolio saved to Supabase');
             } catch(e) {
                 console.error('Failed to save portfolio:', e);
+                showToast('Save error: ' + e.message);
             }
         }
 
         // Load portfolio from Supabase
         async function loadPortfolioFromSupabase() {
             var token = localStorage.getItem('sb_token');
-            if(!token || !user) return;
+            console.log('loadPortfolioFromSupabase called, user:', user ? user.id : 'missing');
+            if(!token || !user) { console.log('Skipping load - no auth'); return; }
 
             try {
-                var r = await fetch(SUPABASE_URL+'/rest/v1/portfolios?user_id=eq.'+user.id, {
+                var url = SUPABASE_URL+'/rest/v1/portfolios?user_id=eq.'+user.id;
+                console.log('GET URL:', url);
+                var r = await fetch(url, {
                     headers: {
                         'apikey': SUPABASE_KEY,
                         'Authorization': 'Bearer '+token
                     }
                 });
 
+                console.log('GET status:', r.status);
                 if(r.ok) {
                     var portfolio = await r.json();
+                    console.log('Loaded portfolio:', portfolio);
                     for(var i=0;i<portfolio.length;i++) {
                         var entry = portfolio[i];
                         var asset = data.find(function(a){return a.sym===entry.symbol;});
                         if(asset) {
                             asset.hold = entry.holdings || 0;
                             asset.fav = entry.favorite || false;
+                            console.log('Updated', entry.symbol, ': hold=', asset.hold, 'fav=', asset.fav);
                         }
                     }
                     console.log('Portfolio loaded from Supabase:', portfolio.length, 'assets');
+                } else {
+                    console.log('GET failed:', await r.text());
                 }
             } catch(e) {
                 console.error('Failed to load portfolio:', e);
