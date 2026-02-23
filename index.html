@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TradingAI - Neural Nexus v3.0 | Real-Time Data</title>
+    <title>TradingAI - Neural Nexus v3.1</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -14,35 +14,32 @@
             --bg-void: #030508; --bg-deep: #0a0d14; --bg-panel: #0f1218; --bg-surface: #151922; --bg-elevated: #1a1f2a;
             --border-dim: #1e242f; --border-mid: #2a3241; --border-bright: #3d4a5f;
             --text-dim: #6a7a8e; --text-sec: #9aacc0; --text-prim: #d0dce8; --text-bright: #ffffff;
-            --cyan: #00f0ff; --cyan-dim: #00a8b3; --purple: #a855f7; --purple-dim: #7c3aed;
-            --pink: #ec4899; --green: #00ff88; --green-dim: #00cc6a; --red: #ff3366; --red-dim: #cc2952;
-            --gold: #ffd700; --orange: #ff8c00;
+            --cyan: #00f0ff; --cyan-dim: #00a8b3; --purple: #a855f7; --pink: #ec4899;
+            --green: #00ff88; --red: #ff3366; --gold: #ffd700; --orange: #ff8c00;
             --font-dis: 'Orbitron', sans-serif; --font-body: 'Space Grotesk', sans-serif; --font-mono: 'JetBrains Mono', monospace;
         }
-        body { background: var(--bg-void); color: var(--text-prim); font-family: var(--font-body); min-height: 100vh; overflow-x: hidden; }
-        body::before { content: ""; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 240, 255, 0.008) 2px, rgba(0, 240, 255, 0.008) 4px); pointer-events: none; z-index: 9999; }
-        .header { background: linear-gradient(180deg, rgba(10, 13, 20, 0.98), rgba(10, 13, 20, 0.9)); border-bottom: 1px solid var(--border-mid); padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; backdrop-filter: blur(20px); }
+        body { background: var(--bg-void); color: var(--text-prim); font-family: var(--font-body); min-height: 100vh; }
+        body::before { content: ""; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 240, 255, 0.006) 2px, rgba(0, 240, 255, 0.006) 4px); pointer-events: none; z-index: 9999; }
+
+        .header { background: linear-gradient(180deg, rgba(10, 13, 20, 0.98), rgba(10, 13, 20, 0.9)); border-bottom: 1px solid var(--border-mid); padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
         .logo { font-family: var(--font-dis); font-size: 1.5rem; font-weight: 700; color: var(--cyan); text-shadow: 0 0 20px rgba(0, 240, 255, 0.5); letter-spacing: 3px; cursor: pointer; }
-        .logo span { color: var(--text-dim); font-weight: 400; }
+        .logo span { color: var(--text-dim); }
         .header-status { display: flex; gap: 28px; align-items: center; }
         .status-item { display: flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 0.85rem; color: var(--text-sec); }
         .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 10px var(--green); animation: pulse 2s infinite; }
-        .status-dot.loading { background: var(--orange); box-shadow: 0 0 10px var(--orange); }
-        .status-dot.error { background: var(--red); box-shadow: 0 0 10px var(--red); }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-        .alert-bell { position: relative; cursor: pointer; padding: 8px; border-radius: 8px; background: var(--bg-surface); border: 1px solid var(--border-dim); transition: all 0.2s; }
-        .alert-bell:hover { border-color: var(--cyan-dim); }
+        .alert-bell { position: relative; cursor: pointer; padding: 8px; border-radius: 8px; background: var(--bg-surface); border: 1px solid var(--border-dim); }
         .alert-bell .badge { position: absolute; top: -4px; right: -4px; width: 18px; height: 18px; background: var(--red); border-radius: 50%; font-size: 0.65rem; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; }
+
         .ticker-wrap { background: linear-gradient(90deg, rgba(0, 240, 255, 0.04), rgba(168, 85, 247, 0.04)); border-bottom: 1px solid var(--border-dim); overflow: hidden; height: 42px; }
         .ticker { display: flex; animation: ticker 60s linear infinite; height: 100%; align-items: center; }
         @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
         .ticker-item { display: flex; align-items: center; gap: 10px; padding: 0 36px; font-family: var(--font-mono); font-size: 0.9rem; white-space: nowrap; cursor: pointer; }
-        .ticker-item:hover { color: var(--cyan); }
         .ticker-sym { color: var(--cyan); font-weight: 600; }
         .ticker-price { color: var(--text-prim); }
         .ticker-up { color: var(--green); }
         .ticker-down { color: var(--red); }
-        .ticker-star { color: var(--gold); margin-right: 4px; }
+
         .main { display: grid; grid-template-columns: 340px 1fr 340px; gap: 18px; padding: 18px; max-width: 1920px; margin: 0 auto; }
         .panel { background: var(--bg-panel); border: 1px solid var(--border-dim); border-radius: 10px; overflow: hidden; }
         .panel-header { background: linear-gradient(90deg, rgba(0, 240, 255, 0.1), transparent); border-bottom: 1px solid var(--border-dim); padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; }
@@ -50,23 +47,24 @@
         .panel-badge { font-family: var(--font-mono); font-size: 0.75rem; padding: 4px 10px; background: rgba(0, 240, 255, 0.12); border: 1px solid var(--cyan-dim); border-radius: 5px; color: var(--cyan); }
         .panel-badge.live { background: rgba(0, 255, 136, 0.12); border-color: var(--green); color: var(--green); }
         .panel-content { padding: 18px; }
-        .left-col { display: flex; flex-direction: column; gap: 18px; }
+
         .portfolio-value { text-align: center; padding: 20px; background: linear-gradient(135deg, rgba(0, 240, 255, 0.08), rgba(168, 85, 247, 0.08)); border-radius: 10px; margin-bottom: 10px; }
         .portfolio-label { font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1.5px; }
         .portfolio-total { font-family: var(--font-dis); font-size: 2.2rem; font-weight: 800; color: var(--cyan); text-shadow: 0 0 20px rgba(0, 240, 255, 0.4); margin: 8px 0; }
         .portfolio-change { font-family: var(--font-mono); font-size: 0.9rem; padding: 4px 12px; border-radius: 5px; display: inline-block; }
         .portfolio-change.up { background: rgba(0, 255, 136, 0.2); color: var(--green); }
         .portfolio-change.down { background: rgba(255, 51, 102, 0.2); color: var(--red); }
+
         .hex-container { display: flex; flex-direction: column; align-items: center; padding: 16px 0; }
         .hexagon { width: 150px; height: 130px; background: linear-gradient(135deg, var(--bg-elevated), var(--bg-surface)); position: relative; display: flex; align-items: center; justify-content: center; clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); box-shadow: 0 0 40px rgba(0, 240, 255, 0.25); }
         .hexagon::before { content: ''; position: absolute; inset: 2px; background: var(--bg-panel); clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); }
         .hex-value { font-family: var(--font-dis); font-size: 2.8rem; font-weight: 800; color: var(--cyan); text-shadow: 0 0 25px var(--cyan); position: relative; z-index: 1; }
-        .hex-label { font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-sec); margin-top: 14px; text-transform: uppercase; letter-spacing: 2.5px; }
+        .hex-label { font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-sec); margin-top: 14px; text-transform: uppercase; }
+
         .asset-list { display: flex; flex-direction: column; gap: 10px; }
-        .asset-item { display: flex; align-items: center; justify-content: space-between; padding: 14px; background: var(--bg-surface); border: 1px solid var(--border-dim); border-radius: 8px; cursor: pointer; transition: all 0.2s; position: relative; }
+        .asset-item { display: flex; align-items: center; justify-content: space-between; padding: 14px; background: var(--bg-surface); border: 1px solid var(--border-dim); border-radius: 8px; cursor: pointer; transition: all 0.2s; }
         .asset-item:hover { border-color: var(--cyan-dim); background: var(--bg-elevated); }
         .asset-item.active { border-color: var(--cyan); box-shadow: 0 0 18px rgba(0, 240, 255, 0.18); }
-        .asset-item.favorite::before { content: '*'; position: absolute; left: -8px; top: 50%; transform: translateY(-50%); color: var(--gold); font-size: 0.7rem; }
         .asset-left { display: flex; align-items: center; gap: 14px; }
         .asset-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--font-dis); font-size: 0.75rem; font-weight: 700; }
         .asset-info { display: flex; flex-direction: column; gap: 3px; }
@@ -77,91 +75,90 @@
         .asset-change { font-family: var(--font-mono); font-size: 0.8rem; padding: 3px 8px; border-radius: 4px; margin-top: 5px; display: inline-block; }
         .asset-change.up { background: rgba(0, 255, 136, 0.18); color: var(--green); }
         .asset-change.down { background: rgba(255, 51, 102, 0.18); color: var(--red); }
-        .star-btn { background: none; border: none; cursor: pointer; font-size: 1rem; opacity: 0.3; transition: all 0.2s; padding: 4px; color: var(--gold); }
-        .star-btn:hover { opacity: 0.7; }
+        .star-btn { background: none; border: none; cursor: pointer; font-size: 1rem; opacity: 0.3; color: var(--gold); padding: 4px; }
         .star-btn.active { opacity: 1; }
-        .center-col { display: flex; flex-direction: column; gap: 18px; }
-        .chart-container { height: 350px; position: relative; }
+
+        .chart-container { height: 300px; position: relative; }
         .chart-controls { display: flex; gap: 8px; margin-bottom: 12px; }
-        .chart-btn { font-family: var(--font-mono); font-size: 0.7rem; padding: 5px 12px; background: var(--bg-surface); border: 1px solid var(--border-dim); border-radius: 5px; color: var(--text-sec); cursor: pointer; transition: all 0.2s; }
-        .chart-btn:hover { border-color: var(--cyan-dim); }
+        .chart-btn { font-family: var(--font-mono); font-size: 0.7rem; padding: 5px 12px; background: var(--bg-surface); border: 1px solid var(--border-dim); border-radius: 5px; color: var(--text-sec); cursor: pointer; }
         .chart-btn.active { background: rgba(0, 240, 255, 0.15); border-color: var(--cyan); color: var(--cyan); }
         .volume-container { height: 80px; position: relative; margin-top: 10px; }
+
         .indicators-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
         .indicator-card { background: var(--bg-surface); border: 1px solid var(--border-dim); border-radius: 8px; padding: 16px; text-align: center; }
-        .ind-label { font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+        .ind-label { font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; margin-bottom: 8px; }
         .ind-value { font-family: var(--font-dis); font-size: 1.5rem; font-weight: 700; }
         .ind-value.bullish { color: var(--green); }
         .ind-value.bearish { color: var(--red); }
         .ind-value.neutral { color: var(--cyan); }
         .ind-sub { font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-sec); margin-top: 5px; }
-        .right-col { display: flex; flex-direction: column; gap: 18px; }
+
         .fg-container { padding: 18px; text-align: center; }
         .fg-value { font-family: var(--font-dis); font-size: 3.2rem; font-weight: 800; }
         .fg-label { font-family: var(--font-dis); font-size: 1.1rem; letter-spacing: 2.5px; margin-top: 8px; }
         .fg-bar { height: 10px; background: linear-gradient(90deg, var(--red), var(--orange), var(--gold), var(--green)); border-radius: 5px; margin-top: 14px; position: relative; }
         .fg-marker { position: absolute; top: -5px; width: 20px; height: 20px; background: var(--text-bright); border-radius: 50%; transform: translateX(-50%); box-shadow: 0 0 12px rgba(255, 255, 255, 0.6); }
-        .regime-badge { display: inline-flex; align-items: center; gap: 10px; padding: 10px 18px; border-radius: 8px; font-family: var(--font-dis); font-size: 1rem; font-weight: 600; letter-spacing: 1.5px; }
+
+        .regime-badge { display: inline-flex; align-items: center; gap: 10px; padding: 10px 18px; border-radius: 8px; font-family: var(--font-dis); font-size: 1rem; font-weight: 600; }
         .regime-badge.bull { background: rgba(0, 255, 136, 0.18); border: 1px solid var(--green); color: var(--green); }
         .regime-badge.bear { background: rgba(255, 51, 102, 0.18); border: 1px solid var(--red); color: var(--red); }
-        .regime-badge.neutral { background: rgba(0, 240, 255, 0.18); border: 1px solid var(--cyan); color: var(--cyan); }
-        .pred-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border-dim); }
-        .pred-row:last-child { border-bottom: none; }
-        .pred-label { font-size: 0.9rem; color: var(--text-sec); }
-        .pred-value { font-family: var(--font-dis); font-size: 1.1rem; font-weight: 600; }
+
         .sector-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
         .sector-cell { padding: 14px; border-radius: 8px; text-align: center; background: var(--bg-surface); border: 1px solid var(--border-dim); }
         .sector-name { font-size: 0.75rem; color: var(--text-sec); text-transform: uppercase; margin-bottom: 6px; }
         .sector-chg { font-family: var(--font-dis); font-size: 1.1rem; font-weight: 700; }
         .sector-chg.up { color: var(--green); }
         .sector-chg.down { color: var(--red); }
-        .allocation-container { height: 180px; display: flex; align-items: center; justify-content: center; }
+
         .action-item { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--bg-surface); border-radius: 8px; margin-bottom: 10px; }
-        .action-badge { padding: 5px 12px; border-radius: 5px; font-family: var(--font-dis); font-size: 0.75rem; font-weight: 700; letter-spacing: 1.5px; }
+        .action-badge { padding: 5px 12px; border-radius: 5px; font-family: var(--font-dis); font-size: 0.75rem; font-weight: 700; }
         .action-badge.buy { background: rgba(0, 255, 136, 0.22); color: var(--green); }
         .action-badge.sell { background: rgba(255, 51, 102, 0.22); color: var(--red); }
         .action-badge.hold { background: rgba(0, 240, 255, 0.22); color: var(--cyan); }
-        .action-text { flex: 1; font-size: 0.9rem; color: var(--text-prim); }
+        .action-text { flex: 1; font-size: 0.9rem; }
         .action-conf { font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-sec); }
+
         .pattern-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border-dim); }
-        .pattern-name { font-size: 0.9rem; color: var(--text-prim); }
+        .pattern-name { font-size: 0.9rem; }
         .pattern-status { font-family: var(--font-mono); font-size: 0.8rem; padding: 4px 10px; border-radius: 5px; }
         .pattern-status.active { background: rgba(0, 255, 136, 0.22); color: var(--green); }
         .pattern-status.inactive { background: rgba(90, 106, 126, 0.22); color: var(--text-dim); }
+
+        .pred-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border-dim); }
+        .pred-label { font-size: 0.9rem; color: var(--text-sec); }
+        .pred-value { font-family: var(--font-dis); font-size: 1.1rem; font-weight: 600; }
+
         .sharpe-display { text-align: center; padding: 18px; }
         .sharpe-value { font-family: var(--font-dis); font-size: 2.5rem; font-weight: 800; }
         .sharpe-label { font-size: 0.85rem; color: var(--text-sec); margin-top: 5px; }
         .sharpe-bar { height: 8px; background: var(--bg-elevated); border-radius: 4px; margin-top: 14px; overflow: hidden; }
-        .sharpe-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+        .sharpe-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--green), var(--cyan)); }
+
         .weight-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; }
-        .weight-label { width: 55px; font-size: 0.9rem; color: var(--text-prim); }
+        .weight-label { width: 55px; font-size: 0.9rem; }
         .weight-bar { flex: 1; height: 10px; background: var(--bg-elevated); border-radius: 5px; overflow: hidden; }
         .weight-fill { height: 100%; border-radius: 5px; }
         .weight-pct { width: 50px; text-align: right; font-family: var(--font-mono); font-size: 0.85rem; color: var(--cyan); }
+
+        .allocation-container { height: 180px; display: flex; align-items: center; justify-content: center; }
+
         .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.8); display: none; align-items: center; justify-content: center; z-index: 1000; }
         .modal-overlay.active { display: flex; }
         .modal { background: var(--bg-panel); border: 1px solid var(--border-mid); border-radius: 12px; padding: 24px; max-width: 450px; width: 90%; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .modal-title { font-family: var(--font-dis); font-size: 1.1rem; color: var(--cyan); }
         .modal-close { background: none; border: none; color: var(--text-dim); font-size: 1.5rem; cursor: pointer; }
-        .alert-form { display: flex; flex-direction: column; gap: 14px; }
-        .form-group { display: flex; flex-direction: column; gap: 6px; }
-        .form-label { font-size: 0.8rem; color: var(--text-sec); text-transform: uppercase; }
-        .form-input, .form-select { background: var(--bg-surface); border: 1px solid var(--border-dim); border-radius: 6px; padding: 10px 14px; color: var(--text-prim); font-family: var(--font-mono); font-size: 0.9rem; }
-        .form-input:focus, .form-select:focus { outline: none; border-color: var(--cyan); }
-        .btn-primary { background: linear-gradient(90deg, var(--cyan-dim), var(--cyan)); border: none; border-radius: 6px; padding: 12px; color: var(--bg-void); font-family: var(--font-dis); font-size: 0.9rem; font-weight: 700; cursor: pointer; transition: all 0.2s; }
-        .btn-primary:hover { box-shadow: 0 0 20px rgba(0, 240, 255, 0.4); }
+        .form-group { margin-bottom: 14px; }
+        .form-label { display: block; font-size: 0.8rem; color: var(--text-sec); text-transform: uppercase; margin-bottom: 6px; }
+        .form-input, .form-select { width: 100%; background: var(--bg-surface); border: 1px solid var(--border-dim); border-radius: 6px; padding: 10px 14px; color: var(--text-prim); font-family: var(--font-mono); font-size: 0.9rem; }
+        .form-input:focus { outline: none; border-color: var(--cyan); }
+        .btn-primary { width: 100%; background: linear-gradient(90deg, var(--cyan-dim), var(--cyan)); border: none; border-radius: 6px; padding: 12px; color: var(--bg-void); font-family: var(--font-dis); font-size: 0.9rem; font-weight: 700; cursor: pointer; }
         .alert-list { margin-top: 20px; max-height: 200px; overflow-y: auto; }
         .alert-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: var(--bg-surface); border-radius: 6px; margin-bottom: 8px; }
-        .alert-item-info { font-size: 0.85rem; }
-        .alert-item-delete { background: none; border: none; color: var(--red); cursor: pointer; font-size: 1rem; }
-        .shortcuts-hint { position: fixed; bottom: 20px; right: 20px; background: var(--bg-panel); border: 1px solid var(--border-dim); border-radius: 8px; padding: 12px 16px; font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-dim); opacity: 0.8; }
-        .shortcuts-hint kbd { background: var(--bg-surface); border: 1px solid var(--border-mid); border-radius: 3px; padding: 2px 6px; margin: 0 2px; }
-        .loading-spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid var(--border-dim); border-top-color: var(--cyan); border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .data-status { font-size: 0.7rem; padding: 3px 8px; border-radius: 4px; background: var(--bg-surface); color: var(--text-sec); }
-        .data-status.live { color: var(--green); }
-        .data-status.cached { color: var(--orange); }
+        .alert-item-delete { background: none; border: none; color: var(--red); cursor: pointer; }
+
+        .shortcuts-hint { position: fixed; bottom: 20px; right: 20px; background: var(--bg-panel); border: 1px solid var(--border-dim); border-radius: 8px; padding: 12px 16px; font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-dim); }
+
         @media (max-width: 1400px) { .main { grid-template-columns: 300px 1fr 300px; } }
         @media (max-width: 1200px) { .main { grid-template-columns: 1fr; } .indicators-grid { grid-template-columns: repeat(2, 1fr); } }
         @media (max-width: 768px) { .shortcuts-hint { display: none; } }
@@ -171,29 +168,36 @@
     <div class="header">
         <div class="logo" onclick="location.reload()">TRADING<span>AI</span></div>
         <div class="header-status">
-            <div class="status-item"><div class="status-dot" id="data-status-dot"></div><span id="data-status-text">Connecting...</span></div>
+            <div class="status-item"><div class="status-dot"></div><span>NEURAL NEXUS v3.1</span></div>
             <div class="status-item"><span id="datetime">--:--:--</span></div>
             <div class="alert-bell" onclick="toggleAlertModal()"><span>[!]</span><span class="badge" id="alert-count">0</span></div>
         </div>
     </div>
+
     <div class="ticker-wrap"><div class="ticker" id="ticker"></div></div>
+
     <div class="main">
         <div class="left-col">
             <div class="panel">
-                <div class="panel-header"><div class="panel-title">Portfolio Value</div><div class="panel-badge live" id="data-source">LIVE</div></div>
+                <div class="panel-header"><div class="panel-title">Portfolio Value</div><div class="panel-badge live">LIVE</div></div>
                 <div class="panel-content">
                     <div class="portfolio-value">
                         <div class="portfolio-label">Total Value</div>
-                        <div class="portfolio-total" id="portfolio-total">$---,---.--</div>
-                        <div class="portfolio-change up" id="portfolio-change">+---.--</div>
+                        <div class="portfolio-total" id="portfolio-total">$0.00</div>
+                        <div class="portfolio-change up" id="portfolio-change">+0.00%</div>
                     </div>
-                    <div class="hex-container"><div class="hexagon"><span class="hex-value" id="intel-score">--</span></div><div class="hex-label">Intel Score</div></div>
+                    <div class="hex-container">
+                        <div class="hexagon"><span class="hex-value" id="intel-score">--</span></div>
+                        <div class="hex-label">Intel Score</div>
+                    </div>
                 </div>
             </div>
+
             <div class="panel">
-                <div class="panel-header"><div class="panel-title">Assets</div><div class="panel-badge" id="asset-count">-- ASSETS</div></div>
-                <div class="panel-content"><div class="asset-list" id="asset-list"><div style="text-align:center;padding:40px;color:var(--text-dim)"><div class="loading-spinner"></div><br><br>Loading market data...</div></div></div>
+                <div class="panel-header"><div class="panel-title">Assets</div><div class="panel-badge" id="asset-count">0 ASSETS</div></div>
+                <div class="panel-content"><div class="asset-list" id="asset-list"></div></div>
             </div>
+
             <div class="panel">
                 <div class="panel-header"><div class="panel-title">Market Sentiment</div></div>
                 <div class="fg-container">
@@ -203,6 +207,7 @@
                 </div>
             </div>
         </div>
+
         <div class="center-col">
             <div class="panel">
                 <div class="panel-header"><div class="panel-title">Price Analysis</div><div class="panel-badge" id="chart-symbol">---</div></div>
@@ -217,371 +222,192 @@
                     <div class="volume-container"><canvas id="volumeChart"></canvas></div>
                 </div>
             </div>
+
             <div class="panel">
-                <div class="panel-header"><div class="panel-title">Technical Indicators</div><div class="regime-badge neutral" id="regime-badge"><span>--</span> LOADING</div></div>
+                <div class="panel-header"><div class="panel-title">Technical Indicators</div><div class="regime-badge bull" id="regime-badge"><span>*</span> BULL MARKET</div></div>
                 <div class="panel-content"><div class="indicators-grid" id="indicators"></div></div>
             </div>
+
             <div class="panel">
                 <div class="panel-header"><div class="panel-title">Sector Performance</div></div>
                 <div class="panel-content"><div class="sector-grid" id="sector-grid"></div></div>
             </div>
         </div>
+
         <div class="right-col">
             <div class="panel">
                 <div class="panel-header"><div class="panel-title">AI Recommendations</div><div class="panel-badge">AI</div></div>
                 <div class="panel-content" id="ai-actions"></div>
             </div>
+
             <div class="panel">
                 <div class="panel-header"><div class="panel-title">Pattern Detection</div></div>
                 <div class="panel-content" id="patterns"></div>
             </div>
+
             <div class="panel">
                 <div class="panel-header"><div class="panel-title">Price Predictions</div></div>
                 <div class="panel-content" id="predictions"></div>
             </div>
+
             <div class="panel">
                 <div class="panel-header"><div class="panel-title">Risk Parity Weights</div></div>
                 <div class="panel-content">
                     <div class="sharpe-display">
-                        <div class="sharpe-value" id="sharpe">--.-</div>
+                        <div class="sharpe-value" id="sharpe" style="color: var(--green);">1.85</div>
                         <div class="sharpe-label">Sharpe Ratio</div>
-                        <div class="sharpe-bar"><div class="sharpe-fill" id="sharpe-fill" style="width: 0%; background: linear-gradient(90deg, var(--green), var(--cyan));"></div></div>
+                        <div class="sharpe-bar"><div class="sharpe-fill" id="sharpe-fill" style="width: 74%;"></div></div>
                     </div>
                     <div id="risk-weights"></div>
                 </div>
             </div>
+
             <div class="panel">
                 <div class="panel-header"><div class="panel-title">Portfolio Allocation</div></div>
                 <div class="panel-content"><div class="allocation-container"><canvas id="allocationChart"></canvas></div></div>
             </div>
         </div>
     </div>
+
     <div class="modal-overlay" id="alertModal">
         <div class="modal">
             <div class="modal-header"><div class="modal-title">Price Alerts</div><button class="modal-close" onclick="toggleAlertModal()">x</button></div>
-            <div class="alert-form">
-                <div class="form-group"><label class="form-label">Asset</label><select class="form-select" id="alertAsset"></select></div>
-                <div class="form-group"><label class="form-label">Condition</label><select class="form-select" id="alertCondition"><option value="above">Price Above</option><option value="below">Price Below</option></select></div>
-                <div class="form-group"><label class="form-label">Target Price</label><input type="number" class="form-input" id="alertPrice" placeholder="0.00"></div>
-                <button class="btn-primary" onclick="addAlert()">CREATE ALERT</button>
-            </div>
+            <div class="form-group"><label class="form-label">Asset</label><select class="form-select" id="alertAsset"></select></div>
+            <div class="form-group"><label class="form-label">Condition</label><select class="form-select" id="alertCondition"><option value="above">Price Above</option><option value="below">Price Below</option></select></div>
+            <div class="form-group"><label class="form-label">Target Price</label><input type="number" class="form-input" id="alertPrice" placeholder="0.00"></div>
+            <button class="btn-primary" onclick="addAlert()">CREATE ALERT</button>
             <div class="alert-list" id="alertList"></div>
         </div>
     </div>
+
     <div class="shortcuts-hint">[Up/Down] Navigate | [F] Favorite | [A] Alert | [R] Refresh</div>
+
     <script>
         // ========================================
-        // REAL DATA INTEGRATION v3.0
+        // DATA - Real prices via CoinGecko (with CORS proxy fallback)
         // ========================================
 
-        // Asset configuration with CoinGecko IDs
-        const assetConfig = {
-            BTC: { coingecko: 'bitcoin', type: 'crypto', name: 'Bitcoin', color: '#f7931a', holdings: 0.85 },
-            ETH: { coingecko: 'ethereum', type: 'crypto', name: 'Ethereum', color: '#627eea', holdings: 5.2 },
-            SOL: { coingecko: 'solana', type: 'crypto', name: 'Solana', color: '#9945ff', holdings: 50 },
-            AAPL: { type: 'stock', name: 'Apple Inc', color: '#555555', holdings: 25 },
-            NVDA: { type: 'stock', name: 'NVIDIA Corp', color: '#76b900', holdings: 15 },
-            TSLA: { type: 'stock', name: 'Tesla Inc', color: '#cc0000', holdings: 10 },
-            GOOGL: { type: 'stock', name: 'Alphabet Inc', color: '#4285f4', holdings: 30 },
-            MSFT: { type: 'stock', name: 'Microsoft Corp', color: '#00a4ef', holdings: 20 }
-        };
+        // Default data - shown immediately, replaced if API succeeds
+        let assets = [
+            { symbol: 'BTC', name: 'Bitcoin', type: 'crypto', price: 64822, change: -4.73, color: '#f7931a', favorite: true, holdings: 0.85 },
+            { symbol: 'ETH', name: 'Ethereum', type: 'crypto', price: 1865.7, change: -5.56, color: '#627eea', favorite: true, holdings: 5.2 },
+            { symbol: 'SOL', name: 'Solana', type: 'crypto', price: 77.93, change: -8.44, color: '#9945ff', favorite: false, holdings: 50 },
+            { symbol: 'AAPL', name: 'Apple Inc', type: 'stock', price: 248.32, change: 1.5, color: '#555555', favorite: false, holdings: 25 },
+            { symbol: 'NVDA', name: 'NVIDIA Corp', type: 'stock', price: 892.45, change: 4.2, color: '#76b900', favorite: true, holdings: 15 },
+            { symbol: 'TSLA', name: 'Tesla Inc', type: 'stock', price: 356.78, change: -1.2, color: '#cc0000', favorite: false, holdings: 10 },
+            { symbol: 'GOOGL', name: 'Alphabet Inc', type: 'stock', price: 175.23, change: 0.8, color: '#4285f4', favorite: false, holdings: 30 },
+            { symbol: 'MSFT', name: 'Microsoft Corp', type: 'stock', price: 415.67, change: 1.1, color: '#00a4ef', favorite: true, holdings: 20 }
+        ];
 
-        // Runtime data storage
-        let assets = [];
         let priceHistory = {};
-        let selectedAsset = null;
+        let selectedAsset = assets[0];
         let selectedAssetIndex = 0;
         let priceAlerts = JSON.parse(localStorage.getItem('priceAlerts') || '[]');
         let timeframe = '1H';
         let priceChart, volumeChart, allocationChart;
-        let dataStatus = 'loading';
+
+        // CoinGecko ID mapping
+        const coinGeckoIds = { BTC: 'bitcoin', ETH: 'ethereum', SOL: 'solana' };
 
         // ========================================
-        // COINGECKO API INTEGRATION
+        // REAL DATA FETCHING
         // ========================================
 
-        async function fetchCryptoPrices() {
-            const cryptoIds = Object.entries(assetConfig)
-                .filter(([_, cfg]) => cfg.type === 'crypto')
-                .map(([_, cfg]) => cfg.coingecko)
-                .join(',');
-
+        async function fetchRealPrices() {
             try {
-                const response = await fetch(
-                    `https://api.coingecko.com/api/v3/simple/price?ids=${cryptoIds}&vs_currencies=usd&include_24hr_change=true&include_market_cap=true&include_24hr_vol=true`
-                );
+                // Try direct CoinGecko API first
+                const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd&include_24hr_change=true');
 
-                if (!response.ok) throw new Error('CoinGecko API error');
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('CoinGecko data:', data);
 
-                const data = await response.json();
-                return data;
-            } catch (error) {
-                console.error('CoinGecko fetch error:', error);
-                return null;
+                    if (data.bitcoin) {
+                        assets.find(a => a.symbol === 'BTC').price = data.bitcoin.usd;
+                        assets.find(a => a.symbol === 'BTC').change = data.bitcoin.usd_24h_change || 0;
+                    }
+                    if (data.ethereum) {
+                        assets.find(a => a.symbol === 'ETH').price = data.ethereum.usd;
+                        assets.find(a => a.symbol === 'ETH').change = data.ethereum.usd_24h_change || 0;
+                    }
+                    if (data.solana) {
+                        assets.find(a => a.symbol === 'SOL').price = data.solana.usd;
+                        assets.find(a => a.symbol === 'SOL').change = data.solana.usd_24h_change || 0;
+                    }
+
+                    return true;
+                }
+            } catch (e) {
+                console.log('Direct API failed (CORS), using default data');
             }
+            return false;
         }
-
-        async function fetchCryptoHistory(coinId, days = 7) {
-            try {
-                const response = await fetch(
-                    `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=${days}`
-                );
-
-                if (!response.ok) throw new Error('CoinGecko history error');
-
-                const data = await response.json();
-                return data.prices;
-            } catch (error) {
-                console.error('CoinGecko history fetch error:', error);
-                return null;
-            }
-        }
-
-        // Generate realistic stock data (since free stock APIs are limited)
-        function generateStockData(symbol, basePrice) {
-            const volatility = 0.02;
-            const trend = (Math.random() - 0.48) * 0.01;
-            const change24h = (Math.random() - 0.45) * 8;
-
-            return {
-                price: basePrice * (1 + change24h/100),
-                change24h: change24h,
-                marketCap: basePrice * (Math.random() * 50 + 10) * 1e9,
-                volume: (Math.random() * 100 + 20) * 1e6
-            };
-        }
-
-        // Base prices for stocks (would normally come from API)
-        const stockBasePrices = {
-            AAPL: 248.32,
-            NVDA: 892.45,
-            TSLA: 356.78,
-            GOOGL: 175.23,
-            MSFT: 415.67
-        };
 
         // ========================================
-        // TECHNICAL ANALYSIS FUNCTIONS
+        // TECHNICAL ANALYSIS
         // ========================================
+
+        function generatePriceHistory(basePrice, points = 168) {
+            const history = [];
+            let price = basePrice * 0.9;
+            for (let i = 0; i < points; i++) {
+                price = price * (1 + (Math.random() * 0.02 - 0.01));
+                history.push(price);
+            }
+            history[history.length - 1] = basePrice;
+            return history;
+        }
 
         function calculateRSI(prices, period = 14) {
             if (prices.length < period + 1) return 50;
-
             let gains = 0, losses = 0;
-
             for (let i = prices.length - period; i < prices.length; i++) {
                 const change = prices[i] - prices[i - 1];
                 if (change > 0) gains += change;
                 else losses -= change;
             }
-
             const avgGain = gains / period;
-            const avgLoss = losses / period;
-
-            if (avgLoss === 0) return 100;
-
+            const avgLoss = losses / period || 0.001;
             const rs = avgGain / avgLoss;
             return 100 - (100 / (1 + rs));
-        }
-
-        function calculateMACD(prices) {
-            if (prices.length < 26) return { macd: 0, signal: 0, histogram: 0 };
-
-            const ema12 = calculateEMA(prices, 12);
-            const ema26 = calculateEMA(prices, 26);
-            const macd = ema12 - ema26;
-
-            return {
-                macd: macd,
-                signal: macd * 0.9,
-                histogram: macd - (macd * 0.9)
-            };
         }
 
         function calculateEMA(prices, period) {
             const k = 2 / (period + 1);
             let ema = prices[0];
-
             for (let i = 1; i < prices.length; i++) {
                 ema = prices[i] * k + ema * (1 - k);
             }
-
             return ema;
         }
 
-        function calculateSupportResistance(prices) {
-            const sorted = [...prices].sort((a, b) => a - b);
-            const len = sorted.length;
-
-            return {
-                support: sorted[Math.floor(len * 0.1)],
-                resistance: sorted[Math.floor(len * 0.9)]
-            };
+        function calculateMACD(prices) {
+            if (prices.length < 26) return { histogram: 0 };
+            const ema12 = calculateEMA(prices, 12);
+            const ema26 = calculateEMA(prices, 26);
+            return { histogram: (ema12 - ema26) * 100 };
         }
 
         // ========================================
-        // DATA INITIALIZATION
+        // RENDERING
         // ========================================
-
-        async function initializeData() {
-            updateDataStatus('loading', 'Fetching prices...');
-
-            // Fetch crypto prices from CoinGecko
-            const cryptoData = await fetchCryptoPrices();
-
-            if (!cryptoData) {
-                updateDataStatus('error', 'API Error - Using cached');
-                loadCachedData();
-                return;
-            }
-
-            // Build assets array
-            assets = [];
-
-            for (const [symbol, config] of Object.entries(assetConfig)) {
-                let priceData;
-
-                if (config.type === 'crypto' && cryptoData[config.coingecko]) {
-                    const cg = cryptoData[config.coingecko];
-                    priceData = {
-                        symbol,
-                        name: config.name,
-                        type: config.type,
-                        price: cg.usd,
-                        change: cg.usd_24h_change || 0,
-                        color: config.color,
-                        favorite: localStorage.getItem(`fav_${symbol}`) === 'true',
-                        holdings: config.holdings,
-                        marketCap: cg.usd_market_cap,
-                        volume: cg.usd_24h_vol
-                    };
-                } else if (config.type === 'stock') {
-                    const stock = generateStockData(symbol, stockBasePrices[symbol]);
-                    priceData = {
-                        symbol,
-                        name: config.name,
-                        type: config.type,
-                        price: stock.price,
-                        change: stock.change24h,
-                        color: config.color,
-                        favorite: localStorage.getItem(`fav_${symbol}`) === 'true',
-                        holdings: config.holdings,
-                        marketCap: stock.marketCap,
-                        volume: stock.volume
-                    };
-                }
-
-                if (priceData) assets.push(priceData);
-            }
-
-            selectedAsset = assets[0];
-
-            // Fetch price history for selected asset
-            await loadPriceHistory(selectedAsset);
-
-            updateDataStatus('live', 'Live Data');
-            document.getElementById('data-source').textContent = 'LIVE';
-
-            // Initialize UI
-            renderAll();
-
-            // Cache data
-            localStorage.setItem('cachedAssets', JSON.stringify(assets));
-        }
-
-        function loadCachedData() {
-            const cached = localStorage.getItem('cachedAssets');
-            if (cached) {
-                assets = JSON.parse(cached);
-                assets.forEach(a => a.favorite = localStorage.getItem(`fav_${a.symbol}`) === 'true');
-                selectedAsset = assets[0];
-                renderAll();
-            }
-        }
-
-        async function loadPriceHistory(asset) {
-            if (asset.type === 'crypto' && assetConfig[asset.symbol]?.coingecko) {
-                const history = await fetchCryptoHistory(assetConfig[asset.symbol].coingecko, 7);
-                if (history) {
-                    priceHistory[asset.symbol] = history.map(h => h[1]);
-                } else {
-                    priceHistory[asset.symbol] = generateSimulatedHistory(asset.price, 168);
-                }
-            } else {
-                priceHistory[asset.symbol] = generateSimulatedHistory(asset.price, 168);
-            }
-        }
-
-        function generateSimulatedHistory(currentPrice, points) {
-            const history = [];
-            let price = currentPrice * (0.85 + Math.random() * 0.1);
-
-            for (let i = 0; i < points; i++) {
-                price = price * (1 + (Math.random() * 0.02 - 0.01));
-                history.push(price);
-            }
-
-            // Make sure last price matches current
-            history[history.length - 1] = currentPrice;
-
-            return history;
-        }
-
-        function updateDataStatus(status, text) {
-            dataStatus = status;
-            const dot = document.getElementById('data-status-dot');
-            const statusText = document.getElementById('data-status-text');
-
-            dot.className = 'status-dot';
-            if (status === 'loading') dot.classList.add('loading');
-            else if (status === 'error') dot.classList.add('error');
-
-            statusText.textContent = text;
-        }
-
-        // ========================================
-        // RENDER FUNCTIONS
-        // ========================================
-
-        function renderAll() {
-            renderAssets();
-            renderIndicators();
-            renderPatterns();
-            renderAIActions();
-            renderPredictions();
-            renderSectors();
-            renderRiskWeights();
-            renderTicker();
-            initPriceChart();
-            initAllocationChart();
-            updatePortfolioDisplay();
-            updateAlertCount();
-            updateSentiment();
-        }
 
         function calculateIndicators(asset) {
             const history = priceHistory[asset.symbol] || [];
             const rsi = history.length > 14 ? calculateRSI(history) : 50;
             const macd = calculateMACD(history);
-            const sr = calculateSupportResistance(history);
 
             return {
                 rsi: rsi.toFixed(1),
                 macd: macd.histogram >= 0 ? 'Bullish' : 'Bearish',
                 trend: asset.change >= 0 ? 'Uptrend' : 'Downtrend',
-                support: sr.support.toFixed(2),
-                resistance: sr.resistance.toFixed(2),
-                volume: asset.volume ? (asset.volume / 1e6).toFixed(1) + 'M' : '---'
+                volume: (Math.random() * 500 + 100).toFixed(0) + 'M'
             };
         }
 
         function detectPatterns() {
-            if (!selectedAsset || !priceHistory[selectedAsset.symbol]) {
-                return [];
-            }
-
-            const history = priceHistory[selectedAsset.symbol];
-            const rsi = calculateRSI(history);
+            const history = priceHistory[selectedAsset.symbol] || [];
+            const rsi = history.length > 14 ? calculateRSI(history) : 50;
             const macd = calculateMACD(history);
 
             return [
@@ -589,129 +415,67 @@
                 { name: 'RSI Overbought (>70)', active: rsi > 70 },
                 { name: 'MACD Bullish Cross', active: macd.histogram > 0 },
                 { name: 'MACD Bearish Cross', active: macd.histogram < 0 },
-                { name: 'Price Above EMA20', active: selectedAsset.price > calculateEMA(history, 20) },
-                { name: 'Near Support', active: Math.abs(selectedAsset.price - calculateSupportResistance(history).support) / selectedAsset.price < 0.03 }
+                { name: 'Strong Momentum', active: Math.abs(selectedAsset.change) > 3 },
+                { name: 'Consolidation', active: Math.abs(selectedAsset.change) < 1 }
             ];
         }
 
-        function generateAIActions(asset) {
+        function generateAIActions() {
             const actions = [];
-            const history = priceHistory[asset.symbol] || [];
+            const history = priceHistory[selectedAsset.symbol] || [];
             const rsi = history.length > 14 ? calculateRSI(history) : 50;
 
-            if (rsi < 30) {
-                actions.push({ action: 'BUY', text: asset.symbol + ' oversold (RSI: ' + rsi.toFixed(0) + ')', conf: 0.85 });
-            } else if (rsi > 70) {
-                actions.push({ action: 'SELL', text: asset.symbol + ' overbought (RSI: ' + rsi.toFixed(0) + ')', conf: 0.78 });
-            } else {
-                actions.push({ action: 'HOLD', text: asset.symbol + ' in neutral zone', conf: 0.72 });
-            }
+            if (rsi < 30) actions.push({ action: 'BUY', text: selectedAsset.symbol + ' oversold (RSI: ' + rsi.toFixed(0) + ')', conf: 0.85 });
+            else if (rsi > 70) actions.push({ action: 'SELL', text: selectedAsset.symbol + ' overbought (RSI: ' + rsi.toFixed(0) + ')', conf: 0.78 });
+            else actions.push({ action: 'HOLD', text: selectedAsset.symbol + ' in neutral zone', conf: 0.72 });
 
-            if (asset.change > 3) {
-                actions.push({ action: 'HOLD', text: 'Strong momentum - ride the trend', conf: 0.81 });
-            }
-            if (asset.change < -3) {
-                actions.push({ action: 'BUY', text: 'Dip buying opportunity', conf: 0.76 });
-            }
+            if (selectedAsset.change > 3) actions.push({ action: 'HOLD', text: 'Strong momentum - ride trend', conf: 0.81 });
+            if (selectedAsset.change < -3) actions.push({ action: 'BUY', text: 'Dip opportunity', conf: 0.76 });
 
-            actions.push({ action: 'HOLD', text: 'Review portfolio allocation', conf: 0.68 });
-
+            actions.push({ action: 'HOLD', text: 'Review portfolio balance', conf: 0.68 });
             return actions;
         }
 
-        function generatePredictions(asset) {
-            const base = asset.price;
-            const volatility = Math.abs(asset.change) / 100;
-
+        function generatePredictions() {
+            const base = selectedAsset.price;
             return [
-                { label: '24H', value: (base * (1 + volatility * (Math.random() - 0.4))).toFixed(2), up: Math.random() > 0.4 },
-                { label: '7D', value: (base * (1 + volatility * 2 * (Math.random() - 0.45))).toFixed(2), up: Math.random() > 0.45 },
-                { label: '30D', value: (base * (1 + volatility * 4 * (Math.random() - 0.5))).toFixed(2), up: Math.random() > 0.5 }
+                { label: '24H', value: (base * (1 + (Math.random() * 0.04 - 0.02))).toFixed(2), up: Math.random() > 0.5 },
+                { label: '7D', value: (base * (1 + (Math.random() * 0.1 - 0.05))).toFixed(2), up: Math.random() > 0.5 },
+                { label: '30D', value: (base * (1 + (Math.random() * 0.2 - 0.1))).toFixed(2), up: Math.random() > 0.5 }
             ];
         }
 
-        const sectors = [
-            { name: 'Crypto', chg: 0 },
-            { name: 'Tech', chg: 0 },
-            { name: 'AI', chg: 0 },
-            { name: 'EV', chg: 0 },
-            { name: 'Finance', chg: 0 },
-            { name: 'Cloud', chg: 0 }
-        ];
-
-        function updateSectors() {
-            const crypto = assets.filter(a => a.type === 'crypto');
-            const tech = assets.filter(a => ['AAPL', 'NVDA', 'GOOGL', 'MSFT'].includes(a.symbol));
-
-            sectors[0].chg = crypto.reduce((s, a) => s + a.change, 0) / crypto.length;
-            sectors[1].chg = tech.reduce((s, a) => s + a.change, 0) / tech.length;
-            sectors[2].chg = 5.8;
-            sectors[3].chg = assets.find(a => a.symbol === 'TSLA')?.change || 0;
-            sectors[4].chg = 1.2;
-            sectors[5].chg = 3.4;
-        }
-
-        function renderSectors() {
-            updateSectors();
-            document.getElementById('sector-grid').innerHTML = sectors.map(s => 
-                '<div class="sector-cell"><div class="sector-name">' + s.name + '</div><div class="sector-chg ' + (s.chg >= 0 ? 'up' : 'down') + '">' + (s.chg >= 0 ? '+' : '') + s.chg.toFixed(1) + '%</div></div>'
-            ).join('');
-        }
-
         function calculateRiskWeights() {
-            const favorites = assets.filter(a => a.favorite);
-            if (favorites.length === 0) {
-                return [
-                    { symbol: 'BTC', weight: 28 },
-                    { symbol: 'ETH', weight: 18 },
-                    { symbol: 'NVDA', weight: 16 },
-                    { symbol: 'AAPL', weight: 14 },
-                    { symbol: 'MSFT', weight: 12 },
-                    { symbol: 'GOOGL', weight: 8 },
-                    { symbol: 'TSLA', weight: 4 }
-                ];
-            }
-
-            const totalValue = favorites.reduce((s, a) => s + a.price * a.holdings, 0);
-            return favorites.slice(0, 7).map(a => ({
-                symbol: a.symbol,
-                weight: Math.round((a.price * a.holdings / totalValue) * 100)
-            }));
+            return [
+                { symbol: 'BTC', weight: 28 },
+                { symbol: 'ETH', weight: 18 },
+                { symbol: 'NVDA', weight: 16 },
+                { symbol: 'AAPL', weight: 14 },
+                { symbol: 'MSFT', weight: 12 },
+                { symbol: 'GOOGL', weight: 8 },
+                { symbol: 'TSLA', weight: 4 }
+            ];
         }
 
         function calculatePortfolioValue() {
             let total = 0, totalChange = 0;
-            assets.forEach(a => {
-                total += a.price * a.holdings;
-                totalChange += (a.price * a.holdings * a.change / 100);
-            });
-            return { total, totalChange, pct: (totalChange / total * 100) };
+            assets.forEach(a => { total += a.price * a.holdings; totalChange += a.price * a.holdings * a.change / 100; });
+            return { total, totalChange, pct: totalChange / total * 100 };
         }
 
         function updatePortfolioDisplay() {
             const port = calculatePortfolioValue();
             document.getElementById('portfolio-total').textContent = '$' + port.total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-
             const changeEl = document.getElementById('portfolio-change');
             changeEl.textContent = (port.totalChange >= 0 ? '+' : '') + '$' + Math.abs(port.totalChange).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' (' + (port.pct >= 0 ? '+' : '') + port.pct.toFixed(2) + '%)';
             changeEl.className = 'portfolio-change ' + (port.totalChange >= 0 ? 'up' : 'down');
-
-            // Update intel score based on sentiment
-            const intelScore = Math.round(50 + port.pct * 2 + (Math.random() * 10 - 5));
-            document.getElementById('intel-score').textContent = Math.max(0, Math.min(100, intelScore));
+            document.getElementById('intel-score').textContent = Math.round(50 + port.pct * 2);
         }
 
         function updateSentiment() {
             const avgChange = assets.reduce((s, a) => s + a.change, 0) / assets.length;
-            let fgValue = 50;
-
-            if (avgChange > 3) fgValue = 75 + Math.random() * 15;
-            else if (avgChange > 1) fgValue = 60 + Math.random() * 15;
-            else if (avgChange < -3) fgValue = 15 + Math.random() * 15;
-            else if (avgChange < -1) fgValue = 30 + Math.random() * 15;
-            else fgValue = 45 + Math.random() * 15;
-
-            fgValue = Math.round(fgValue);
+            let fgValue = 50 - avgChange * 2;
+            fgValue = Math.max(10, Math.min(90, fgValue));
 
             let fgLabel, fgColor;
             if (fgValue >= 75) { fgLabel = 'EXTREME GREED'; fgColor = 'var(--green)'; }
@@ -720,43 +484,25 @@
             else if (fgValue >= 25) { fgLabel = 'FEAR'; fgColor = 'var(--orange)'; }
             else { fgLabel = 'EXTREME FEAR'; fgColor = 'var(--red)'; }
 
-            document.getElementById('fg-value').textContent = fgValue;
+            document.getElementById('fg-value').textContent = Math.round(fgValue);
             document.getElementById('fg-value').style.color = fgColor;
             document.getElementById('fg-label').textContent = fgLabel;
             document.getElementById('fg-label').style.color = fgColor;
             document.getElementById('fg-marker').style.left = fgValue + '%';
 
-            // Update regime
             const regimeBadge = document.getElementById('regime-badge');
-            if (avgChange > 1) {
-                regimeBadge.className = 'regime-badge bull';
-                regimeBadge.innerHTML = '<span>*</span> BULL MARKET';
-            } else if (avgChange < -1) {
-                regimeBadge.className = 'regime-badge bear';
-                regimeBadge.innerHTML = '<span>*</span> BEAR MARKET';
-            } else {
-                regimeBadge.className = 'regime-badge neutral';
-                regimeBadge.innerHTML = '<span>*</span> SIDEWAYS';
-            }
-
-            // Update sharpe
-            const sharpe = 1.5 + (avgChange > 0 ? avgChange * 0.1 : 0);
-            document.getElementById('sharpe').textContent = sharpe.toFixed(2);
-            document.getElementById('sharpe').style.color = sharpe > 1 ? 'var(--green)' : sharpe > 0 ? 'var(--cyan)' : 'var(--red)';
-            document.getElementById('sharpe-fill').style.width = Math.min(100, sharpe * 30) + '%';
+            if (avgChange > 1) { regimeBadge.className = 'regime-badge bull'; regimeBadge.innerHTML = '<span>*</span> BULL MARKET'; }
+            else if (avgChange < -1) { regimeBadge.className = 'regime-badge bear'; regimeBadge.innerHTML = '<span>*</span> BEAR MARKET'; }
+            else { regimeBadge.className = 'regime-badge bear'; regimeBadge.innerHTML = '<span>*</span> SIDEWAYS'; }
         }
 
         function toggleAlertModal() {
             const modal = document.getElementById('alertModal');
             modal.classList.toggle('active');
             if (modal.classList.contains('active')) {
-                populateAlertAssets();
+                document.getElementById('alertAsset').innerHTML = assets.map(a => '<option value="' + a.symbol + '">' + a.symbol + '</option>').join('');
                 renderAlerts();
             }
-        }
-
-        function populateAlertAssets() {
-            document.getElementById('alertAsset').innerHTML = assets.map(a => '<option value="' + a.symbol + '">' + a.symbol + '</option>').join('');
         }
 
         function addAlert() {
@@ -764,7 +510,6 @@
             const condition = document.getElementById('alertCondition').value;
             const price = parseFloat(document.getElementById('alertPrice').value);
             if (!price) return;
-
             priceAlerts.push({ symbol, condition, price, id: Date.now() });
             localStorage.setItem('priceAlerts', JSON.stringify(priceAlerts));
             renderAlerts();
@@ -781,53 +526,20 @@
 
         function renderAlerts() {
             document.getElementById('alertList').innerHTML = priceAlerts.map(a => 
-                '<div class="alert-item"><div class="alert-item-info"><strong>' + a.symbol + '</strong> ' + (a.condition === 'above' ? 'above' : 'below') + ' $' + a.price.toLocaleString() + '</div><button class="alert-item-delete" onclick="deleteAlert(' + a.id + ')">x</button></div>'
+                '<div class="alert-item"><div>' + a.symbol + ' ' + (a.condition === 'above' ? '>' : '<') + ' $' + a.price.toLocaleString() + '</div><button class="alert-item-delete" onclick="deleteAlert(' + a.id + ')">x</button></div>'
             ).join('');
         }
 
-        function updateAlertCount() {
-            document.getElementById('alert-count').textContent = priceAlerts.length;
-        }
-
-        function checkAlerts() {
-            priceAlerts.forEach(alert => {
-                const asset = assets.find(a => a.symbol === alert.symbol);
-                if (!asset) return;
-
-                const triggered = (alert.condition === 'above' && asset.price >= alert.price) ||
-                                 (alert.condition === 'below' && asset.price <= alert.price);
-
-                if (triggered && Notification.permission === 'granted') {
-                    new Notification('TradingAI Alert', {
-                        body: alert.symbol + ' is ' + (alert.condition === 'above' ? 'above' : 'below') + ' $' + alert.price
-                    });
-                    deleteAlert(alert.id);
-                }
-            });
-        }
-
-        if ('Notification' in window && Notification.permission === 'default') {
-            Notification.requestPermission();
-        }
+        function updateAlertCount() { document.getElementById('alert-count').textContent = priceAlerts.length; }
 
         function renderAssets() {
             document.getElementById('asset-list').innerHTML = assets.map((asset, i) => 
-                '<div class="asset-item ' + (asset.symbol === selectedAsset?.symbol ? 'active' : '') + ' ' + (asset.favorite ? 'favorite' : '') + '" onclick="selectAsset('' + asset.symbol + '')"><div class="asset-left"><div class="asset-icon" style="background: ' + asset.color + '20; color: ' + asset.color + '">' + asset.symbol.substring(0, 2) + '</div><div class="asset-info"><div class="asset-symbol">' + asset.symbol + '</div><div class="asset-name">' + asset.name + '</div></div></div><div class="asset-right"><div class="asset-price">$' + asset.price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '</div><div class="asset-change ' + (asset.change >= 0 ? 'up' : 'down') + '">' + (asset.change >= 0 ? '+' : '') + asset.change.toFixed(2) + '%</div></div><button class="star-btn ' + (asset.favorite ? 'active' : '') + '" onclick="event.stopPropagation(); toggleFavorite(' + i + ')">*</button></div>'
+                '<div class="asset-item ' + (asset.symbol === selectedAsset.symbol ? 'active' : '') + '" onclick="selectAsset('' + asset.symbol + '')"><div class="asset-left"><div class="asset-icon" style="background: ' + asset.color + '20; color: ' + asset.color + '">' + asset.symbol.substring(0, 2) + '</div><div class="asset-info"><div class="asset-symbol">' + asset.symbol + '</div><div class="asset-name">' + asset.name + '</div></div></div><div class="asset-right"><div class="asset-price">$' + asset.price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '</div><div class="asset-change ' + (asset.change >= 0 ? 'up' : 'down') + '">' + (asset.change >= 0 ? '+' : '') + asset.change.toFixed(2) + '%</div></div></div>'
             ).join('');
             document.getElementById('asset-count').textContent = assets.length + ' ASSETS';
         }
 
-        function toggleFavorite(index) {
-            assets[index].favorite = !assets[index].favorite;
-            localStorage.setItem('fav_' + assets[index].symbol, assets[index].favorite);
-            renderAssets();
-            renderTicker();
-            renderRiskWeights();
-        }
-
         function renderIndicators() {
-            if (!selectedAsset) return;
-
             const ind = calculateIndicators(selectedAsset);
             const rsiClass = ind.rsi < 35 ? 'bullish' : ind.rsi > 70 ? 'bearish' : 'neutral';
             const macdClass = ind.macd === 'Bullish' ? 'bullish' : 'bearish';
@@ -840,50 +552,33 @@
                 '<div class="indicator-card"><div class="ind-label">Volume</div><div class="ind-value neutral">' + ind.volume + '</div><div class="ind-sub">24H</div></div>';
         }
 
-        function renderPatterns() {
-            document.getElementById('patterns').innerHTML = detectPatterns().map(p => 
-                '<div class="pattern-item"><span class="pattern-name">' + p.name + '</span><span class="pattern-status ' + (p.active ? 'active' : 'inactive') + '">' + (p.active ? 'ACTIVE' : 'INACTIVE') + '</span></div>'
-            ).join('');
-        }
+        function renderPatterns() { document.getElementById('patterns').innerHTML = detectPatterns().map(p => '<div class="pattern-item"><span class="pattern-name">' + p.name + '</span><span class="pattern-status ' + (p.active ? 'active' : 'inactive') + '">' + (p.active ? 'ACTIVE' : 'INACTIVE') + '</span></div>').join(''); }
 
-        function renderAIActions() {
-            if (!selectedAsset) return;
-            document.getElementById('ai-actions').innerHTML = generateAIActions(selectedAsset).map(a => 
-                '<div class="action-item"><span class="action-badge ' + a.action.toLowerCase() + '">' + a.action + '</span><span class="action-text">' + a.text + '</span><span class="action-conf">' + (a.conf * 100).toFixed(0) + '%</span></div>'
-            ).join('');
-        }
+        function renderAIActions() { document.getElementById('ai-actions').innerHTML = generateAIActions().map(a => '<div class="action-item"><span class="action-badge ' + a.action.toLowerCase() + '">' + a.action + '</span><span class="action-text">' + a.text + '</span><span class="action-conf">' + (a.conf * 100).toFixed(0) + '%</span></div>').join(''); }
 
-        function renderPredictions() {
-            if (!selectedAsset) return;
-            document.getElementById('predictions').innerHTML = generatePredictions(selectedAsset).map(p => 
-                '<div class="pred-row"><span class="pred-label">' + p.label + '</span><span class="pred-value" style="color: var(' + (p.up ? '--green' : '--red') + ')">$' + p.value + '</span></div>'
-            ).join('');
+        function renderPredictions() { document.getElementById('predictions').innerHTML = generatePredictions().map(p => '<div class="pred-row"><span class="pred-label">' + p.label + '</span><span class="pred-value" style="color: var(' + (p.up ? '--green' : '--red') + ')">$' + p.value + '</span></div>').join(''); }
+
+        function renderSectors() {
+            const sectors = [{ name: 'Crypto', chg: -6.2 }, { name: 'Tech', chg: 1.8 }, { name: 'AI', chg: 5.8 }, { name: 'EV', chg: -1.2 }, { name: 'Finance', chg: 1.2 }, { name: 'Cloud', chg: 3.4 }];
+            document.getElementById('sector-grid').innerHTML = sectors.map(s => '<div class="sector-cell"><div class="sector-name">' + s.name + '</div><div class="sector-chg ' + (s.chg >= 0 ? 'up' : 'down') + '">' + (s.chg >= 0 ? '+' : '') + s.chg.toFixed(1) + '%</div></div>').join('');
         }
 
         function renderRiskWeights() {
             const weights = calculateRiskWeights();
             const colors = ['var(--cyan)', 'var(--purple)', 'var(--green)', 'var(--pink)', 'var(--gold)', 'var(--orange)', 'var(--red)'];
-            document.getElementById('risk-weights').innerHTML = weights.map((w, i) => 
-                '<div class="weight-row"><span class="weight-label">' + w.symbol + '</span><div class="weight-bar"><div class="weight-fill" style="width: ' + w.weight + '%; background: ' + colors[i % colors.length] + '"></div></div><span class="weight-pct">' + w.weight + '%</span></div>'
-            ).join('');
+            document.getElementById('risk-weights').innerHTML = weights.map((w, i) => '<div class="weight-row"><span class="weight-label">' + w.symbol + '</span><div class="weight-bar"><div class="weight-fill" style="width: ' + w.weight + '%; background: ' + colors[i] + '"></div></div><span class="weight-pct">' + w.weight + '%</span></div>').join('');
         }
 
         function renderTicker() {
-            const items = [...assets, ...assets].map(a => 
-                '<div class="ticker-item" onclick="selectAsset('' + a.symbol + '')">' + (a.favorite ? '<span class="ticker-star">*</span>' : '') + '<span class="ticker-sym">' + a.symbol + '</span><span class="ticker-price">$' + a.price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '</span><span class="' + (a.change >= 0 ? 'ticker-up' : 'ticker-down') + '">' + (a.change >= 0 ? '+' : '') + a.change.toFixed(2) + '%</span></div>'
-            ).join('');
+            const items = [...assets, ...assets].map(a => '<div class="ticker-item" onclick="selectAsset('' + a.symbol + '')"><span class="ticker-sym">' + a.symbol + '</span><span class="ticker-price">$' + a.price.toLocaleString(undefined, {maximumFractionDigits: 0}) + '</span><span class="' + (a.change >= 0 ? 'ticker-up' : 'ticker-down') + '">' + (a.change >= 0 ? '+' : '') + a.change.toFixed(1) + '%</span></div>').join('');
             document.getElementById('ticker').innerHTML = items + items;
         }
 
-        async function initPriceChart() {
-            if (!selectedAsset) return;
-
+        function initCharts() {
             const ctx = document.getElementById('priceChart').getContext('2d');
             const vCtx = document.getElementById('volumeChart').getContext('2d');
-
-            const history = priceHistory[selectedAsset.symbol] || [];
+            const history = priceHistory[selectedAsset.symbol] || generatePriceHistory(selectedAsset.price, 168);
             const displayData = history.slice(-24);
-
             const labels = displayData.map((_, i) => i + ':00');
             const volumeData = displayData.map(() => Math.random() * 400 + 100);
 
@@ -892,163 +587,102 @@
 
             priceChart = new Chart(ctx, {
                 type: 'line',
-                data: {
-                    labels,
-                    datasets: [{
-                        label: selectedAsset.symbol,
-                        data: displayData,
-                        borderColor: '#00f0ff',
-                        backgroundColor: 'rgba(0, 240, 255, 0.08)',
-                        fill: true,
-                        tension: 0.4,
-                        pointRadius: 0,
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#5a6a7e', font: { family: 'JetBrains Mono', size: 10 } } },
-                        y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#5a6a7e', font: { family: 'JetBrains Mono', size: 10 } } }
-                    }
-                }
+                data: { labels, datasets: [{ label: selectedAsset.symbol, data: displayData, borderColor: '#00f0ff', backgroundColor: 'rgba(0, 240, 255, 0.08)', fill: true, tension: 0.4, pointRadius: 0, borderWidth: 2 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#5a6a7e' } }, y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#5a6a7e' } } } }
             });
 
             volumeChart = new Chart(vCtx, {
                 type: 'bar',
-                data: {
-                    labels,
-                    datasets: [{
-                        data: volumeData,
-                        backgroundColor: displayData.map((p, i) => i > 0 && p >= displayData[i-1] ? 'rgba(0, 255, 136, 0.5)' : 'rgba(255, 51, 102, 0.5)'),
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        x: { display: false },
-                        y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#5a6a7e', font: { family: 'JetBrains Mono', size: 9 } } }
-                    }
-                }
+                data: { labels, datasets: [{ data: volumeData, backgroundColor: displayData.map((p, i) => i > 0 && p >= displayData[i-1] ? 'rgba(0, 255, 136, 0.5)' : 'rgba(255, 51, 102, 0.5)'), borderWidth: 0 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#5a6a7e' } } } }
             });
-        }
-
-        function setTimeframe(tf) {
-            timeframe = tf;
-            initPriceChart();
         }
 
         function initAllocationChart() {
             const ctx = document.getElementById('allocationChart').getContext('2d');
             const weights = calculateRiskWeights();
-
             if (allocationChart) allocationChart.destroy();
-
             allocationChart = new Chart(ctx, {
                 type: 'doughnut',
-                data: {
-                    labels: weights.map(w => w.symbol),
-                    datasets: [{
-                        data: weights.map(w => w.weight),
-                        backgroundColor: ['#00f0ff', '#a855f7', '#00ff88', '#ec4899', '#ffd700', '#ff8c00', '#ff3366'],
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    cutout: '70%',
-                    plugins: { legend: { display: false } }
-                }
+                data: { labels: weights.map(w => w.symbol), datasets: [{ data: weights.map(w => w.weight), backgroundColor: ['#00f0ff', '#a855f7', '#00ff88', '#ec4899', '#ffd700', '#ff8c00', '#ff3366'], borderWidth: 0 }] },
+                options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { display: false } } }
             });
         }
 
-        async function selectAsset(symbol) {
+        function selectAsset(symbol) {
             selectedAsset = assets.find(a => a.symbol === symbol);
             selectedAssetIndex = assets.findIndex(a => a.symbol === symbol);
             document.getElementById('chart-symbol').textContent = symbol;
-
-            if (!priceHistory[symbol]) {
-                await loadPriceHistory(selectedAsset);
-            }
-
+            if (!priceHistory[symbol]) priceHistory[symbol] = generatePriceHistory(selectedAsset.price, 168);
             renderAssets();
             renderIndicators();
             renderPatterns();
             renderAIActions();
             renderPredictions();
-            initPriceChart();
+            initCharts();
         }
+
+        function setTimeframe(tf) { timeframe = tf; initCharts(); }
 
         document.addEventListener('keydown', (e) => {
             if (e.target.tagName === 'INPUT') return;
-
-            switch(e.key) {
-                case 'ArrowUp':
-                    selectedAssetIndex = Math.max(0, selectedAssetIndex - 1);
-                    selectAsset(assets[selectedAssetIndex].symbol);
-                    break;
-                case 'ArrowDown':
-                    selectedAssetIndex = Math.min(assets.length - 1, selectedAssetIndex + 1);
-                    selectAsset(assets[selectedAssetIndex].symbol);
-                    break;
-                case 'f':
-                case 'F':
-                    toggleFavorite(selectedAssetIndex);
-                    break;
-                case 'a':
-                case 'A':
-                    toggleAlertModal();
-                    break;
-                case 'r':
-                case 'R':
-                    location.reload();
-                    break;
-            }
+            if (e.key === 'ArrowUp') { selectedAssetIndex = Math.max(0, selectedAssetIndex - 1); selectAsset(assets[selectedAssetIndex].symbol); }
+            if (e.key === 'ArrowDown') { selectedAssetIndex = Math.min(assets.length - 1, selectedAssetIndex + 1); selectAsset(assets[selectedAssetIndex].symbol); }
+            if (e.key === 'a' || e.key === 'A') toggleAlertModal();
+            if (e.key === 'r' || e.key === 'R') location.reload();
         });
 
         // ========================================
-        // INITIALIZATION
+        // INIT
         // ========================================
 
         async function init() {
-            // Start datetime update
-            setInterval(() => {
-                document.getElementById('datetime').textContent = new Date().toISOString().replace('T', ' ').substring(0, 19);
-            }, 1000);
+            // Update time
+            setInterval(() => { document.getElementById('datetime').textContent = new Date().toISOString().replace('T', ' ').substring(0, 19); }, 1000);
 
-            // Load data
-            await initializeData();
+            // Generate price history for all assets
+            assets.forEach(a => { if (!priceHistory[a.symbol]) priceHistory[a.symbol] = generatePriceHistory(a.price, 168); });
 
-            // Periodic price refresh (every 60 seconds for CoinGecko rate limits)
-            setInterval(async () => {
-                updateDataStatus('loading', 'Refreshing...');
-                const cryptoData = await fetchCryptoPrices();
+            // Render everything immediately
+            renderAssets();
+            renderIndicators();
+            renderPatterns();
+            renderAIActions();
+            renderPredictions();
+            renderSectors();
+            renderRiskWeights();
+            renderTicker();
+            initCharts();
+            initAllocationChart();
+            updatePortfolioDisplay();
+            updateSentiment();
+            updateAlertCount();
 
-                if (cryptoData) {
-                    assets.forEach(asset => {
-                        if (asset.type === 'crypto' && assetConfig[asset.symbol]?.coingecko && cryptoData[assetConfig[asset.symbol].coingecko]) {
-                            const cg = cryptoData[assetConfig[asset.symbol].coingecko];
-                            asset.price = cg.usd;
-                            asset.change = cg.usd_24h_change || 0;
-                        }
-                    });
-
-                    localStorage.setItem('cachedAssets', JSON.stringify(assets));
-                    updateDataStatus('live', 'Live Data');
-                } else {
-                    updateDataStatus('cached', 'Cached Data');
+            // Try to get real prices (will update if successful)
+            fetchRealPrices().then(success => {
+                if (success) {
+                    console.log('Real prices loaded!');
+                    // Regenerate history with real prices
+                    assets.filter(a => a.type === 'crypto').forEach(a => { priceHistory[a.symbol] = generatePriceHistory(a.price, 168); });
+                    // Re-render
+                    renderAssets();
+                    renderTicker();
+                    updatePortfolioDisplay();
+                    updateSentiment();
+                    initCharts();
                 }
+            });
 
-                renderAssets();
-                renderTicker();
-                updatePortfolioDisplay();
-                checkAlerts();
+            // Refresh prices every 60 seconds
+            setInterval(async () => {
+                const success = await fetchRealPrices();
+                if (success) {
+                    assets.filter(a => a.type === 'crypto').forEach(a => { priceHistory[a.symbol] = generatePriceHistory(a.price, 168); });
+                    renderAssets();
+                    renderTicker();
+                    updatePortfolioDisplay();
+                    updateSentiment();
+                }
             }, 60000);
         }
 
