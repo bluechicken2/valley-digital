@@ -948,16 +948,24 @@
                 var input = $('hold-'+data[i].sym);
                 if(input) data[i].hold = parseFloat(input.value)||0;
             }
-            // Save to localStorage
+            // Save to localStorage (always works)
             var holdings = {};
             for(var i=0;i<data.length;i++) holdings[data[i].sym] = data[i].hold;
             localStorage.setItem('holdings', JSON.stringify(holdings));
-            // Save to Supabase
-            await savePortfolioToSupabase();
+            console.log('Saved to localStorage:', holdings);
+
+            // Try to save to Supabase (may fail)
+            try {
+                await savePortfolioToSupabase();
+            } catch(e) {
+                console.error('Supabase save failed:', e);
+            }
+
             renderPortfolio();
             renderWeights();
             renderAlloc();
             hidePortfolioEdit();
+            showToast('Portfolio saved!');
         };
 
         window.showAddAsset = function() { $('add-asset-modal').classList.add('show'); searchAssets(); };
