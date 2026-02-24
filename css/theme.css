@@ -322,250 +322,633 @@
         /* Responsive */
         @media (max-width: 1200px) { .grid-2 { grid-template-columns: 1fr; } .grid-3 { grid-template-columns: 1fr; } .analytics-grid { grid-template-columns: repeat(3, 1fr); } }
 
-        @media (max-width: 768px) {
-            /* Header - improved touch targets and readability */
-            .header { flex-wrap: wrap; gap: 10px; padding: 12px; }
-            .logo { font-size: 1.1rem; }
-            .header-controls { flex-wrap: wrap; gap: 10px; }
-            .header-btn { min-height: 44px; min-width: 44px; padding: 10px 14px; font-size: 0.8rem; }
-            .header-btn .badge { display: none; }
-            .user-menu-btn { min-height: 44px; padding: 10px 14px; font-size: 0.85rem; }
-            .theme-toggle { min-height: 44px; min-width: 44px; padding: 12px; font-size: 1.1rem; }
-            .status { flex-wrap: wrap; font-size: 0.75rem; gap: 10px; }
+/* ==========================================
+   COMPREHENSIVE MOBILE LAYOUT FIX
+   TradingAI Neural Nexus Dashboard
+   ========================================== */
 
-            /* Navigation Tabs */
-            .nav-tabs { padding: 10px 12px; gap: 8px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-            .nav-tab { min-height: 44px; padding: 10px 16px; font-size: 0.8rem; white-space: nowrap; }
-
-            /* Main Layout */
-            .main { padding: 12px; }
-            /* Force all grids to single column */
-            .grid, .grid-2, .grid-3, .grid-4 { 
-                grid-template-columns: 1fr !important; 
-                gap: 12px !important;
-            }
-
-            /* Force all panels to exact same width */
-            .panel { 
-                width: 100% !important; 
-                max-width: 100% !important; 
-                min-width: 0 !important;
-                box-sizing: border-box !important; 
-                margin-left: 0 !important;
-                margin-right: 0 !important;
-                position: relative !important;
-                float: none !important;
-            }
-
-            /* Force all grid children to full width */
-            .grid > div,
-            .grid-2 > div,
-            .grid-3 > div,
-            .grid-4 > div { 
-                width: 100% !important; 
-                max-width: 100% !important;
-                min-width: 0 !important;
-            }
-
-            /* Prevent any sticky/fixed positioning on content */
-            .main,
-            .grid,
-            .grid > div,
-            .panel {
-                position: relative !important;
-                top: auto !important;
-                bottom: auto !important;
-            }
-
-            /* Chart Area - improved for mobile */
-            .chart-area { height: 280px; }
-            .chart-toolbar { gap: 10px; flex-wrap: wrap; }
-            .chart-tools-left, .chart-tools-right { flex-wrap: wrap; gap: 8px; }
-            .chart-btn { min-height: 44px; padding: 10px 14px; font-size: 0.8rem; }
-            .chart-tool-btn { min-height: 44px; min-width: 44px; padding: 10px; font-size: 0.75rem; }
-            .chart-sym { font-size: 1.2rem; }
-            .chart-header { flex-wrap: wrap; gap: 10px; }
-            .chart-indicator-legend { flex-wrap: wrap; gap: 8px; font-size: 0.75rem; }
-            .price-axis { width: 50px; font-size: 0.7rem; }
-            .vol-chart { height: 60px; }
-
-            /* Indicators Grid */
-            .ind-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-            .ind-card { padding: 12px; }
-            .ind-label { font-size: 0.75rem; }
-            .ind-val { font-size: 1rem; }
-            .ind-sub { font-size: 0.75rem; }
-
-            /* Sectors */
-            .sector-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
-            .sector { padding: 12px; }
-
-            /* Analytics */
-            .analytics-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-            .analytics-label { font-size: 0.75rem; }
-            .analytics-value { font-size: 1.1rem; }
-
-            /* Asset List */
-            #assets { gap: 6px; }
-            .asset { padding: 12px; min-height: 60px; }
-            .asset-name { font-size: 0.95rem; }
-            .asset-type { font-size: 0.8rem; }
-            .asset-price { font-size: 0.9rem; }
-            .asset-chg { font-size: 0.8rem; }
-            .asset-icon { width: 36px; height: 36px; font-size: 0.75rem; }
-
-            /* Panels */
-            .panel-body { padding: 12px; }
-            .panel-title { font-size: 0.75rem; }
-            .panel-header { padding: 12px; }
-
-            /* Portfolio */
-            .portfolio-value { font-size: 1.5rem; }
-            .portfolio-change { font-size: 0.9rem; }
-
-            /* Ticker */
-            .ticker { padding: 12px 0; }
-            .ticker-item { padding: 0 16px; font-size: 0.85rem; }
-
-            /* Modals */
-            .modal { width: 95%; max-height: 90vh; margin: 10px; }
-            .modal-header { padding: 14px 16px; }
-            .modal-body { padding: 16px; }
-            .modal-title { font-size: 1rem; }
-            .modal-close { min-width: 44px; min-height: 44px; }
-
-            /* Forms - prevent iOS zoom on inputs */
-            .form-group input, .form-group select { font-size: 16px; padding: 12px; min-height: 48px; }
-            .btn-primary { min-height: 50px; font-size: 1rem; }
-            .tier-option { padding: 14px; }
-
-            /* Pricing */
-            .pricing-cards { flex-direction: column; }
-            .pricing-card { padding: 20px; }
-            .pricing-btn { min-height: 48px; }
-
-            /* AI Chat */
-            .ai-chat { padding: 10px; }
-            .ai-msg-bubble { font-size: 0.85rem; padding: 10px 14px; }
-            .ai-avatar { width: 32px; height: 32px; }
-            .ai-quick-btn { min-height: 44px; padding: 8px 14px; font-size: 0.75rem; }
-            .ai-input input { min-height: 48px; font-size: 16px; padding: 12px 16px; }
-            .ai-input button { min-height: 48px; padding: 12px 18px; }
-
- /* Interactive Elements */
-            .star { font-size: 1.2rem; padding: 8px; min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }
-            .action-badge { font-size: 0.75rem; padding: 6px 12px; }
-            .news-title { font-size: 0.9rem; }
-            .calendar-event { font-size: 0.85rem; }
-            .toast { left: 10px; right: 10px; bottom: 10px; font-size: 0.9rem; padding: 14px; }
-
-            /* Fear & Greed */
-            .fg-value { font-size: 1.3rem; }
-            .fg-label { font-size: 0.85rem; }
-
-            /* Weight Row */
-            .weight-sym { font-size: 0.85rem; }
-            .weight-pct { font-size: 0.8rem; }
-
-            /* Paper Trading */
-            .paper-stats { grid-template-columns: repeat(2, 1fr); }
-            .trade-btn { min-height: 44px; padding: 10px 16px; }
-
-            /* Screener */
-            .screener-filter { min-height: 44px; padding: 10px 14px; font-size: 0.85rem; }
-
-            /* Correlation */
-            .corr-grid { font-size: 0.7rem; }
-
-            /* Auth */
-            .auth-box { padding: 24px 16px; }
-            .auth-logo { font-size: 1.5rem; }
-        }
-
-        @media (max-width: 480px) {
-            /* Extra small phones */
-            .header { padding: 10px; gap: 8px; }
-            .logo { font-size: 1rem; }
-            .header-btn { padding: 8px 10px; font-size: 0.75rem; }
-            .nav-tab { padding: 8px 12px; font-size: 0.75rem; }
-            .main { padding: 10px; }
-            .chart-area { height: 220px; }
-            .ind-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
-            .sector-grid { grid-template-columns: 1fr; }
-            .analytics-grid { grid-template-columns: 1fr; }
-            .paper-stats { grid-template-columns: 1fr 1fr; }
-            .chart-btns { flex-wrap: wrap; gap: 4px; }
-            .chart-btn { padding: 8px 12px; font-size: 0.75rem; }
-            .asset-icon { width: 32px; height: 32px; font-size: 0.7rem; }
-            .portfolio-value { font-size: 1.3rem; }
-            .chart-sym { font-size: 1rem; }
-            .ai-quick-actions { gap: 6px; }
-            .ai-quick-btn { font-size: 0.7rem; padding: 6px 12px; }
-            .nav-tabs { padding: 8px 10px; }
-            .panel-body { padding: 10px; }
-            .ind-card { padding: 10px; }
-            .modal-body { padding: 12px; }
-        }
-
-        /* Accessibility */
-        @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
-        }
+/* Base mobile breakpoint - 768px and below */
+@media (max-width: 768px) {
+    /* ======================================
+       ROOT CONTAINER FIXES
+       ====================================== */
     
-        /* Screener */
-        .screener-filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
-        .screener-filter { background: var(--bg-surface); border: 1px solid var(--border); border-radius: 6px; padding: 6px 12px; font-size: 0.75rem; color: var(--text); cursor: pointer; }
-        .screener-filter.on { border-color: var(--cyan); color: var(--cyan); }
-        .screener-result { display: flex; justify-content: space-between; padding: 8px; background: var(--bg-surface); border-radius: 6px; margin-bottom: 6px; }
+    /* Main container - remove any constraints */
+    .main {
+        padding: 12px !important;
+        max-width: 100% !important;
+        overflow-x: hidden !important;
+    }
+    
+    /* ======================================
+       GRID SYSTEM - COMPLETE RESET
+       Force ALL grid types to single column
+       ====================================== */
+    
+    .grid,
+    .grid-2,
+    .grid-3,
+    .grid-4 {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    
+    /* Force ALL direct children of grids to full width */
+    .grid > *,
+    .grid-2 > *,
+    .grid-3 > *,
+    .grid-4 > * {
+        grid-column: 1 / -1 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        position: relative !important;
+        float: none !important;
+        clear: both !important;
+        left: auto !important;
+        right: auto !important;
+        top: auto !important;
+        bottom: auto !important;
+    }
+    
+    /* ======================================
+       PANEL SYSTEM - UNIFORM WIDTH
+       All panels same width, no floating
+       ====================================== */
+    
+    .panel {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        flex: none !important;
+        flex-basis: auto !important;
+        flex-grow: 0 !important;
+        flex-shrink: 0 !important;
+        grid-column: auto !important;
+        grid-row: auto !important;
+        box-sizing: border-box !important;
+        margin: 0 0 12px 0 !important;
+        padding: 0 !important;
+        position: relative !important;
+        float: none !important;
+        clear: both !important;
+        left: auto !important;
+        right: auto !important;
+        top: auto !important;
+        bottom: auto !important;
+        transform: none !important;
+        display: block !important;
+        overflow: hidden !important;
+    }
+    
+    /* Remove margin-top from panels that follow others */
+    .panel[style*="margin-top"] {
+        margin-top: 12px !important;
+    }
+    
+    /* Panel header and body */
+    .panel-header {
+        padding: 12px !important;
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 8px !important;
+        align-items: center !important;
+    }
+    
+    .panel-body {
+        padding: 12px !important;
+        overflow-x: hidden !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    
+    .panel-title {
+        font-size: 0.75rem !important;
+    }
+    
+    /* ======================================
+       SPECIFIC GRID LAYOUTS IN HTML
+       Target the actual dashboard structure
+       ====================================== */
+    
+    /* Main dashboard grid-2: sidebar (portfolio+assets) | main content (chart+indicators) */
+    #tab-dashboard > .grid-2 {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        grid-template-rows: auto auto !important;
+    }
+    
+    /* Both direct children of main grid-2 */
+    #tab-dashboard > .grid-2 > div {
+        width: 100% !important;
+        max-width: 100% !important;
+        display: block !important;
+    }
+    
+    /* Panels inside those children */
+    #tab-dashboard > .grid-2 > div > .panel {
+        width: 100% !important;
+        margin-bottom: 12px !important;
+    }
+    
+    /* grid-3 sections (Fear & Greed, Sectors, AI Actions, etc.) */
+    #tab-dashboard > .grid-3 {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+        margin-top: 12px !important;
+    }
+    
+    #tab-dashboard > .grid-3 > .panel {
+        width: 100% !important;
+        margin: 0 0 12px 0 !important;
+    }
+    
+    /* Analytics tab grid-2 */
+    #tab-analytics > .grid-2 {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+        margin-top: 12px !important;
+    }
+    
+    /* ======================================
+       ASSET LIST FIXES
+       ====================================== */
+    
+    #assets {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 6px !important;
+        width: 100% !important;
+        overflow-x: hidden !important;
+        padding: 0 !important;
+    }
+    
+    .asset {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        padding: 12px !important;
+        min-height: 60px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+    }
+    
+    .asset-icon {
+        width: 36px !important;
+        height: 36px !important;
+        min-width: 36px !important;
+    }
+    
+    /* ======================================
+       CHART AREA FIXES
+       ====================================== */
+    
+    .chart-area {
+        height: 280px !important;
+        min-height: 280px !important;
+        max-height: 280px !important;
+    }
+    
+    .chart-header {
+        flex-wrap: wrap !important;
+        gap: 10px !important;
+    }
+    
+    .chart-sym {
+        font-size: 1.2rem !important;
+    }
+    
+    .chart-btns {
+        flex-wrap: wrap !important;
+        gap: 4px !important;
+    }
+    
+    .chart-btn {
+        min-height: 36px !important;
+        min-width: 44px !important;
+        padding: 8px 10px !important;
+        font-size: 0.75rem !important;
+    }
+    
+    .chart-toolbar {
+        flex-wrap: wrap !important;
+        gap: 8px !important;
+    }
+    
+    .chart-tools-left,
+    .chart-tools-right {
+        flex-wrap: wrap !important;
+        gap: 6px !important;
+    }
+    
+    .chart-tool-btn {
+        min-height: 36px !important;
+        min-width: 44px !important;
+        padding: 8px !important;
+        font-size: 0.7rem !important;
+    }
+    
+    .vol-chart {
+        height: 60px !important;
+        min-height: 60px !important;
+    }
+    
+    .price-axis {
+        width: 50px !important;
+        font-size: 0.65rem !important;
+    }
+    
+    /* ======================================
+       INDICATOR GRID FIXES
+       ====================================== */
+    
+    .ind-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px !important;
+        width: 100% !important;
+    }
+    
+    .ind-card {
+        padding: 12px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    
+    .ind-label {
+        font-size: 0.7rem !important;
+    }
+    
+    .ind-val {
+        font-size: 1rem !important;
+    }
+    
+    /* ======================================
+       SECTOR & ANALYTICS GRIDS
+       ====================================== */
+    
+    .sector-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 8px !important;
+    }
+    
+    .sector {
+        padding: 12px !important;
+    }
+    
+    .analytics-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px !important;
+    }
+    
+    .analytics-value {
+        font-size: 1rem !important;
+    }
+    
+    /* ======================================
+       HEADER & NAV FIXES
+       ====================================== */
+    
+    .header {
+        flex-wrap: wrap !important;
+        gap: 10px !important;
+        padding: 12px !important;
+    }
+    
+    .logo {
+        font-size: 1.1rem !important;
+    }
+    
+    .header-controls {
+        flex-wrap: wrap !important;
+        gap: 8px !important;
+        width: 100% !important;
+    }
+    
+    .header-btn {
+        min-height: 44px !important;
+        min-width: 44px !important;
+        padding: 10px !important;
+        font-size: 0.75rem !important;
+    }
+    
+    .user-menu-btn {
+        min-height: 44px !important;
+        padding: 10px 12px !important;
+    }
+    
+    .theme-toggle {
+        min-height: 44px !important;
+        min-width: 44px !important;
+    }
+    
+    .status {
+        flex-wrap: wrap !important;
+        gap: 8px !important;
+        font-size: 0.7rem !important;
+    }
+    
+    .nav-tabs {
+        padding: 10px !important;
+        gap: 6px !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+    
+    .nav-tab {
+        min-height: 44px !important;
+        padding: 10px 14px !important;
+        font-size: 0.75rem !important;
+        white-space: nowrap !important;
+    }
+    
+    /* ======================================
+       FORM FIXES (prevent iOS zoom)
+       ====================================== */
+    
+    .form-group input,
+    .form-group select,
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"],
+    select,
+    textarea {
+        font-size: 16px !important;
+        min-height: 48px !important;
+        padding: 12px !important;
+    }
+    
+    .btn-primary {
+        min-height: 50px !important;
+        font-size: 1rem !important;
+    }
+    
+    /* ======================================
+       INTERACTIVE ELEMENTS (44x44 min tap)
+       ====================================== */
+    
+    button,
+    [role="button"],
+    .star,
+    .action-badge,
+    .port-edit-btn {
+        min-height: 44px !important;
+        min-width: 44px !important;
+    }
+    
+    .star {
+        font-size: 1.2rem !important;
+        padding: 8px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    
+    /* ======================================
+       MODAL FIXES
+       ====================================== */
+    
+    .modal {
+        width: 95% !important;
+        max-width: 95% !important;
+        max-height: 90vh !important;
+        margin: 10px !important;
+    }
+    
+    .modal-header {
+        padding: 14px !important;
+    }
+    
+    .modal-body {
+        padding: 14px !important;
+    }
+    
+    .modal-close {
+        min-width: 44px !important;
+        min-height: 44px !important;
+    }
+    
+    /* ======================================
+       TOAST & OTHER UI
+       ====================================== */
+    
+    .toast {
+        left: 10px !important;
+        right: 10px !important;
+        bottom: 10px !important;
+        font-size: 0.85rem !important;
+        padding: 12px !important;
+    }
+    
+    .portfolio-value {
+        font-size: 1.5rem !important;
+    }
+    
+    .fg-value {
+        font-size: 1.3rem !important;
+    }
+    
+    /* Pricing cards stack vertically */
+    .pricing-cards {
+        flex-direction: column !important;
+        gap: 12px !important;
+    }
+    
+    .pricing-card {
+        width: 100% !important;
+    }
+    
+    /* AI Chat */
+    .ai-quick-actions {
+        flex-wrap: wrap !important;
+        gap: 6px !important;
+    }
+    
+    .ai-quick-btn {
+        min-height: 44px !important;
+        padding: 8px 14px !important;
+        font-size: 0.75rem !important;
+    }
+    
+    .ai-input input {
+        min-height: 48px !important;
+        font-size: 16px !important;
+    }
+    
+    .ai-input button {
+        min-height: 48px !important;
+    }
+    
+    /* Ticker */
+    .ticker {
+        padding: 10px 0 !important;
+    }
+    
+    .ticker-item {
+        padding: 0 14px !important;
+        font-size: 0.8rem !important;
+    }
+    
+    /* Paper Trading */
+    .paper-stats {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+    
+    .trade-btn {
+        min-height: 44px !important;
+        padding: 10px 16px !important;
+    }
+    
+    /* Allocation chart */
+    .alloc-chart {
+        height: 120px !important;
+    }
+    
+    /* ======================================
+       BODY & GLOBAL FIXES
+       ====================================== */
+    
+    body {
+        overflow-x: hidden !important;
+    }
+    
+    /* Ensure no element causes horizontal scroll */
+    * {
+        max-width: 100vw !important;
+    }
+    
+    /* Fix for any inline style margins */
+    [style*="margin-top: 16px"],
+    [style*="margin-top:16px"] {
+        margin-top: 12px !important;
+    }
+}
 
-        /* Paper Trading */
-        .paper-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; }
-        .paper-stat { background: var(--bg-surface); border-radius: 6px; padding: 10px; text-align: center; }
-        .paper-stat-label { font-size: 0.6rem; color: var(--text-dim); text-transform: uppercase; }
-        .paper-stat-value { font-family: 'Orbitron', sans-serif; font-size: 0.9rem; font-weight: 700; }
-        .trade-btn { background: var(--green); border: none; border-radius: 6px; padding: 8px 16px; color: var(--bg-void); font-family: 'Orbitron', sans-serif; font-size: 0.7rem; font-weight: 700; cursor: pointer; margin-right: 8px; }
-        .trade-btn.sell { background: var(--red); }
+/* ==========================================
+   EXTRA SMALL PHONES - 480px and below
+   ========================================== */
 
-        /* AI Chat */
-        .ai-chat-container { display: flex; flex-direction: column; height: 100%; }
-        .ai-chat { flex: 1; overflow-y: auto; background: linear-gradient(180deg, var(--bg-surface) 0%, rgba(0,0,0,0.3) 100%); border-radius: 8px; padding: 12px; margin-bottom: 8px; border: 1px solid var(--border); }
-        .ai-msg { margin-bottom: 12px; display: flex; gap: 8px; align-items: flex-start; animation: msgFade 0.3s ease; }
-        @keyframes msgFade { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .ai-msg.user { flex-direction: row-reverse; }
-        .ai-avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 700; flex-shrink: 0; }
-        .ai-msg.user .ai-avatar { background: var(--cyan); color: var(--bg-void); }
-        .ai-msg.ai .ai-avatar { background: linear-gradient(135deg, var(--purple), var(--cyan)); color: #fff; }
-        .ai-msg-content { max-width: 75%; }
-        .ai-msg-bubble { padding: 10px 14px; border-radius: 12px; font-size: 0.8rem; line-height: 1.4; }
-        .ai-msg.user .ai-msg-bubble { background: var(--cyan); color: var(--bg-void); border-bottom-right-radius: 4px; }
-        .ai-msg.ai .ai-msg-bubble { background: var(--bg-panel); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
-        .ai-msg-time { font-size: 0.6rem; color: var(--text-dim); margin-top: 4px; }
-        .ai-msg.user .ai-msg-time { text-align: right; }
-        .ai-typing { display: flex; gap: 4px; padding: 12px 14px; }
-        .ai-typing span { width: 6px; height: 6px; background: var(--cyan); border-radius: 50%; animation: typing 1.4s infinite; }
-        .ai-typing span:nth-child(2) { animation-delay: 0.2s; }
-        .ai-typing span:nth-child(3) { animation-delay: 0.4s; }
-        @keyframes typing { 0%, 60%, 100% { transform: translateY(0); opacity: 0.4; } 30% { transform: translateY(-8px); opacity: 1; } }
-        .ai-quick-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
-        .ai-quick-btn { background: transparent; border: 1px solid var(--border); border-radius: 16px; padding: 5px 12px; color: var(--text); font-size: 0.65rem; cursor: pointer; transition: all 0.2s; }
-        .ai-quick-btn:hover { background: var(--cyan); color: var(--bg-void); border-color: var(--cyan); }
-        .ai-input { display: flex; gap: 8px; }
-        .ai-input input { flex: 1; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 20px; padding: 10px 16px; color: var(--text-bright); font-size: 0.85rem; outline: none; }
-        .ai-input input:focus { border-color: var(--cyan); }
-        .ai-input button { background: linear-gradient(135deg, var(--cyan), var(--purple)); border: none; border-radius: 20px; padding: 10px 20px; color: #fff; font-family: 'Orbitron', sans-serif; font-size: 0.7rem; font-weight: 700; cursor: pointer; transition: all 0.2s; }
-        .ai-input button:hover { transform: scale(1.05); }
+@media (max-width: 480px) {
+    .header {
+        padding: 10px !important;
+        gap: 8px !important;
+    }
+    
+    .logo {
+        font-size: 1rem !important;
+    }
+    
+    .main {
+        padding: 10px !important;
+    }
+    
+    .panel-body {
+        padding: 10px !important;
+    }
+    
+    .panel-header {
+        padding: 10px !important;
+    }
+    
+    /* Smaller chart for tiny screens */
+    .chart-area {
+        height: 220px !important;
+        min-height: 220px !important;
+        max-height: 220px !important;
+    }
+    
+    .chart-sym {
+        font-size: 1rem !important;
+    }
+    
+    /* Indicator grid: 2 columns still */
+    .ind-grid {
+        gap: 8px !important;
+    }
+    
+    .ind-card {
+        padding: 10px !important;
+    }
+    
+    /* Sector grid: single column */
+    .sector-grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    /* Analytics: single column */
+    .analytics-grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    /* Portfolio value smaller */
+    .portfolio-value {
+        font-size: 1.3rem !important;
+    }
+    
+    /* Asset icon smaller */
+    .asset-icon {
+        width: 32px !important;
+        height: 32px !important;
+        min-width: 32px !important;
+    }
+    
+    .asset {
+        padding: 10px !important;
+        min-height: 54px !important;
+    }
+    
+    /* Chart buttons smaller */
+    .chart-btn {
+        padding: 6px 8px !important;
+        font-size: 0.7rem !important;
+        min-height: 32px !important;
+    }
+    
+    /* Nav tabs */
+    .nav-tabs {
+        padding: 8px 10px !important;
+    }
+    
+    .nav-tab {
+        padding: 8px 12px !important;
+        font-size: 0.7rem !important;
+        min-height: 40px !important;
+    }
+    
+    /* Modal */
+    .modal-body {
+        padding: 12px !important;
+    }
+    
+    /* AI quick buttons */
+    .ai-quick-btn {
+        font-size: 0.7rem !important;
+        padding: 6px 12px !important;
+    }
+}
 
-        /* Portfolio Management */
-        .port-edit-btn { background: var(--bg-surface); border: 1px solid var(--border); border-radius: 4px; padding: 4px 8px; color: var(--text-dim); font-size: 0.65rem; cursor: pointer; margin-left: 8px; }
-        .port-edit-btn:hover { border-color: var(--cyan); color: var(--cyan); }
-        .holding-row { display: flex; justify-content: space-between; align-items: center; padding: 8px; background: var(--bg-surface); border-radius: 6px; margin-bottom: 6px; }
-        .del-btn { background: var(--red); border: none; border-radius: 4px; color: white; font-size: 0.65rem; padding: 4px 8px; cursor: pointer; margin-left: 8px; }
-        .holding-input { width: 80px; background: var(--bg-panel); border: 1px solid var(--border); border-radius: 4px; padding: 4px 8px; color: var(--text-bright); font-size: 0.8rem; text-align: right; }
-        .add-asset-search { width: 100%; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 6px; padding: 10px; color: var(--text-bright); font-size: 0.9rem; margin-bottom: 12px; }
-        .asset-option { display: flex; justify-content: space-between; padding: 10px; background: var(--bg-surface); border-radius: 6px; margin-bottom: 6px; cursor: pointer; transition: all 0.2s; }
-        .asset-option:hover { background: var(--border); border-color: var(--cyan); }
-        .pr-list { max-height: 300px; overflow-y: auto; }
-        .pr-item { display: flex; justify-content: space-between; padding: 10px; background: var(--bg-surface); border-radius: 6px; margin-bottom: 6px; }
-        .pr-status { font-size: 0.65rem; padding: 2px 8px; border-radius: 10px; }
-        .pr-open { background: rgba(0,255,136,0.2); color: var(--green); }
-        .pr-merged { background: rgba(168,85,247,0.2); color: var(--purple); }
+/* ==========================================
+   ACCESSIBILITY - REDUCED MOTION
+   ========================================== */
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
