@@ -83,7 +83,7 @@ var CONFIG = {
         function calcWilliams(arr) { var recent = arr.slice(-14); var high = Math.max.apply(null, recent), low = Math.min.apply(null, recent); return high === low ? -50 : -100 * (high - arr[arr.length-1]) / (high - low); }
         
         // Auth
-        window.showLogin = function() { $('loading').style.display='none'; $('auth-login').style.display='flex'; $('auth-signup').style.display='none'; $('auth-reset').style.display='none'; };
+        window.showLogin = function() { $('loading').style.display='none'; $('dashboard').style.display='none'; $('auth-login').style.display='flex'; $('auth-signup').style.display='none'; $('auth-reset').style.display='none'; };
         window.showSignup = function() { $('auth-login').style.display='none'; $('auth-signup').style.display='flex'; $('auth-reset').style.display='none'; };
         window.showReset = function() { $('auth-login').style.display='none'; $('auth-signup').style.display='none'; $('auth-reset').style.display='flex'; };
         async function supabaseAuth(ep, body) { var r = await fetch(SUPABASE_URL+'/auth/v1'+ep, {method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY},body:JSON.stringify(body)}); return {ok:r.ok,data:await r.json()}; }
