@@ -1225,8 +1225,13 @@
             var savedAssets = localStorage.getItem('assetList');
             if(savedAssets) {
                 var assets = JSON.parse(savedAssets);
-                // Only update existing assets - don't add new ones
-                if(Array.isArray(assets)) {
+                // If we have saved assets, REPLACE data array completely
+                if(Array.isArray(assets) && assets.length > 0) {
+                    // Keep track of which symbols were saved
+                    var savedSyms = assets.map(function(a){return a.sym;});
+                    // Remove assets from data that are NOT in saved list
+                    data = data.filter(function(d){return savedSyms.indexOf(d.sym) >= 0;});
+                    // Update holdings and favorites for remaining assets
                     for(var j=0;j<assets.length;j++) {
                         if(!assets[j].sym) continue;
                         var found = data.find(function(d){return d.sym===assets[j].sym;});
@@ -1247,6 +1252,8 @@
                     }
                 }
             }
+            // Make sure sel is valid after filtering
+            if(data.length > 0 && (!sel || data.indexOf(sel) < 0)) sel = data[0];
             } catch(e) { console.error('loadSavedHoldings error:', e); }
         }
 function init() { setTimeout(function(){if(checkSession()){showDashboard();}else{showLogin();}},500); }
