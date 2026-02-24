@@ -1458,7 +1458,7 @@ window.selAsset = function(s) { for(var i=0;i<data.length;i++) if(data[i].sym===
         function renderAIChat() {
             var h = '';
             if(aiHistory.length===0) {
-                h = '<div class="ai-msg ai"><div class="ai-avatar">AI</div><div class="ai-msg-content"><div class="ai-msg-bubble">Hello! I'm your trading assistant. Ask me about your portfolio, market analysis, or trading strategies. You can also use the quick action buttons below!</div><div class="ai-msg-time">Just now</div></div></div>';
+                h = '<div class="ai-msg ai"><div class="ai-avatar">AI</div><div class="ai-msg-content"><div class="ai-msg-bubble">Hello! I am your trading assistant. Ask me about your portfolio, market analysis, or trading strategies. You can also use the quick action buttons below!</div><div class="ai-msg-time">Just now</div></div></div>';
             } else {
                 for(var i=0;i<aiHistory.length;i++) {
                     var m = aiHistory[i];
@@ -1497,7 +1497,7 @@ window.selAsset = function(s) { for(var i=0;i<data.length;i++) if(data[i].sym===
             else if(type==='analysis') q = 'Analyze '+sel.sym+' technical indicators';
             else if(type==='market') q = 'What is the current market outlook?';
             else if(type==='risks') q = 'What are the risks in my current portfolio?';
-            else if(type==='tips') q = 'Give me trading tips for today's market';
+            else if(type==='tips') q = 'Give me trading tips for today market';
             $('ai-input').value = q;
             sendAI();
         };
