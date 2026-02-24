@@ -1220,6 +1220,7 @@
         }
 
         function loadSavedHoldings() {
+            try {
             // Load saved asset list from localStorage
             var savedAssets = localStorage.getItem('assetList');
             if(savedAssets) {
@@ -1228,10 +1229,23 @@
                 for(var j=0;j<assets.length;j++) {
                     var found = data.find(function(d){return d.sym===assets[j].sym;});
                     if(found) {
-                        found.hold = assets[j].hold;
-                        found.fav = assets[j].fav;
+                        found.hold = assets[j].hold || 0;
+                        found.fav = assets[j].fav || false;
                     } else {
-                        data.push(assets[j]);
+                        // Add with default values for missing properties
+                        var colors = {crypto:'var(--cyan)',stock:'var(--gold)',commodity:'var(--orange)'};
+                        data.push({
+                            sym: assets[j].sym,
+                            name: assets[j].name,
+                            type: assets[j].type,
+                            price: 0,
+                            chg: 0,
+                            color: colors[assets[j].type] || 'var(--cyan)',
+                            hold: assets[j].hold || 0,
+                            fav: assets[j].fav || false,
+                            mktCap: 0,
+                            vol24h: 0
+                        });
                     }
                 }
             }
@@ -1243,6 +1257,7 @@
                     if(holdings[data[i].sym]!==undefined) data[i].hold = holdings[data[i].sym];
                 }
             }
+            } catch(e) { console.error('loadSavedHoldings error:', e); }
         }
 function init() { setTimeout(function(){if(checkSession()){showDashboard();}else{showLogin();}},500); }
         if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
