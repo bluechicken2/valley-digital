@@ -14,7 +14,19 @@
         var API_BASE = 'https://tradingapi-proxy.cloudflare-5m9f2.workers.dev';
         
         // Configuration Constants
-        var CONFIG = {
+        // Safe fetch wrapper with error handling
+        async function safeFetch(url, options) {
+            try {
+                var r = await fetch(url, options || {});
+                if (!r.ok) { console.error('Fetch failed:', r.status, url); return null; }
+                return r;
+            } catch(e) {
+                console.error('Fetch error:', e.message, url);
+                return null;
+            }
+        }
+        
+var CONFIG = {
             REFRESH_INTERVAL: 60000,      // Price refresh interval (ms)
             TIME_UPDATE_INTERVAL: 1000,   // Time display update (ms)
             INIT_DELAY: 100,              // Init timeout delay (ms)
