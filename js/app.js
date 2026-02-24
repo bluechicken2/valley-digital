@@ -234,6 +234,13 @@ var CONFIG = {
                     pointRadius:0, fill:false, order:3, label:'EMA-21'
                 });
             }
+            // SMA-200
+            if(showSMA200 && sma200.length > 0) {
+                priceDatasets.push({
+                    type:'line', data:sma200, borderColor:'rgba(255,165,0,0.9)', borderWidth:2,
+                    pointRadius:0, fill:false, order:0, label:'SMA-200'
+                });
+            }
             
             // Bollinger Bands
             if(bb) {
@@ -444,7 +451,7 @@ function renderAlloc() { if(allocCt) allocCt.destroy(); allocCt = new Chart($('a
         // Interactions
         
         // Chart Enhancement Variables
-        var showBollinger = false, showEMA = false, showSR = false;
+        var showBollinger = false, showEMA = false, showSR = false, showSMA200 = false;
         var drawMode = null, drawings = [];
         var isFullscreen = false;
         
@@ -573,6 +580,11 @@ function renderAlloc() { if(allocCt) allocCt.destroy(); allocCt = new Chart($('a
         window.toggleEMA = function() {
             showEMA = !showEMA;
             $('toggle-ema').classList.toggle('active', showEMA);
+            renderChart();
+        };
+        window.toggleSMA200 = function() {
+            showSMA200 = !showSMA200;
+            $('toggle-sma200').classList.toggle('active', showSMA200);
             renderChart();
         };
         window.toggleSR = function() {
