@@ -1324,6 +1324,7 @@ function renderAlloc() { if(allocCt) allocCt.destroy(); allocCt = new Chart($('a
                         }
                     }
                     console.log('Portfolio loaded from Supabase:', portfolio.length, 'assets');
+                    ('db-status').innerHTML='<span style="color:var(--purple)">[DB]</span> SYNCED';
                 } else {
                     console.log('GET failed:', await r.text());
                 }
