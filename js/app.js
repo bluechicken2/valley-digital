@@ -199,7 +199,7 @@ var CONFIG = {
             var closes = candles.map(function(c) { return c.c; });
             
             // Calculate indicators
-            var sma20 = calcSMA(closes, 20);
+            var sma20 = showSMA20 ? calcSMA(closes, 20) : [];
             var ema9 = showEMA ? calcEMA(closes, 9) : [];
             var ema21 = showEMA ? calcEMA(closes, 21) : [];
             var bb = showBollinger ? calcBollingerBands(closes, 20, 2) : null;
@@ -451,7 +451,7 @@ function renderAlloc() { if(allocCt) allocCt.destroy(); allocCt = new Chart($('a
         // Interactions
         
         // Chart Enhancement Variables
-        var showBollinger = false, showEMA = false, showSR = false, showSMA200 = false;
+        var showBollinger = false, showEMA = false, showSR = false, showSMA200 = false, showSMA20 = true;
         var drawMode = null, drawings = [];
         var isFullscreen = false;
         
