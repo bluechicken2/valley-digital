@@ -339,12 +339,43 @@
 
             /* Main Layout */
             .main { padding: 12px; }
-            .grid-2 { grid-template-columns: 1fr; }
-            .grid-3 { grid-template-columns: 1fr; }
-            .grid-2 > div { width: 100%; min-width: 0; }
-            .grid .panel { width: 100%; box-sizing: border-box; max-width: 100%; }
-            .grid > .panel { width: 100%; box-sizing: border-box; max-width: 100%; }
-            .panel { width: 100% !important; box-sizing: border-box; }
+            /* Force all grids to single column */
+            .grid, .grid-2, .grid-3, .grid-4 { 
+                grid-template-columns: 1fr !important; 
+                gap: 12px !important;
+            }
+
+            /* Force all panels to exact same width */
+            .panel { 
+                width: 100% !important; 
+                max-width: 100% !important; 
+                min-width: 0 !important;
+                box-sizing: border-box !important; 
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+                position: relative !important;
+                float: none !important;
+            }
+
+            /* Force all grid children to full width */
+            .grid > div,
+            .grid-2 > div,
+            .grid-3 > div,
+            .grid-4 > div { 
+                width: 100% !important; 
+                max-width: 100% !important;
+                min-width: 0 !important;
+            }
+
+            /* Prevent any sticky/fixed positioning on content */
+            .main,
+            .grid,
+            .grid > div,
+            .panel {
+                position: relative !important;
+                top: auto !important;
+                bottom: auto !important;
+            }
 
             /* Chart Area - improved for mobile */
             .chart-area { height: 280px; }
