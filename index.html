@@ -388,8 +388,8 @@
             <div class="form-group"><label for="signup-email">Email</label><input type="email" id="signup-email" placeholder="you@example.com"></div>
             <div class="form-group"><label for="signup-password">Password</label><input type="password" id="signup-password" placeholder="Create a password"></div>
             <div class="form-group">
-                <label>Select Plan</label>
-                <div class="tier-select">
+                <label for="tier-select">Select Plan</label>
+                <div class="tier-select" id="tier-select">
                     <div class="tier-option selected" onclick="selectTier('free')"><div class="name">FREE</div><div class="price">$0<span>/mo</span></div><div style="font-size:0.7rem;color:var(--text-dim)">3 Assets</div></div>
                     <div class="tier-option" onclick="selectTier('pro')"><div class="name">PRO</div><div class="price">$19<span>/mo</span></div><div style="font-size:0.7rem;color:var(--text-dim)">Unlimited</div></div>
                 </div>
@@ -1324,7 +1324,7 @@ function renderAlloc() { if(allocCt) allocCt.destroy(); allocCt = new Chart($('a
                         }
                     }
                     console.log('Portfolio loaded from Supabase:', portfolio.length, 'assets');
-                    ('db-status').innerHTML='<span style="color:var(--purple)">[DB]</span> SYNCED';
+                    $('db-status').innerHTML='<span style="color:var(--purple)">[DB]</span> SYNCED';
                 } else {
                     console.log('GET failed:', await r.text());
                 }
