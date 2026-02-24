@@ -255,30 +255,6 @@ var CONFIG = {
                 });
             }
             
-            // Candle wicks (high-low lines)
-            datasets.push({
-                type:'line',
-                data:candles.map(function(c,i){ return {x:i, y:c.h}; }),
-                borderColor:candles.map(function(c){return c.c>=c.o?'rgba(0,255,136,0.6)':'rgba(255,51,102,0.6)';}),
-                borderWidth:1,
-                pointRadius:0,
-                fill:false,
-                spanGaps:false,
-                order:98,
-                parsing:{xAxisKey:'x',yAxisKey:'y'}
-            });
-            datasets.push({
-                type:'line',
-                data:candles.map(function(c,i){ return {x:i, y:c.l}; }),
-                borderColor:candles.map(function(c){return c.c>=c.o?'rgba(0,255,136,0.6)':'rgba(255,51,102,0.6)';}),
-                borderWidth:1,
-                pointRadius:0,
-                fill:false,
-                spanGaps:false,
-                order:97,
-                parsing:{xAxisKey:'x',yAxisKey:'y'}
-            });
-
             // Candlestick bodies
             datasets.push({
                 type:'bar',
