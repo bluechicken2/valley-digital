@@ -217,12 +217,13 @@ var CONFIG = {
             // Build datasets
             var datasets = [];
             
-            // SMA-20 (always show)
-            datasets.push({
-                type:'line', data:sma20, borderColor:'rgba(255,215,0,0.9)', borderWidth:2, 
-                pointRadius:0, fill:false, order:1, label:'SMA-20'
-            });
-            
+            // SMA-20
+            if(showSMA20 && sma20.length > 0) {
+                datasets.push({
+                    type:'line', data:sma20, borderColor:'rgba(255,215,0,0.9)', borderWidth:2,
+                    pointRadius:0, fill:false, order:1, label:'SMA-20'
+                });
+            }
             // EMA lines
             if(showEMA) {
                 datasets.push({
@@ -254,7 +255,31 @@ var CONFIG = {
                 });
             }
             
-            // Candlesticks
+            // Candle wicks (high-low lines)
+            datasets.push({
+                type:'line',
+                data:candles.map(function(c,i){ return {x:i, y:c.h}; }),
+                borderColor:candles.map(function(c){return c.c>=c.o?'rgba(0,255,136,0.6)':'rgba(255,51,102,0.6)';}),
+                borderWidth:1,
+                pointRadius:0,
+                fill:false,
+                spanGaps:false,
+                order:98,
+                parsing:{xAxisKey:'x',yAxisKey:'y'}
+            });
+            datasets.push({
+                type:'line',
+                data:candles.map(function(c,i){ return {x:i, y:c.l}; }),
+                borderColor:candles.map(function(c){return c.c>=c.o?'rgba(0,255,136,0.6)':'rgba(255,51,102,0.6)';}),
+                borderWidth:1,
+                pointRadius:0,
+                fill:false,
+                spanGaps:false,
+                order:97,
+                parsing:{xAxisKey:'x',yAxisKey:'y'}
+            });
+
+            // Candlestick bodies
             datasets.push({
                 type:'bar',
                 data:candles.map(function(c){return Math.max(c.o,c.c)-Math.min(c.o,c.c);}),
@@ -355,14 +380,18 @@ var CONFIG = {
                 if(i<period-1) sma.push(null);
                 else { var sum=0; for(var j=0;j<period;j++) sum+=disp[i-j]; sma.push(sum/period); }
             }
+            // Build datasets conditionally
+            var lineDatasets = [];
+            if(showSMA20) {
+                lineDatasets.push({data:sma,borderColor:'rgba(255,215,0,0.8)',borderWidth:2,pointRadius:0,fill:false,spanGaps:true});
+            }
+            lineDatasets.push({data:disp,borderColor:'#00f0ff',backgroundColor:'rgba(0,240,255,0.1)',fill:true,tension:0.4,pointRadius:0});
+
             priceCt = new Chart($('priceCt'),{
                 type:'line',
                 data:{
                     labels:lbls,
-                    datasets:[
-                    {data:sma,borderColor:'rgba(255,215,0,0.8)',borderWidth:2,pointRadius:0,fill:false,spanGaps:true},
-                    {data:disp,borderColor:'#00f0ff',backgroundColor:'rgba(0,240,255,0.1)',fill:true,tension:0.4,pointRadius:0}
-                    ]
+                    datasets:lineDatasets
                 },
                 options:{
                     responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
