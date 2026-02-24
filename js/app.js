@@ -161,7 +161,7 @@ var CONFIG = {
         async function fetchOHLC(sym) {
             var cm = {'BTC':'bitcoin','ETH':'ethereum','SOL':'solana','XRP':'ripple','ADA':'cardano','DOGE':'dogecoin'};
             var coin = cm[sym] || 'bitcoin';
-            var days = timeframe==='1H'?'1':timeframe==='1W'?'7':timeframe==='1M'?'30':'7';
+            var days = timeframe==='1H'?'1':timeframe==='1W'?'7':timeframe==='1M'?'30':timeframe==='3M'?'90':'7';
             try {
                 var r = await fetch('https://tradingapi-proxy.cloudflare-5m9f2.workers.dev/ohlc?coin='+coin+'&days='+days);
                 return await r.json();
@@ -326,7 +326,7 @@ var CONFIG = {
             $('time-axis').innerHTML = timeHtml;
         }
         function renderLine() {
-            var len = timeframe==='1H'?24:timeframe==='1W'?168:timeframe==='1M'?720:96;
+            var len = timeframe==='1H'?24:timeframe==='1W'?168:timeframe==='1M'?720:timeframe==='3M'?2160:96;
             var arr = history[sel.sym]||genHistory(sel.price,len);
             history[sel.sym]=arr; var disp=arr.slice(-len), lbls=[], times=[];
             for(var i=0;i<disp.length;i++) {
