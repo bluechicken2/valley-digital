@@ -370,8 +370,8 @@
             <div class="auth-title">Sign In</div>
             <div id="login-error" class="auth-error"></div>
             <div id="login-success" class="auth-success"></div>
-            <div class="form-group"><label>Email</label><input type="email" id="login-email" placeholder="you@example.com"></div>
-            <div class="form-group"><label>Password</label><input type="password" id="login-password" placeholder="Enter your password"></div>
+            <div class="form-group"><label for="login-email">Email</label><input type="email" id="login-email" placeholder="you@example.com"></div>
+            <div class="form-group"><label for="login-password">Password</label><input type="password" id="login-password" placeholder="Enter your password"></div>
             <button class="btn-primary" onclick="handleLogin()">SIGN IN</button>
             <div class="auth-link"><a onclick="showReset()">Forgot password?</a></div>
             <div class="auth-link">Don't have an account? <a onclick="showSignup()">Create Account</a></div>
@@ -385,8 +385,8 @@
             <div class="auth-title">Create Account</div>
             <div id="signup-error" class="auth-error"></div>
             <div id="signup-success" class="auth-success"></div>
-            <div class="form-group"><label>Email</label><input type="email" id="signup-email" placeholder="you@example.com"></div>
-            <div class="form-group"><label>Password</label><input type="password" id="signup-password" placeholder="Create a password"></div>
+            <div class="form-group"><label for="signup-email">Email</label><input type="email" id="signup-email" placeholder="you@example.com"></div>
+            <div class="form-group"><label for="signup-password">Password</label><input type="password" id="signup-password" placeholder="Create a password"></div>
             <div class="form-group">
                 <label>Select Plan</label>
                 <div class="tier-select">
@@ -405,7 +405,7 @@
             <div class="auth-title">Reset Password</div>
             <div id="reset-error" class="auth-error"></div>
             <div id="reset-success" class="auth-success"></div>
-            <div class="form-group"><label>Email</label><input type="email" id="reset-email" placeholder="you@example.com"></div>
+            <div class="form-group"><label for="reset-email">Email</label><input type="email" id="reset-email" placeholder="you@example.com"></div>
             <button class="btn-primary" onclick="handleReset()">SEND RESET LINK</button>
             <div class="auth-link"><a onclick="showLogin()">Back to Sign In</a></div>
         </div>
@@ -636,7 +636,7 @@
     <div class="modal-overlay" id="profile-modal"><div class="modal"><div class="modal-header"><span class="modal-title">Account Settings</span><button class="modal-close" onclick="hideProfile()">X</button></div><div class="modal-body"><div class="profile-item"><span class="profile-label">Email</span><span class="profile-value" id="profile-email">-</span></div><div class="profile-item"><span class="profile-label">Plan</span><span class="profile-value" id="profile-tier">FREE</span></div><div class="profile-item"><span class="profile-label">Member Since</span><span class="profile-value" id="profile-since">-</span></div></div></div></div>
     <div class="modal-overlay" id="pricing-modal"><div class="modal"><div class="modal-header"><span class="modal-title">Upgrade Plan</span><button class="modal-close" onclick="hidePricing()">X</button></div><div class="modal-body"><div class="pricing-cards" id="pricing-cards"></div></div></div></div>
     <div class="modal-overlay" id="alerts-modal"><div class="modal"><div class="modal-header"><span class="modal-title">Price Alerts</span><button class="modal-close" onclick="hideAlerts()">X</button></div><div class="modal-body"><div id="alerts-list"></div><button class="btn-primary" style="margin-top:12px" onclick="showAddAlert()">Add Alert</button></div></div></div>
-    <div class="modal-overlay" id="add-alert-modal"><div class="modal"><div class="modal-header"><span class="modal-title">Create Alert</span><button class="modal-close" onclick="hideAddAlert()">X</button></div><div class="modal-body"><div class="form-group"><label>Asset</label><select id="alert-asset"></select></div><div class="form-group"><label>Condition</label><select id="alert-cond"><option value="above">Price goes above</option><option value="below">Price goes below</option></select></div><div class="form-group"><label>Target Price ($)</label><input type="number" id="alert-price" placeholder="0.00"></div><button class="btn-primary" onclick="createAlert()">CREATE ALERT</button></div></div></div>
+    <div class="modal-overlay" id="add-alert-modal"><div class="modal"><div class="modal-header"><span class="modal-title">Create Alert</span><button class="modal-close" onclick="hideAddAlert()">X</button></div><div class="modal-body"><div class="form-group"><label for="alert-asset">Asset</label><select id="alert-asset"></select></div><div class="form-group"><label for="alert-cond">Condition</label><select id="alert-cond"><option value="above">Price goes above</option><option value="below">Price goes below</option></select></div><div class="form-group"><label for="alert-price">Target Price ($)</label><input type="number" id="alert-price" placeholder="0.00"></div><button class="btn-primary" onclick="createAlert()">CREATE ALERT</button></div></div></div>
     <div class="modal-overlay" id="watchlists-modal"><div class="modal"><div class="modal-header"><span class="modal-title">Watchlists</span><button class="modal-close" onclick="hideWatchlists()">X</button></div><div class="modal-body"><div id="watchlists-list"></div><button class="btn-primary" style="margin-top:12px" onclick="createWatchlist()">Create Watchlist</button></div></div></div>
     
         <!-- Portfolio Edit Modal -->
@@ -646,7 +646,7 @@
     <div class="modal-overlay" id="add-asset-modal"><div class="modal"><div class="modal-header"><span class="modal-title">Add Asset to Portfolio</span><button class="modal-close" onclick="hideAddAsset()">X</button></div><div class="modal-body"><input type="text" class="add-asset-search" id="asset-search" placeholder="Search assets..." oninput="searchAssets()"><div id="asset-options"></div></div></div></div>
 
     <!-- PR Modal -->
-    <div class="modal-overlay" id="pr-modal"><div class="modal modal-lg"><div class="modal-header"><span class="modal-title">Create Pull Request</span><button class="modal-close" onclick="hidePRModal()">X</button></div><div class="modal-body"><div class="form-group"><label>Branch Name</label><input type="text" id="pr-branch" placeholder="feature/my-changes"></div><div class="form-group"><label>PR Title</label><input type="text" id="pr-title" placeholder="Add new feature"></div><div class="form-group"><label>Description</label><textarea id="pr-desc" style="width:100%;height:80px;background:var(--bg-surface);border:1px solid var(--border);border-radius:6px;padding:10px;color:var(--text-bright);resize:none" placeholder="Describe your changes..."></textarea></div><button class="btn-primary" onclick="createPR()">CREATE PULL REQUEST</button><div style="margin-top:16px"><span class="panel-title">Recent Pull Requests</span></div><div class="pr-list" id="pr-list" style="margin-top:8px"></div></div></div></div>
+    <div class="modal-overlay" id="pr-modal"><div class="modal modal-lg"><div class="modal-header"><span class="modal-title">Create Pull Request</span><button class="modal-close" onclick="hidePRModal()">X</button></div><div class="modal-body"><div class="form-group"><label for="pr-branch">Branch Name</label><input type="text" id="pr-branch" placeholder="feature/my-changes"></div><div class="form-group"><label for="pr-title">PR Title</label><input type="text" id="pr-title" placeholder="Add new feature"></div><div class="form-group"><label for="pr-desc">Description</label><textarea id="pr-desc" style="width:100%;height:80px;background:var(--bg-surface);border:1px solid var(--border);border-radius:6px;padding:10px;color:var(--text-bright);resize:none" placeholder="Describe your changes..."></textarea></div><button class="btn-primary" onclick="createPR()">CREATE PULL REQUEST</button><div style="margin-top:16px"><span class="panel-title">Recent Pull Requests</span></div><div class="pr-list" id="pr-list" style="margin-top:8px"></div></div></div></div>
     <div class="toast" id="toast"></div>
     
     <script>
