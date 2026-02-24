@@ -100,6 +100,103 @@
         .panel-title { font-family: 'Orbitron', sans-serif; font-size: 0.7rem; color: var(--text-dim); letter-spacing: 1px; text-transform: uppercase; }
         .panel-badge { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; padding: 3px 8px; border-radius: 4px; background: var(--bg-surface); color: var(--text-dim); }
         .panel-badge.live { background: rgba(0,255,136,0.15); color: var(--green); }
+        /* Panel Edit/Add Buttons */
+        .port-edit-btn { 
+            background: transparent !important;
+            border: 1px solid var(--border) !important; 
+            border-radius: 4px !important;
+            padding: 3px 8px !important; 
+            color: var(--text-dim) !important;
+            font-family: 'Orbitron', sans-serif !important;
+            font-size: 0.6rem !important;
+            font-weight: 600 !important;
+            cursor: pointer !important;
+            transition: all 0.2s ease !important;
+            margin-left: 6px !important;
+            letter-spacing: 0.5px !important;
+        }
+        .port-edit-btn:hover { 
+            border-color: var(--cyan) !important; 
+            color: var(--cyan) !important;
+            background: rgba(0,240,255,0.1) !important;
+            box-shadow: 0 0 8px rgba(0,240,255,0.2) !important;
+        }
+        
+        /* Improved Modal Styling */
+        .modal { 
+            border: 1px solid rgba(0,240,255,0.2) !important;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 40px rgba(0,240,255,0.1) !important;
+        }
+        .modal-header { 
+            background: rgba(0,240,255,0.05) !important;
+        }
+        .modal-title { 
+            color: var(--cyan) !important;
+            text-shadow: 0 0 10px rgba(0,240,255,0.3) !important;
+        }
+        .modal-close {
+            background: var(--bg-surface) !important;
+            border: 1px solid var(--border) !important;
+            border-radius: 4px !important;
+            padding: 4px 10px !important;
+            font-family: 'Orbitron', sans-serif !important;
+            font-size: 0.7rem !important;
+        }
+        .modal-close:hover { 
+            color: var(--red) !important;
+            border-color: var(--red) !important;
+            background: rgba(255,51,102,0.1) !important;
+        }
+        
+        /* Holdings List Styling */
+        .holding-row { 
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            padding: 12px !important;
+            background: var(--bg-surface) !important;
+            border: 1px solid var(--border) !important;
+            border-radius: 8px !important;
+            margin-bottom: 8px !important;
+            transition: all 0.2s ease !important;
+        }
+        .holding-row:hover { 
+            border-color: rgba(0,240,255,0.3) !important;
+            background: rgba(0,240,255,0.05) !important;
+        }
+        .holding-input { 
+            width: 100px !important;
+            background: var(--bg-panel) !important;
+            border: 1px solid var(--border) !important;
+            border-radius: 6px !important;
+            padding: 8px 12px !important;
+            color: var(--text-bright) !important;
+            font-family: 'JetBrains Mono', monospace !important;
+            font-size: 0.85rem !important;
+            text-align: right !important;
+        }
+        .holding-input:focus {
+            outline: none !important;
+            border-color: var(--cyan) !important;
+            box-shadow: 0 0 0 2px rgba(0,240,255,0.1) !important;
+        }
+        .del-btn { 
+            background: var(--bg-surface) !important;
+            border: 1px solid var(--border) !important;
+            border-radius: 4px !important;
+            color: var(--text-dim) !important;
+            font-family: 'Orbitron', sans-serif !important;
+            font-size: 0.6rem !important;
+            padding: 6px 10px !important;
+            cursor: pointer !important;
+            transition: all 0.2s ease !important;
+        }
+        .del-btn:hover { 
+            background: rgba(255,51,102,0.15) !important;
+            border-color: var(--red) !important;
+            color: var(--red) !important;
+        }
+
         .panel-body { padding: 14px; overflow-x: hidden; }
         
         /* Portfolio Value */
