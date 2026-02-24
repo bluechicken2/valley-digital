@@ -330,11 +330,17 @@
 /* Base mobile breakpoint - 768px and below */
 @media (max-width: 768px) {
     /* RESET - Remove all positioning issues */
-    .header { position: relative !important; padding: 8px 10px !important; }
-    .header-controls { gap: 6px !important; }
-    .header-btn { padding: 4px 8px !important; font-size: 0.7rem !important; }
-    .status { font-size: 0.7rem !important; gap: 8px !important; }
-    #db-status { display: none !important; }
+    .header { position: relative !important; padding: 6px 8px !important; }
+    .logo { font-size: 0.9rem !important; letter-spacing: 1px !important; }
+    .logo-dot { width: 6px !important; height: 6px !important; }
+    .header-controls { gap: 4px !important; }
+    .header-btn { padding: 4px 6px !important; font-size: 0.65rem !important; }
+    .status { font-size: 0.6rem !important; gap: 4px !important; }
+    #db-status, #time, #status-text { display: none !important; }
+    .user-menu-btn { padding: 4px 6px !important; font-size: 0.7rem !important; }
+    .user-menu-btn span { max-width: 60px !important; overflow: hidden !important; text-overflow: ellipsis !important; }
+    /* Hide fullscreen button on mobile */
+    .header-btn[onclick*="toggleFullscreen"] { display: none !important; }
 
     /* Force single column for ALL grids */
     .grid-2, .grid-3, .grid-4 {
