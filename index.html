@@ -457,7 +457,7 @@
                 <label for="tier-select">Select Plan</label>
                 <div class="tier-select" id="tier-select">
                     <div class="tier-option selected" onclick="selectTier('free')"><div class="name">FREE</div><div class="price">$0<span>/mo</span></div><div style="font-size:0.7rem;color:var(--text-dim)">3 Assets</div></div>
-                    <div class="tier-option" onclick="selectTier('pro')"><div class="name">PRO</div><div class="price">$19<span>/mo</span></div><div style="font-size:0.7rem;color:var(--text-dim)">Unlimited</div></div>
+                    <div class="tier-option" role="button" tabindex="0" onclick="selectTier('pro')"><div class="name">PRO</div><div class="price">$19<span>/mo</span></div><div style="font-size:0.7rem;color:var(--text-dim)">Unlimited</div></div>
                 </div>
             </div>
             <button class="btn-primary" onclick="handleSignup()">CREATE ACCOUNT</button>
@@ -488,7 +488,7 @@
                     <span id="db-status">[DB] OFFLINE</span>
                     <span id="time"></span>
                 </div>
-                <button class="header-btn" onclick="toggleFullscreen()" title="Fullscreen">[]</button>
+                <button class="header-btn" onclick="toggleFullscreen()" aria-label="Toggle fullscreen" title="Fullscreen">[]</button>
                 <button class="header-btn" onclick="exportCSV()" title="Export">DOWN</button>
                 <button class="header-btn" onclick="showAlerts()" title="Alerts">* <span class="badge" id="alert-count">0</span></button>
                 <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn">&#9790;</button>
@@ -507,12 +507,12 @@
         
         <nav class="nav-tabs">
             <div class="nav-tab active" onclick="switchTab('dashboard')" data-tab="dashboard">DASHBOARD</div>
-            <div class="nav-tab" onclick="switchTab('screener')" data-tab="screener">SCREENER</div>
-            <div class="nav-tab" onclick="switchTab('paper')" data-tab="paper">PAPER TRADE</div>
-            <div class="nav-tab" onclick="switchTab('ai')" data-tab="ai">AI CHAT</div>
-            <div class="nav-tab" onclick="switchTab('analytics')" data-tab="analytics">ANALYTICS</div>
-            <div class="nav-tab" onclick="switchTab('news')" data-tab="news">NEWS</div>
-            <div class="nav-tab" onclick="switchTab('calendar')" data-tab="calendar">CALENDAR</div>
+            <div class="nav-tab" role="button" tabindex="0" onclick="switchTab('screener')" data-tab="screener">SCREENER</div>
+            <div class="nav-tab" role="button" tabindex="0" onclick="switchTab('paper')" data-tab="paper">PAPER TRADE</div>
+            <div class="nav-tab" role="button" tabindex="0" onclick="switchTab('ai')" data-tab="ai">AI CHAT</div>
+            <div class="nav-tab" role="button" tabindex="0" onclick="switchTab('analytics')" data-tab="analytics">ANALYTICS</div>
+            <div class="nav-tab" role="button" tabindex="0" onclick="switchTab('news')" data-tab="news">NEWS</div>
+            <div class="nav-tab" role="button" tabindex="0" onclick="switchTab('calendar')" data-tab="calendar">CALENDAR</div>
         </nav>
         
         <!-- Dashboard Tab -->
@@ -542,10 +542,10 @@
                             <div class="chart-header">
                                 <div class="chart-sym"><span id="chart-sym">BTC/</span><span id="chart-price" class="chart-price">$0.00</span><span id="chart-chg" class="chart-chg" style="margin-left:8px">+0.00%</span></div>
                                 <div class="chart-btns">
-                                    <button class="chart-btn" onclick="setTf('1H')">1H</button>
-                                    <button class="chart-btn on" onclick="setTf('1D')">1D</button>
-                                    <button class="chart-btn" onclick="setTf('1W')">1W</button>
-                                    <button class="chart-btn" onclick="setTf('1M')">1M</button>
+                                    <button class="chart-btn" onclick="setTf('1H')" aria-label="1 hour timeframe">1H</button>
+                                    <button class="chart-btn on" onclick="setTf('1D')" aria-label="1 day timeframe">1D</button>
+                                    <button class="chart-btn" onclick="setTf('1W')" aria-label="1 week timeframe">1W</button>
+                                    <button class="chart-btn" onclick="setTf('1M')" aria-label="1 month timeframe">1M</button>
                                     <button class="chart-btn chart-type-btn" onclick="toggleChartType()" id="chart-type-btn">LINE</button>
                                 </div>
                             </div>
@@ -571,13 +571,13 @@
                                     <div class="chart-tools-left">
                                         <button class="chart-tool-btn" id="draw-trend" onclick="setDrawMode('trend')">↗ Trend</button>
                                         <button class="chart-tool-btn" id="draw-hline" onclick="setDrawMode('hline')">─ H-Line</button>
-                                        <button class="chart-tool-btn" id="draw-clear" onclick="clearDrawings()">✕ Clear</button>
+                                        <button class="chart-tool-btn" id="draw-clear" onclick="clearDrawings()" aria-label="Clear all drawings">✕ Clear</button>
                                         <button class="chart-tool-btn" id="toggle-ind" onclick="toggleIndicators()">📊 Indicators</button>
                                     </div>
                                     <div class="chart-tools-right">
                                         <button class="chart-tool-btn" id="toggle-bb" onclick="toggleBollinger()">BB</button>
-                                        <button class="chart-tool-btn" id="toggle-ema" onclick="toggleEMA()">EMA</button>
-                                        <button class="chart-tool-btn" id="toggle-sr" onclick="toggleSR()">S/R</button>
+                                        <button class="chart-tool-btn" id="toggle-ema" onclick="toggleEMA()" aria-label="Toggle EMA lines">EMA</button>
+                                        <button class="chart-tool-btn" id="toggle-sr" onclick="toggleSR()" aria-label="Toggle Support/Resistance">S/R</button>
                                     </div>
                                 </div>
                                 <div class="chart-indicator-legend" id="indicator-legend" style="display:none">
@@ -587,7 +587,7 @@
                                     <div class="indicator-item"><div class="indicator-dot indicator-bb"></div><span>Bollinger Bands</span></div>
                                 </div>
                                 <div class="chart-area" id="chart-area">
-                                    <button class="chart-fullscreen-btn" onclick="toggleFullscreen()">⛶ Fullscreen</button>
+                                    <button class="chart-fullscreen-btn" onclick="toggleFullscreen()" aria-label="Toggle fullscreen">⛶ Fullscreen</button>
                                     <div class="chart-wrapper">
                                         <div class="chart-main">
                                             <div class="chart-canvas-container" id="chart-canvas-container" onmousemove="handleCrosshair(event)" onmouseleave="hideCrosshair()">
