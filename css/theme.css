@@ -330,7 +330,11 @@
 /* Base mobile breakpoint - 768px and below */
 @media (max-width: 768px) {
     /* RESET - Remove all positioning issues */
-    .header { position: relative !important; }
+    .header { position: relative !important; padding: 8px 10px !important; }
+    .header-controls { gap: 6px !important; }
+    .header-btn { padding: 4px 8px !important; font-size: 0.7rem !important; }
+    .status { font-size: 0.7rem !important; gap: 8px !important; }
+    #db-status { display: none !important; }
 
     /* Force single column for ALL grids */
     .grid-2, .grid-3, .grid-4 {
