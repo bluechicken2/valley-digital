@@ -1082,7 +1082,7 @@ function renderAlloc() { if(allocCt) allocCt.destroy(); allocCt = new Chart($('a
                 h += '<div class="corr-cell corr-header">'+syms[i]+'</div>';
                 for(var j=0;j<syms.length;j++){
                     var c = i===j?1:(Math.random()*2-1).toFixed(2);
-                    var col = c>0.5?'rgba(0,255,136,'+(c/2):c<-0.5?'rgba(255,51,102,'+(Math.abs(c)/2):'rgba(100,100,100,0.3)';
+                    var col = c>0.5?'rgba(0,255,136,'+(c/2)+')':c<-0.5?'rgba(255,51,102,'+(Math.abs(c)/2)+')':'rgba(100,100,100,0.3)';
                     h += '<div class="corr-cell" style="background:'+col+')">'+c+'</div>';
                 }
             }
