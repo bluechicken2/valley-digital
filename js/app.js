@@ -659,6 +659,42 @@ function renderAlloc() { if(allocCt) allocCt.destroy(); allocCt = new Chart($('a
             axis.innerHTML = html;
         }
         
+
+        window.filterAssets = function(query) {
+            var q = query.toLowerCase().trim();
+            var items = document.querySelectorAll('#assets .asset');
+            var visibleCount = 0;
+            for(var i = 0; i < items.length; i++) {
+                var name = items[i].querySelector('.asset-name');
+                var type = items[i].querySelector('.asset-type');
+                var sym = name ? name.textContent.split('*')[0].toLowerCase() : '';
+                var typeName = type ? type.textContent.toLowerCase() : '';
+                if(q === '' || sym.includes(q) || typeName.includes(q)) {
+                    items[i].style.display = '';
+                    visibleCount++;
+                } else {
+                    items[i].style.display = 'none';
+                }
+            }
+            // Show "no results" message if nothing matches
+            var noResults = document.getElementById('no-assets-msg');
+            if(visibleCount === 0 && q !== '') {
+                if(!noResults) {
+                    var assetsDiv = $('assets');
+                    noResults = document.createElement('div');
+                    noResults.id = 'no-assets-msg';
+                    noResults.style.cssText = 'text-align:center;padding:20px;color:var(--text-dim);';
+                    noResults.textContent = 'No assets found matching "' + q + '"';
+                    assetsDiv.appendChild(noResults);
+                } else {
+                    noResults.style.display = '';
+                    noResults.textContent = 'No assets found matching "' + q + '"';
+                }
+            } else if(noResults) {
+                noResults.style.display = 'none';
+            }
+        };
+        
 window.selAsset = function(s) { for(var i=0;i<data.length;i++) if(data[i].sym===s){sel=data[i];break;} $('chart-sym').textContent=s; if(!history[s])history[s]=genHistory(sel.price,100); renderAssets();renderInds();renderActions();renderAssetDetails();renderChart(); };
         window.toggleFav = function(s) { for(var i=0;i<data.length;i++) if(data[i].sym===s){data[i].fav=!data[i].fav;renderAssets();showToast(s+(data[i].fav?' added to':' removed from')+' favorites');break;} };
         window.setTf = function(tf) { timeframe=tf; var btns=document.querySelectorAll('.chart-btn'); for(var j=0;j<btns.length;j++){btns[j].classList.remove('on');} if(typeof event!=='undefined' && event.target) event.target.classList.add('on'); ohlcData={}; renderChart(); };
