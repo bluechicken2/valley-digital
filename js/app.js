@@ -141,7 +141,7 @@ var CONFIG = {
                 if(stocks.MSFT){var msft=data.find(function(a){return a.sym==='MSFT';});msft.price=stocks.MSFT.price;msft.chg=stocks.MSFT.changePercent||0;}
                 $('status-dot').className='status-dot';$('status-text').textContent='LIVE';$('data-badge').textContent='LIVE';$('data-badge').className='panel-badge live';$('db-status').innerHTML='<span style="color:var(--purple)">[DB]</span> SYNCED';
                 renderAll();
-            } catch(e) { $('status-dot').className='status-dot error';$('status-text').textContent='CACHED';$('data-badge').textContent='CACHED'; }
+            checkAlerts();} catch(e) { $('status-dot').className='status-dot error';$('status-text').textContent='CACHED';$('data-badge').textContent='CACHED'; }
         }
         
         function renderAll() { renderAssets();renderPortfolio();renderTicker();renderInds();renderFG();renderSectors();renderActions();renderPreds();renderWeights();renderChart();renderAlloc();renderAnalytics();renderCorrelation();renderAssetDetails();renderNews();renderCalendar(); }
@@ -686,8 +686,37 @@ window.selAsset = function(s) { for(var i=0;i<data.length;i++) if(data[i].sym===
         window.hideAlerts = function() { $('alerts-modal').classList.remove('show'); };
         window.showAddAlert = function() { hideAlerts(); var opts=''; for(var i=0;i<data.length;i++) opts+='<option value="'+data[i].sym+'">'+data[i].sym+'</option>'; $('alert-asset').innerHTML=opts; $('alert-asset').value=sel.sym; $('alert-price').value=''; $('add-alert-modal').classList.add('show'); };
         window.hideAddAlert = function() { $('add-alert-modal').classList.remove('show'); };
-        window.createAlert = function() { var sym=$('alert-asset').value,cond=$('alert-cond').value,price=parseFloat($('alert-price').value); if(!price||price<=0){showToast('Please enter a valid price');return;} alerts.push({sym:sym,cond:cond,price:price}); $('alert-count').textContent=alerts.length; hideAddAlert(); showToast('Alert created: '+sym+' '+cond+' $'+fmt(price)); };
-        window.deleteAlert = function(idx) { alerts.splice(idx,1); $('alert-count').textContent=alerts.length; renderAlertsList(); };
+        window.createAlert = function() { var sym=$('alert-asset').value,cond=$('alert-cond').value,price=parseFloat($('alert-price').value); if(!price||price<=0){showToast('Please enter a valid price');return;} alerts.push({sym:sym,cond:cond,price:price,active:true}); localStorage.setItem('tradingai_alerts', JSON.stringify(alerts)); $('alert-count').textContent=alerts.length; hideAddAlert(); showToast('Alert created: '+sym+' '+cond+' $'+fmt(price)); };
+        
+        function checkAlerts() {
+            if(alerts.length === 0) return;
+            for(var i = 0; i < alerts.length; i++) {
+                var a = alerts[i];
+                if(!a.active) continue;
+                var asset = data.find(function(d) { return d.sym === a.sym; });
+                if(!asset) continue;
+                var triggered = false;
+                if(a.cond === 'above' && asset.price >= a.price) triggered = true;
+                if(a.cond === 'below' && asset.price <= a.price) triggered = true;
+                if(triggered) {
+                    a.active = false;
+                    localStorage.setItem('tradingai_alerts', JSON.stringify(alerts));
+                    showToast('🔔 Alert: ' + a.sym + ' is ' + (a.cond === 'above' ? 'above' : 'below') + ' $' + fmt(a.price));
+                    // Browser notification
+                    if(Notification && Notification.permission === 'granted') {
+                        new Notification('TradingAI Alert', { body: a.sym + ' is ' + (a.cond === 'above' ? 'above' : 'below') + ' $' + fmt(a.price), icon: '/favicon.ico' });
+                    }
+                }
+            }
+        }
+        
+        function requestNotificationPermission() {
+            if(Notification && Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
+        }
+        
+window.deleteAlert = function(idx) { alerts.splice(idx,1); localStorage.setItem('tradingai_alerts', JSON.stringify(alerts)); $('alert-count').textContent=alerts.length; renderAlertsList(); showToast('Alert deleted'); };
         function renderAlertsList() { var h=''; if(alerts.length===0){h='<div style="text-align:center;padding:20px;color:var(--text-dim)">No alerts</div>';} else{for(var i=0;i<alerts.length;i++){h+='<div class="alert-item"><span class="sym">'+alerts[i].sym+'</span><span>'+(alerts[i].cond==='above'?'>':'<')+'</span><span class="price">$'+fmt(alerts[i].price)+'</span><span style="color:var(--red);cursor:pointer" onclick="deleteAlert('+i+')">X</span></div>';}} $('alerts-list').innerHTML=h; }
         window.showWatchlists = function() { $('user-dropdown').classList.remove('show'); renderWatchlists(); $('watchlists-modal').classList.add('show'); };
         window.hideWatchlists = function() { $('watchlists-modal').classList.remove('show'); };
