@@ -483,7 +483,24 @@
                                     <button class="chart-btn chart-type-btn" onclick="toggleChartType()" id="chart-type-btn">LINE</button>
                                 </div>
                             </div>
-                            <div class="chart-area"><canvas id="priceCt"></canvas><div class="vol-chart"><canvas id="volCt"></canvas></div></div>
+                                                        <div class="chart-legend" style="display:flex;gap:16px;margin-bottom:10px;padding:10px 14px;background:rgba(0,0,0,0.3);border-radius:8px;font-size:0.75rem;flex-wrap:wrap;border:1px solid rgba(255,255,255,0.05)">
+                                <div style="display:flex;align-items:center;gap:6px">
+                                    <div style="width:24px;height:3px;background:linear-gradient(90deg,#ffd700,#ffaa00);border-radius:2px"></div>
+                                    <span style="color:#ffd700;font-weight:600">SMA-20</span>
+                                    <span style="color:var(--text-dim)">20-period Moving Average</span>
+                                </div>
+                                <div style="display:flex;align-items:center;gap:6px">
+                                    <div style="width:14px;height:14px;background:rgba(0,255,136,0.85);border-radius:3px"></div>
+                                    <span style="color:var(--green);font-weight:600">Bullish</span>
+                                    <span style="color:var(--text-dim)">Price went UP</span>
+                                </div>
+                                <div style="display:flex;align-items:center;gap:6px">
+                                    <div style="width:14px;height:14px;background:rgba(255,51,102,0.85);border-radius:3px"></div>
+                                    <span style="color:var(--red);font-weight:600">Bearish</span>
+                                    <span style="color:var(--text-dim)">Price went DOWN</span>
+                                </div>
+                            </div>
+<div class="chart-area"><canvas id="priceCt"></canvas><div class="vol-chart"><canvas id="volCt"></canvas></div></div>
                             <div class="volume-area"><canvas id="volCt"></canvas></div>
                             <div style="text-align:center;font-size:0.7rem;color:var(--text-dim);margin-top:8px" id="last-update"></div>
                         </div>
