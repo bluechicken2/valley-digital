@@ -737,25 +737,52 @@
         function renderActions() { var arr=history[sel.sym]||genHistory(sel.price,100); var rsi=calcRSI(arr),stoch=calcStochastic(arr); var acts=[]; if(rsi<30||stoch.k<20)acts.push({t:'BUY',txt:sel.sym+' oversold'}); else if(rsi>70||stoch.k>80)acts.push({t:'SELL',txt:sel.sym+' overbought'}); else acts.push({t:'HOLD',txt:sel.sym+' neutral'}); acts.push({t:'HOLD',txt:'Review risk'}); var h=''; for(var i=0;i<acts.length;i++){h+='<div class="action"><span class="action-badge '+acts[i].t.toLowerCase()+'-badge">'+acts[i].t+'</span><span class="action-text">'+acts[i].txt+'</span></div>';} $('actions').innerHTML=h; }
         function renderPreds() { var base=sel.price; var preds=[{l:'24H',v:base*(1+Math.random()*0.04-0.02)},{l:'7D',v:base*(1+Math.random()*0.1-0.05)},{l:'30D',v:base*(1+Math.random()*0.2-0.1)}]; var h=''; for(var i=0;i<preds.length;i++){h+='<div class="pred-row"><span>'+preds[i].l+'</span><span class="pred-val '+(preds[i].v>=base?'bull':'bear')+'" style="color:'+(preds[i].v>=base?'var(--green)':'var(--red)')+'">$'+fmt(preds[i].v)+'</span></div>';} $('preds').innerHTML=h; }
         function renderWeights() { var w=[{s:'BTC',w:28,c:'var(--cyan)'},{s:'ETH',w:18,c:'var(--purple)'},{s:'NVDA',w:16,c:'var(--green)'},{s:'AAPL',w:14,c:'var(--gold)'},{s:'MSFT',w:12,c:'var(--cyan)'},{s:'GOOGL',w:8,c:'var(--red)'},{s:'TSLA',w:4,c:'var(--purple)'}]; var h=''; for(var i=0;i<w.length;i++){h+='<div class="weight-row"><span class="weight-sym">'+w[i].s+'</span><div class="weight-bar"><div class="weight-fill" style="width:'+w[i].w+'%;background:'+w[i].c+'"></div></div><span class="weight-pct">'+w[i].w+'%</span></div>';} $('weights').innerHTML=h; }
+        
+        
+        var ohlcData = {};
+        async function fetchOHLC(sym) {
+            var cm = {'BTC':'bitcoin','ETH':'ethereum','SOL':'solana','XRP':'ripple','ADA':'cardano','DOGE':'dogecoin'};
+            var coin = cm[sym] || 'bitcoin';
+            var days = timeframe==='1H'?'1':timeframe==='1W'?'7':timeframe==='1M'?'30':'7';
+            try {
+                var r = await fetch('https://tradingapi-proxy.cloudflare-5m9f2.workers.dev/ohlc?coin='+coin+'&days='+days);
+                return await r.json();
+            } catch(e) { return null; }
+        }
         function renderChart() {
+            if(chartType==='candle') { fetchOHLC(sel.sym).then(function(d){ renderCandles(d); }); }
+            else { renderLine(); }
+        }
+        function renderCandles(ohlc) {
+            var candles=[], lbls=[], vols=[];
+            if(ohlc && ohlc.length>0) {
+                for(var i=0;i<ohlc.length;i++) {
+                    var c=ohlc[i];
+                    candles.push({o:c[1],h:c[2],l:c[3],c:c[4]});
+                    lbls.push(i); vols.push(Math.random()*100+50);
+                }
+            } else {
+                candles = genCandles(sel.price,100);
+                for(var i=0;i<100;i++){ lbls.push(i); vols.push(Math.random()*100+50); }
+            }
+            if(priceCt) priceCt.destroy(); if(volCt) volCt.destroy();
+            priceCt = new Chart($('priceCt'),{type:'bar',data:{labels:lbls,datasets:[{data:candles.map(function(c){return[c.l,c.h,c.o,c.c];}),backgroundColor:candles.map(function(c){return c.c>=c.o?'rgba(0,255,136,0.85)':'rgba(255,51,102,0.85)';}),borderColor:candles.map(function(c){return c.c>=c.o?'#00ff88':'#ff3366';}),borderWidth:1}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){var c=candles[ctx.dataIndex];return['O:$'+c.o.toFixed(2),'H:$'+c.h.toFixed(2),'L:$'+c.l.toFixed(2),'C:$'+c.c.toFixed(2)];}}}},scales:{x:{display:false},y:{position:'right',grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#5a6a7e',callback:function(v){return'$'+v.toLocaleString();}}}}}});
+            volCt = new Chart($('volCt'),{type:'bar',data:{labels:lbls,datasets:[{data:vols,backgroundColor:candles.map(function(c){return c.c>=c.o?'rgba(0,255,136,0.4)':'rgba(255,51,102,0.4)';})}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:false}}}});
+            $('last-update').textContent = 'Last update: '+new Date().toLocaleTimeString();
+        }
+        function renderLine() {
             var len = timeframe==='1H'?24:timeframe==='1W'?168:timeframe==='1M'?720:96;
             var arr = history[sel.sym]||genHistory(sel.price,len);
-            history[sel.sym]=arr;
-            var disp = arr.slice(-len);
-            var lbls = []; for(var i=0;i<disp.length;i++) lbls.push(i);
-            if(priceCt) priceCt.destroy();
-            if(volCt) volCt.destroy();
-            var vols = []; for(var i=0;i<disp.length;i++) vols.push(Math.random()*100+50);
-            if(chartType==='line'){
-                priceCt = new Chart($('priceCt'),{type:'line',data:{labels:lbls,datasets:[{data:disp,borderColor:'#00f0ff',backgroundColor:'rgba(0,240,255,0.08)',fill:true,tension:0.4,pointRadius:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{display:false},y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#5a6a7e'}}}}});
-            } else {
-                var candles = genCandles(sel.price,len);
-                priceCt = new Chart($('priceCt'),{type:'bar',data:{labels:lbls,datasets:[{data:candles.map(function(c){return c.h-c.l;}),backgroundColor:candles.map(function(c){return c.c>=c.o?'rgba(0,255,136,0.7)':'rgba(255,51,102,0.7)';})}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{display:false},y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#5a6a7e'}}}}});
-            }
+            history[sel.sym]=arr; var disp=arr.slice(-len), lbls=[];
+            for(var i=0;i<disp.length;i++) lbls.push(i);
+            if(priceCt) priceCt.destroy(); if(volCt) volCt.destroy();
+            var vols=[]; for(var i=0;i<disp.length;i++) vols.push(Math.random()*100+50);
+            priceCt = new Chart($('priceCt'),{type:'line',data:{labels:lbls,datasets:[{data:disp,borderColor:'#00f0ff',backgroundColor:'rgba(0,240,255,0.08)',fill:true,tension:0.4,pointRadius:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{display:false},y:{position:'right',grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#5a6a7e',callback:function(v){return'$'+v.toLocaleString();}}}}}});
             volCt = new Chart($('volCt'),{type:'bar',data:{labels:lbls,datasets:[{data:vols,backgroundColor:vols.map(function(v,i){return disp[i+1]>disp[i]?'rgba(0,255,136,0.5)':'rgba(255,51,102,0.5)';})}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:false}}}});
             $('last-update').textContent = 'Last update: '+new Date().toLocaleTimeString();
         }
-        function renderAlloc() { if(allocCt) allocCt.destroy(); allocCt = new Chart($('allocCt'),{type:'doughnut',data:{labels:['BTC','ETH','NVDA','AAPL','MSFT','GOOGL','TSLA'],datasets:[{data:[28,18,16,14,12,8,4],backgroundColor:['#00f0ff','#a855f7','#00ff88','#ffd700','#00f0ff','#ff3366','#a855f7'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:{display:false}}}}); }
+
+function renderAlloc() { if(allocCt) allocCt.destroy(); allocCt = new Chart($('allocCt'),{type:'doughnut',data:{labels:['BTC','ETH','NVDA','AAPL','MSFT','GOOGL','TSLA'],datasets:[{data:[28,18,16,14,12,8,4],backgroundColor:['#00f0ff','#a855f7','#00ff88','#ffd700','#00f0ff','#ff3366','#a855f7'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:{display:false}}}}); }
         
         function renderAnalytics() {
             var tot=0,chg=0,sqSum=0; for(var i=0;i<data.length;i++){tot+=data[i].price*data[i].hold;chg+=data[i].price*data[i].hold*data[i].chg/100;}

@@ -1,14 +1,8 @@
-// TradingAPI Proxy Worker v2.1
-// Handles CoinGecko (crypto) and stock data with CORS bypass
+// TradingAPI Proxy Worker v3.0
+// Real OHLC candlestick data + price data
 
 const CRYPTO_IDS = ['bitcoin', 'ethereum', 'solana'];
-const STOCK_DATA = {
-  AAPL: { basePrice: 265, volatility: 0.015 },
-  NVDA: { basePrice: 139, volatility: 0.025 },
-  TSLA: { basePrice: 248, volatility: 0.03 },
-  GOOGL: { basePrice: 175, volatility: 0.012 },
-  MSFT: { basePrice: 403, volatility: 0.01 }
-};
+const CRYPTO_MAP = { 'BTC': 'bitcoin', 'ETH': 'ethereum', 'SOL': 'solana' };
 
 addEventListener('fetch', event => {
   event.respondWith(handleRequest(event.request));
@@ -18,7 +12,6 @@ async function handleRequest(request) {
   const url = new URL(request.url);
   const path = url.pathname;
   
-  // CORS headers for all responses
   const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, OPTIONS',
@@ -33,14 +26,12 @@ async function handleRequest(request) {
   try {
     if (path === '/prices' || path === '/api/prices') {
       return await getCryptoPrices(corsHeaders);
-    } else if (path === '/stocks' || path === '/api/stocks') {
-      return getStockPrices(corsHeaders);
-    } else if (path === '/all' || path === '/api/all') {
-      return await getAllPrices(corsHeaders);
+    } else if (path === '/ohlc' || path === '/api/ohlc') {
+      return await getOHLC(url, corsHeaders);
     } else if (path === '/health') {
       return new Response(JSON.stringify({ status: 'ok', timestamp: Date.now() }), { headers: corsHeaders });
     } else {
-      return new Response(JSON.stringify({ error: 'Not found', endpoints: ['/prices', '/stocks', '/all', '/health'] }), { headers: corsHeaders });
+      return new Response(JSON.stringify({ error: 'Not found', endpoints: ['/prices', '/ohlc', '/health'] }), { headers: corsHeaders });
     }
   } catch (error) {
     return new Response(JSON.stringify({ error: error.message }), { headers: corsHeaders, status: 500 });
@@ -49,64 +40,64 @@ async function handleRequest(request) {
 
 async function getCryptoPrices(corsHeaders) {
   try {
-    // CoinGecko requires User-Agent header now
     const response = await fetch(
       'https://api.coingecko.com/api/v3/simple/price?ids=' + CRYPTO_IDS.join(',') + '&vs_currencies=usd&include_24hr_change=true',
-      {
-        headers: {
-          'User-Agent': 'TradingAI-Dashboard/2.1',
-          'Accept': 'application/json'
-        }
-      }
+      { headers: { 'User-Agent': 'TradingAI-Dashboard/3.0', 'Accept': 'application/json' } }
     );
     
     if (!response.ok) {
-      // Return fallback data if API fails
-      return new Response(JSON.stringify(getFallbackCrypto()), { headers: corsHeaders });
+      return new Response(JSON.stringify(getFallbackPrices()), { headers: corsHeaders });
     }
     
     const data = await response.json();
     return new Response(JSON.stringify(data), { headers: corsHeaders });
   } catch (error) {
-    console.error('CoinGecko error:', error);
-    return new Response(JSON.stringify(getFallbackCrypto()), { headers: corsHeaders });
+    return new Response(JSON.stringify(getFallbackPrices()), { headers: corsHeaders });
   }
 }
 
-function getFallbackCrypto() {
+async function getOHLC(url, corsHeaders) {
+  const coin = url.searchParams.get('coin') || 'bitcoin';
+  const days = url.searchParams.get('days') || '7';
+  
+  try {
+    const response = await fetch(
+      'https://api.coingecko.com/api/v3/coins/' + coin + '/ohlc?vs_currency=usd&days=' + days,
+      { headers: { 'User-Agent': 'TradingAI-Dashboard/3.0', 'Accept': 'application/json' } }
+    );
+    
+    if (!response.ok) {
+      return new Response(JSON.stringify(getFallbackOHLC(coin)), { headers: corsHeaders });
+    }
+    
+    const data = await response.json();
+    // Format: [[timestamp, open, high, low, close], ...]
+    return new Response(JSON.stringify(data), { headers: corsHeaders });
+  } catch (error) {
+    return new Response(JSON.stringify(getFallbackOHLC(coin)), { headers: corsHeaders });
+  }
+}
+
+function getFallbackPrices() {
   return {
-    bitcoin: { usd: 65000 + Math.random() * 5000, usd_24h_change: (Math.random() - 0.5) * 10 },
-    ethereum: { usd: 3500 + Math.random() * 300, usd_24h_change: (Math.random() - 0.5) * 8 },
-    solana: { usd: 150 + Math.random() * 20, usd_24h_change: (Math.random() - 0.5) * 12 }
+    bitcoin: { usd: 95000 + Math.random() * 5000, usd_24h_change: (Math.random() - 0.5) * 5 },
+    ethereum: { usd: 3400 + Math.random() * 300, usd_24h_change: (Math.random() - 0.5) * 5 },
+    solana: { usd: 170 + Math.random() * 30, usd_24h_change: (Math.random() - 0.5) * 8 }
   };
 }
 
-function getStockPrices(corsHeaders) {
-  const stocks = {};
+function getFallbackOHLC(coin) {
+  const basePrice = coin === 'bitcoin' ? 95000 : coin === 'ethereum' ? 3400 : 170;
+  const data = [];
   const now = Date.now();
   
-  for (const [symbol, config] of Object.entries(STOCK_DATA)) {
-    // Generate realistic price movement
-    const change = (Math.random() - 0.5) * 2 * config.volatility;
-    const price = config.basePrice * (1 + change);
-    const changePercent = change * 100;
-    
-    stocks[symbol] = {
-      price: Math.round(price * 100) / 100,
-      change: Math.round((price - config.basePrice) * 100) / 100,
-      changePercent: Math.round(changePercent * 100) / 100,
-      volume: Math.floor(Math.random() * 100000000) + 10000000
-    };
+  for (let i = 168; i >= 0; i -= 4) {
+    const time = now - i * 3600000;
+    const o = basePrice * (1 + (Math.random() - 0.5) * 0.02);
+    const c = basePrice * (1 + (Math.random() - 0.5) * 0.02);
+    const h = Math.max(o, c) * (1 + Math.random() * 0.01);
+    const l = Math.min(o, c) * (1 - Math.random() * 0.01);
+    data.push([time, o, h, l, c]);
   }
-  
-  return new Response(JSON.stringify(stocks), { headers: corsHeaders });
-}
-
-async function getAllPrices(corsHeaders) {
-  const [cryptoRes, stocksData] = await Promise.all([
-    getCryptoPrices(corsHeaders).then(r => r.json()),
-    Promise.resolve(getStockPrices(corsHeaders).then ? await getStockPrices(corsHeaders).then(r => r.json()) : JSON.parse(getStockPrices(corsHeaders).body))
-  ]);
-  
-  return new Response(JSON.stringify({ crypto: cryptoRes, stocks: stocksData }), { headers: corsHeaders });
+  return data;
 }
