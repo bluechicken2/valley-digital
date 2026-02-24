@@ -943,7 +943,7 @@ function renderAlloc() { if(allocCt) allocCt.destroy(); allocCt = new Chart($('a
         // Interactions
         window.selAsset = function(s) { for(var i=0;i<data.length;i++) if(data[i].sym===s){sel=data[i];break;} $('chart-sym').textContent=s; if(!history[s])history[s]=genHistory(sel.price,100); renderAssets();renderInds();renderActions();renderAssetDetails();renderChart(); };
         window.toggleFav = function(s) { for(var i=0;i<data.length;i++) if(data[i].sym===s){data[i].fav=!data[i].fav;renderAssets();showToast(s+(data[i].fav?' added to':' removed from')+' favorites');break;} };
-        window.setTf = function(tf) { timeframe=tf; document.querySelectorAll('.chart-btn').forEach(function(b){b.classList.remove('on');}); event.target.classList.add('on'); renderChart(); };
+        window.setTf = function(tf) { timeframe=tf; var btns=document.querySelectorAll('.chart-btn'); for(var i=0;i<btns.length;i++){btns[i].classList.remove('on');} if(typeof event!=='undefined' window.setTf = function(tf) { timeframe=tf; document.querySelectorAll('.chart-btn').forEach(function(b){b.classList.remove('on');}); event.target.classList.add('on'); renderChart(); };window.setTf = function(tf) { timeframe=tf; document.querySelectorAll('.chart-btn').forEach(function(b){b.classList.remove('on');}); event.target.classList.add('on'); renderChart(); }; event.target) event.target.classList.add('on'); ohlcData={}; renderChart(); };
         window.toggleChartType = function() { chartType = chartType==='line'?'candle':'line'; $('chart-type-btn').textContent = chartType.toUpperCase(); renderChart(); };
         
         // Theme
