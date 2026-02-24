@@ -1370,7 +1370,19 @@ function renderAlloc() { if(allocCt) allocCt.destroy(); allocCt = new Chart($('a
             if(data.length > 0 && (!sel || data.indexOf(sel) < 0)) sel = data[0];
             } catch(e) { console.error('loadSavedHoldings error:', e); }
         }
-        function init() { setTimeout(function(){if(checkSession()){showDashboard();}else{showLogin();}},100); }
+        function init() { 
+            console.log('INIT CALLED');
+            setTimeout(function(){
+                console.log('TIMEOUT FIRED');
+                if(checkSession()){
+                    console.log('SESSION FOUND - SHOWING DASHBOARD');
+                    showDashboard();
+                }else{
+                    console.log('NO SESSION - SHOWING LOGIN');
+                    showLogin();
+                }
+            },100); 
+        }
         if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
     })();
     </script>
