@@ -1233,19 +1233,22 @@ function renderAlloc() { if(allocCt) allocCt.destroy(); allocCt = new Chart($('a
             svg.innerHTML = html;
         }
         
-        $('chart-canvas-container').addEventListener('mouseup', function(e) {
-            if(drawMode && drawStart) {
-                var rect = $('chart-canvas-container').getBoundingClientRect();
-                var end = {x: e.clientX - rect.left, y: e.clientY - rect.top};
-                if(drawMode === 'trend') {
-                    drawings.push({type: 'trend', x1: drawStart.x, y1: drawStart.y, x2: end.x, y2: end.y});
-                } else if(drawMode === 'hline') {
-                    drawings.push({type: 'hline', y: end.y});
+        function setupChartListeners() {
+            var c = $('chart-canvas-container');
+            if(c) c.addEventListener('mouseup', function(e) {
+                if(drawMode && drawStart) {
+                    var rect = c.getBoundingClientRect();
+                    var end = {x: e.clientX - rect.left, y: e.clientY - rect.top};
+                    if(drawMode === 'trend') {
+                        drawings.push({type: 'trend', x1: drawStart.x, y1: drawStart.y, x2: end.x, y2: end.y});
+                    } else if(drawMode === 'hline') {
+                        drawings.push({type: 'hline', y: end.y});
+                    }
+                    renderDrawings();
+                    drawStart = null;
                 }
-                renderDrawings();
-                drawStart = null;
-            }
-        });
+            });
+        }
         
         window.clearDrawings = function() {
             drawings = [];
