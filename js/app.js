@@ -695,6 +695,32 @@ function renderAlloc() { if(allocCt) allocCt.destroy(); allocCt = new Chart($('a
             }
         };
         
+
+        window.exportData = function(format) {
+            var NL = String.fromCharCode(10);
+            var exportObj = {
+                exportDate: new Date().toISOString(),
+                portfolio: data.filter(function(a) { return a.holdings > 0; }).map(function(a) { return { symbol: a.sym, name: a.name, holdings: a.holdings, price: a.price, value: a.holdings * a.price, change24h: a.chg }; }),
+                favorites: data.filter(function(a) { return a.fav; }).map(function(a) { return a.sym; }),
+                alerts: alerts,
+                sentiment: { overall: 76, bullish: data.filter(function(a) { return a.chg > 0; }).length, bearish: data.filter(function(a) { return a.chg < 0; }).length }
+            };
+            var blob, filename;
+            if(format === 'json') {
+                blob = new Blob([JSON.stringify(exportObj, null, 2)], { type: 'application/json' });
+                filename = 'tradingai-export-' + new Date().toISOString().split('T')[0] + '.json';
+            } else {
+                var csv = 'Symbol,Name,Holdings,Price,Value,Change24h' + NL;
+                exportObj.portfolio.forEach(function(p) { csv += p.symbol + ',' + p.name + ',' + (p.holdings || 0) + ',' + p.price + ',' + (p.value || 0) + ',' + p.change24h + NL; });
+                blob = new Blob([csv], { type: 'text/csv' });
+                filename = 'tradingai-export-' + new Date().toISOString().split('T')[0] + '.csv';
+            }
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url; a.download = filename; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+            showToast('Exported as ' + format.toUpperCase());
+        };
+
 window.selAsset = function(s) { for(var i=0;i<data.length;i++) if(data[i].sym===s){sel=data[i];break;} $('chart-sym').textContent=s; if(!history[s])history[s]=genHistory(sel.price,100); renderAssets();renderInds();renderActions();renderAssetDetails();renderChart(); };
         window.toggleFav = function(s) { for(var i=0;i<data.length;i++) if(data[i].sym===s){data[i].fav=!data[i].fav;renderAssets();showToast(s+(data[i].fav?' added to':' removed from')+' favorites');break;} };
         window.setTf = function(tf) { timeframe=tf; var btns=document.querySelectorAll('.chart-btn'); for(var j=0;j<btns.length;j++){btns[j].classList.remove('on');} if(typeof event!=='undefined' && event.target) event.target.classList.add('on'); ohlcData={}; renderChart(); };
