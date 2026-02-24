@@ -780,6 +780,21 @@
         var SUPABASE_URL = 'https://dkxydhuojaspmbpjfyoz.supabase.co';
         var SUPABASE_KEY = 'sb_publishable_ydepQXbHFjFA-_TIwOYNHg_SwN0m5PL';
         var API_BASE = 'https://tradingapi-proxy.cloudflare-5m9f2.workers.dev';
+        
+        // Configuration Constants
+        var CONFIG = {
+            REFRESH_INTERVAL: 60000,      // Price refresh interval (ms)
+            TIME_UPDATE_INTERVAL: 1000,   // Time display update (ms)
+            INIT_DELAY: 100,              // Init timeout delay (ms)
+            SMA_PERIOD: 20,               // SMA period for charts
+            EMA_SHORT: 9,                 // Short EMA period
+            EMA_LONG: 21,                 // Long EMA period
+            VOL_MA_PERIOD: 10,            // Volume MA period
+            TOAST_DURATION: 3000,         // Toast notification duration (ms)
+            CHART_HEIGHT: 320,            // Default chart height (px)
+            VOLUME_HEIGHT: 80             // Volume chart height (px)
+        };
+
         var user = null, userTier = 'free', sel = null, data = [], alerts = [], watchlists = [{name:'Crypto',symbols:['BTC','ETH','SOL']},{name:'Tech',symbols:['AAPL','NVDA','MSFT','GOOGL']}];
         var priceCt = null, volCt = null, allocCt = null, chartType = 'line', timeframe = '1D';
         var history = {}, isLightTheme = false, isFullscreen = false;
@@ -843,9 +858,9 @@
             }
             renderAll();
             refreshPrices();
-            setInterval(refreshPrices,60000);
+            setInterval(refreshPrices,CONFIG.REFRESH_INTERVAL);
             updateTime();
-            setInterval(updateTime,1000); 
+            setInterval(updateTime,CONFIG.TIME_UPDATE_INTERVAL); 
         }
         function updateTime() { $('time').textContent = new Date().toLocaleTimeString(); }
         
@@ -1946,7 +1961,7 @@ window.selAsset = function(s) { for(var i=0;i<data.length;i++) if(data[i].sym===
                     console.log('NO SESSION - SHOWING LOGIN');
                     showLogin();
                 }
-            },100); 
+            },CONFIG.INIT_DELAY); 
         }
         if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
     })();
