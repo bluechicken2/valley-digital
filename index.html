@@ -1058,6 +1058,27 @@
             showToast(sym+' added to portfolio!');
         };
 
+        window.removeAsset = async function(sym) {
+            var idx = -1;
+            for(var i=0;i<data.length;i++) {
+                if(data[i].sym===sym) { idx=i; break; }
+            }
+            if(idx >= 0) {
+                data.splice(idx, 1);
+                localStorage.setItem('holdings', JSON.stringify(
+                    data.reduce(function(obj, a) { obj[a.sym]=a.hold; return obj; }, {})
+                ));
+                try { await savePortfolioToSupabase(); } catch(e) {}
+                renderAssets();
+                renderPortfolio();
+                renderAlloc();
+                if(sel && sel.sym===sym && data.length>0) sel=data[0];
+                renderChart();
+                renderInds();
+                showToast(sym+' removed from portfolio');
+            }
+        };
+
         // PR Functions
         window.showPRModal = function() {
             renderPRList();
