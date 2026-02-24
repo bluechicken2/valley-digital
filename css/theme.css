@@ -342,7 +342,9 @@
             .grid-2 { grid-template-columns: 1fr; }
             .grid-3 { grid-template-columns: 1fr; }
             .grid-2 > div { width: 100%; min-width: 0; }
-            .grid > div > .panel { width: 100%; box-sizing: border-box; }
+            .grid .panel { width: 100%; box-sizing: border-box; max-width: 100%; }
+            .grid > .panel { width: 100%; box-sizing: border-box; max-width: 100%; }
+            .panel { width: 100% !important; box-sizing: border-box; }
 
             /* Chart Area - improved for mobile */
             .chart-area { height: 280px; }
