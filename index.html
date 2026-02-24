@@ -987,7 +987,8 @@
 
             // Try to save to Supabase (may fail)
             try {
-                await savePortfolioToSupabase();
+                localStorage.setItem('assetList', JSON.stringify(data.map(function(a){return{sym:a.sym,name:a.name,type:a.type,color:a.color,hold:a.hold,fav:a.fav}})));
+            await savePortfolioToSupabase();
             } catch(e) {
                 console.error('Supabase save failed:', e);
             }
@@ -1051,6 +1052,7 @@
                 hold:0, fav:false,
                 mktCap:0, vol24h:0
             });
+            localStorage.setItem('assetList', JSON.stringify(data.map(function(a){return{sym:a.sym,name:a.name,type:a.type,color:a.color,hold:a.hold,fav:a.fav}})));
             await savePortfolioToSupabase();
             renderAssets();
             renderPortfolio();
@@ -1070,7 +1072,8 @@
                 localStorage.setItem('holdings', JSON.stringify(
                     data.reduce(function(obj, a) { obj[a.sym]=a.hold; return obj; }, {})
                 ));
-                try { await savePortfolioToSupabase(); } catch(e) {}
+                try { localStorage.setItem('assetList', JSON.stringify(data.map(function(a){return{sym:a.sym,name:a.name,type:a.type,color:a.color,hold:a.hold,fav:a.fav}})));
+            await savePortfolioToSupabase(); } catch(e) {}
                 renderAssets();
                 renderPortfolio();
                 renderAlloc();
@@ -1120,7 +1123,7 @@
             var entries = [];
             for(var i=0;i<data.length;i++) {
                 // Save ALL assets that have holdings OR are favorites
-                if(data[i].hold > 0 || data[i].fav) {
+                if(true) {
                     entries.push({
                         user_id: user.id,
                         symbol: data[i].sym,
@@ -1129,7 +1132,7 @@
                     });
                 }
             }
-            console.log('Holdings to save:', holdings);
+            console.log('Entries to save:', entries);
 
             try {
                 // First, delete existing portfolio entries for this user
@@ -1217,7 +1220,22 @@
         }
 
         function loadSavedHoldings() {
-            // Legacy localStorage fallback
+            // Load saved asset list from localStorage
+            var savedAssets = localStorage.getItem('assetList');
+            if(savedAssets) {
+                var assets = JSON.parse(savedAssets);
+                // Merge saved assets into data array
+                for(var j=0;j<assets.length;j++) {
+                    var found = data.find(function(d){return d.sym===assets[j].sym;});
+                    if(found) {
+                        found.hold = assets[j].hold;
+                        found.fav = assets[j].fav;
+                    } else {
+                        data.push(assets[j]);
+                    }
+                }
+            }
+            // Legacy localStorage fallback for holdings only
             var saved = localStorage.getItem('holdings');
             if(saved) {
                 var holdings = JSON.parse(saved);
