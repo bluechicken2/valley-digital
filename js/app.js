@@ -451,7 +451,7 @@ function renderAlloc() { if(allocCt) allocCt.destroy(); allocCt = new Chart($('a
         // Interactions
         
         // Chart Enhancement Variables
-        var showBollinger = false, showEMA = false, showSR = false, showSMA200 = false, showSMA20 = true;
+        var showBollinger = false, showEMA = false, showSR = false, showSMA200 = false, showSMA20 = localStorage.getItem('showSMA20') !== 'false';
         var drawMode = null, drawings = [];
         var isFullscreen = false;
         
@@ -589,6 +589,7 @@ function renderAlloc() { if(allocCt) allocCt.destroy(); allocCt = new Chart($('a
         };
         window.toggleSMA20 = function() {
             showSMA20 = !showSMA20;
+            localStorage.setItem('showSMA20', showSMA20);
             $('toggle-sma20').classList.toggle('active', showSMA20);
             renderChart();
         };
