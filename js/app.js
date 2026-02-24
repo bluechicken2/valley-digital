@@ -587,6 +587,12 @@ function renderAlloc() { if(allocCt) allocCt.destroy(); allocCt = new Chart($('a
             $('toggle-sma200').classList.toggle('active', showSMA200);
             renderChart();
         };
+        window.toggleSMA20 = function() {
+            showSMA20 = !showSMA20;
+            $('toggle-sma20').classList.toggle('active', showSMA20);
+            renderChart();
+        };
+
         window.toggleSR = function() {
             showSR = !showSR;
             $('toggle-sr').classList.toggle('active', showSR);
