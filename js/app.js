@@ -26,6 +26,24 @@
             }
         }
         
+
+        // Connection status monitoring
+        window.addEventListener('online', function() {
+            console.log('Browser online');
+            var banner = $('offline-banner');
+            if(banner) banner.style.display = 'none';
+            $('status-dot').className='status-dot';
+            $('status-text').textContent='LIVE';
+            refreshPrices();
+        });
+        window.addEventListener('offline', function() {
+            console.log('Browser offline');
+            var banner = $('offline-banner');
+            if(banner) banner.style.display = 'block';
+            $('status-dot').className='status-dot error';
+            $('status-text').textContent='OFFLINE';
+        });
+
 var CONFIG = {
             REFRESH_INTERVAL: 60000,      // Price refresh interval (ms)
             TIME_UPDATE_INTERVAL: 1000,   // Time display update (ms)
