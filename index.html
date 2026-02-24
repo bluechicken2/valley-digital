@@ -333,15 +333,33 @@
         .trade-btn.sell { background: var(--red); }
 
         /* AI Chat */
-        .ai-chat { height: 250px; overflow-y: auto; background: var(--bg-surface); border-radius: 8px; padding: 12px; margin-bottom: 12px; }
-        .ai-msg { margin-bottom: 10px; }
-        .ai-msg.user { text-align: right; }
-        .ai-msg-text { display: inline-block; padding: 8px 12px; border-radius: 8px; font-size: 0.8rem; max-width: 80%; }
-        .ai-msg.user .ai-msg-text { background: var(--cyan); color: var(--bg-void); }
-        .ai-msg.ai .ai-msg-text { background: var(--bg-panel); border: 1px solid var(--border); }
+        .ai-chat-container { display: flex; flex-direction: column; height: 100%; }
+        .ai-chat { flex: 1; overflow-y: auto; background: linear-gradient(180deg, var(--bg-surface) 0%, rgba(0,0,0,0.3) 100%); border-radius: 8px; padding: 12px; margin-bottom: 8px; border: 1px solid var(--border); }
+        .ai-msg { margin-bottom: 12px; display: flex; gap: 8px; align-items: flex-start; animation: msgFade 0.3s ease; }
+        @keyframes msgFade { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .ai-msg.user { flex-direction: row-reverse; }
+        .ai-avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 700; flex-shrink: 0; }
+        .ai-msg.user .ai-avatar { background: var(--cyan); color: var(--bg-void); }
+        .ai-msg.ai .ai-avatar { background: linear-gradient(135deg, var(--purple), var(--cyan)); color: #fff; }
+        .ai-msg-content { max-width: 75%; }
+        .ai-msg-bubble { padding: 10px 14px; border-radius: 12px; font-size: 0.8rem; line-height: 1.4; }
+        .ai-msg.user .ai-msg-bubble { background: var(--cyan); color: var(--bg-void); border-bottom-right-radius: 4px; }
+        .ai-msg.ai .ai-msg-bubble { background: var(--bg-panel); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+        .ai-msg-time { font-size: 0.6rem; color: var(--text-dim); margin-top: 4px; }
+        .ai-msg.user .ai-msg-time { text-align: right; }
+        .ai-typing { display: flex; gap: 4px; padding: 12px 14px; }
+        .ai-typing span { width: 6px; height: 6px; background: var(--cyan); border-radius: 50%; animation: typing 1.4s infinite; }
+        .ai-typing span:nth-child(2) { animation-delay: 0.2s; }
+        .ai-typing span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typing { 0%, 60%, 100% { transform: translateY(0); opacity: 0.4; } 30% { transform: translateY(-8px); opacity: 1; } }
+        .ai-quick-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+        .ai-quick-btn { background: transparent; border: 1px solid var(--border); border-radius: 16px; padding: 5px 12px; color: var(--text); font-size: 0.65rem; cursor: pointer; transition: all 0.2s; }
+        .ai-quick-btn:hover { background: var(--cyan); color: var(--bg-void); border-color: var(--cyan); }
         .ai-input { display: flex; gap: 8px; }
-        .ai-input input { flex: 1; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 6px; padding: 10px; color: var(--text-bright); font-size: 0.85rem; }
-        .ai-input button { background: var(--cyan); border: none; border-radius: 6px; padding: 10px 16px; color: var(--bg-void); font-family: 'Orbitron', sans-serif; font-size: 0.7rem; font-weight: 700; cursor: pointer; }
+        .ai-input input { flex: 1; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 20px; padding: 10px 16px; color: var(--text-bright); font-size: 0.85rem; outline: none; }
+        .ai-input input:focus { border-color: var(--cyan); }
+        .ai-input button { background: linear-gradient(135deg, var(--cyan), var(--purple)); border: none; border-radius: 20px; padding: 10px 20px; color: #fff; font-family: 'Orbitron', sans-serif; font-size: 0.7rem; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+        .ai-input button:hover { transform: scale(1.05); }
 
         /* Portfolio Management */
         .port-edit-btn { background: var(--bg-surface); border: 1px solid var(--border); border-radius: 4px; padding: 4px 8px; color: var(--text-dim); font-size: 0.65rem; cursor: pointer; margin-left: 8px; }
@@ -620,8 +638,15 @@
                 <div class="panel-header"><span class="panel-title">AI Portfolio Assistant</span></div>
                 <div class="panel-body">
                     <div class="ai-chat" id="ai-chat"></div>
+                    <div class="ai-quick-actions" id="ai-quick">
+                        <button class="ai-quick-btn" onclick="quickAI('portfolio')">📊 Portfolio</button>
+                        <button class="ai-quick-btn" onclick="quickAI('analysis')">📈 Analysis</button>
+                        <button class="ai-quick-btn" onclick="quickAI('market')">🌍 Market</button>
+                        <button class="ai-quick-btn" onclick="quickAI('risks')">⚠️ Risks</button>
+                        <button class="ai-quick-btn" onclick="quickAI('tips')">💡 Tips</button>
+                    </div>
                     <div class="ai-input">
-                        <input type="text" id="ai-input" placeholder="Ask about your portfolio..." onkeypress="if(event.key==='Enter')sendAI()">
+                        <input type="text" id="ai-input" placeholder="Ask about your portfolio, market trends, or strategies..." onkeypress="if(event.key==='Enter')sendAI()">
                         <button onclick="sendAI()">SEND</button>
                     </div>
                 </div>
@@ -996,6 +1021,7 @@ function renderAlloc() { if(allocCt) allocCt.destroy(); allocCt = new Chart($('a
         var screenerFilters = {rsi:false, volume:false, change:false};
         var paperBalance = 100000, paperPositions = {};
         var aiHistory = [];
+        loadChatHistory();
 
         window.toggleScreenerFilter = function(f) { screenerFilters[f] = !screenerFilters[f]; renderScreener(); };
 
@@ -1046,27 +1072,150 @@ function renderAlloc() { if(allocCt) allocCt.destroy(); allocCt = new Chart($('a
 
         function renderAIChat() {
             var h = '';
-            for(var i=0;i<aiHistory.length;i++) h += '<div class="ai-msg '+aiHistory[i].role+'"><span class="ai-msg-text">'+aiHistory[i].text+'</span></div>';
-            if(aiHistory.length===0) h = '<div class="ai-msg ai"><span class="ai-msg-text">Hello! Ask me about your portfolio, market conditions, or trading strategies.</span></div>';
+            if(aiHistory.length===0) {
+                h = '<div class="ai-msg ai"><div class="ai-avatar">AI</div><div class="ai-msg-content"><div class="ai-msg-bubble">Hello! I'm your trading assistant. Ask me about your portfolio, market analysis, or trading strategies. You can also use the quick action buttons below!</div><div class="ai-msg-time">Just now</div></div></div>';
+            } else {
+                for(var i=0;i<aiHistory.length;i++) {
+                    var m = aiHistory[i];
+                    var time = m.time ? new Date(m.time).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : 'Just now';
+                    var avatar = m.role==='user' ? 'YOU' : 'AI';
+                    h += '<div class="ai-msg '+m.role+'"><div class="ai-avatar">'+avatar+'</div><div class="ai-msg-content"><div class="ai-msg-bubble">'+m.text+'</div><div class="ai-msg-time">'+time+'</div></div></div>';
+                }
+            }
             $('ai-chat').innerHTML = h;
             $('ai-chat').scrollTop = $('ai-chat').scrollHeight;
+        }
+
+        function showTyping() {
+            var h = $('ai-chat').innerHTML;
+            h += '<div class="ai-msg ai" id="typing-msg"><div class="ai-avatar">AI</div><div class="ai-msg-content"><div class="ai-msg-bubble"><div class="ai-typing"><span></span><span></span><span></span></div></div></div></div>';
+            $('ai-chat').innerHTML = h;
+            $('ai-chat').scrollTop = $('ai-chat').scrollHeight;
+        }
+
+        function hideTyping() {
+            var t = $('typing-msg');
+            if(t) t.remove();
+        }
+
+        function saveChatHistory() {
+            try { localStorage.setItem('aiChatHistory', JSON.stringify(aiHistory)); } catch(e) {}
+        }
+
+        function loadChatHistory() {
+            try { var saved = localStorage.getItem('aiChatHistory'); if(saved) aiHistory = JSON.parse(saved); } catch(e) {}
+        }
+
+        window.quickAI = function(type) {
+            var q = '';
+            if(type==='portfolio') q = 'Give me a portfolio summary and recommendations';
+            else if(type==='analysis') q = 'Analyze '+sel.sym+' technical indicators';
+            else if(type==='market') q = 'What is the current market outlook?';
+            else if(type==='risks') q = 'What are the risks in my current portfolio?';
+            else if(type==='tips') q = 'Give me trading tips for today's market';
+            $('ai-input').value = q;
+            sendAI();
+        };
+
+        function generateAIResponse(q) {
+            q = q.toLowerCase();
+            var rsi = calcRSI(history[sel.sym]||genHistory(sel.price,100));
+            var tot = 0, chg = 0;
+            for(var i=0;i<data.length;i++){tot+=data[i].price*data[i].hold;chg+=data[i].price*data[i].hold*data[i].chg/100;}
+            var pct = tot>0 ? (chg/tot*100) : 0;
+            var macd = calcMACD(history[sel.sym]||genHistory(sel.price,100));
+            
+            if(q.includes('portfolio') || q.includes('summary')) {
+                var top = data.slice().sort(function(a,b){return(b.price*b.hold)-(a.price*a.hold);})[0];
+                var resp = '📊 <strong>Portfolio Summary</strong><br><br>';
+                resp += 'Total Value: <strong>$'+fmt(tot)+'</strong><br>';
+                resp += '24h Change: <span style="color:'+(chg>=0?'var(--green)':'var(--red)')+'">'+(chg>=0?'+':'')+'$'+fmt(Math.abs(chg))+' ('+(pct>=0?'+':'')+pct.toFixed(2)+'%)</span><br><br>';
+                resp += 'Largest Holding: '+top.sym+' ('+fmt(top.hold)+' units)<br><br>';
+                if(chg>=0) resp += '💡 Your portfolio is up today. Consider taking partial profits on winners.';
+                else resp += '⚠️ Your portfolio is down. Review your risk exposure and consider averaging down on quality assets.';
+                return resp;
+            }
+            else if(q.includes('analysis') || q.includes('technical') || q.includes('indicator')) {
+                var resp = '📈 <strong>Technical Analysis: '+sel.sym+'</strong><br><br>';
+                resp += 'RSI-14: <strong>'+rsi.toFixed(1)+'</strong> ('+(rsi<30?'🔴 Oversold':rsi>70?'🟢 Overbought':'🟡 Neutral')+')<br>';
+                resp += 'MACD: '+(macd.macd>macd.signal?'🟢 Bullish':'🔴 Bearish')+' ('+macd.macd.toFixed(2)+')<br>';
+                resp += 'Signal Line: '+macd.signal.toFixed(2)+'<br>';
+                resp += 'Current Price: $'+fmt(sel.price)+'<br>';
+                resp += '24h Change: '+(sel.chg>=0?'+':'')+sel.chg.toFixed(2)+'%<br><br>';
+                if(rsi<30 && macd.macd>macd.signal) resp += '💡 Strong buy signal: RSI oversold + MACD bullish crossover.';
+                else if(rsi>70 && macd.macd<macd.signal) resp += '⚠️ Strong sell signal: RSI overbought + MACD bearish crossover.';
+                else resp += '💡 Mixed signals. Wait for confirmation before trading.';
+                return resp;
+            }
+            else if(q.includes('market') || q.includes('outlook') || q.includes('condition')) {
+                var up = 0, down = 0;
+                for(var i=0;i<data.length;i++){if(data[i].chg>=0)up++;else down++;}
+                var resp = '🌍 <strong>Market Outlook</strong><br><br>';
+                resp += 'Assets Up: '+up+' | Assets Down: '+down+'<br>';
+                resp += 'Market Sentiment: '+(up>down?'🟢 Bullish':up<down?'🔴 Bearish':'🟡 Neutral')+'<br><br>';
+                resp += 'Top Gainer: '; var topG = data.slice().sort(function(a,b){return b.chg-a.chg;})[0];
+                resp += topG.sym+' ('+(topG.chg>=0?'+':'')+topG.chg.toFixed(2)+'%)<br>';
+                resp += 'Top Loser: '; var topL = data.slice().sort(function(a,b){return a.chg-b.chg;})[0];
+                resp += topL.sym+' ('+(topL.chg>=0?'+':'')+topL.chg.toFixed(2)+'%)<br><br>';
+                resp += '💡 '+(up>down?'Market showing strength. Look for pullback entries.':'Market showing weakness. Consider reducing exposure.');
+                return resp;
+            }
+            else if(q.includes('risk') || q.includes('danger')) {
+                var highRisk = [];
+                for(var i=0;i<data.length;i++){if(data[i].hold>0 && Math.abs(data[i].chg)>5) highRisk.push(data[i].sym);}
+                var resp = '⚠️ <strong>Risk Assessment</strong><br><br>';
+                resp += 'Portfolio Concentration: ';
+                var conc = 0; for(var i=0;i<data.length;i++){var w = (data[i].price*data[i].hold)/tot*100; if(w>conc)conc=w;}
+                resp += (conc>50?'🔴 High ('+conc.toFixed(0)+'% in single asset)':'🟢 Diversified')+'<br>';
+                resp += 'High Volatility Assets: '+(highRisk.length?highRisk.join(', '):'None detected')+'<br><br>';
+                resp += '💡 Recommendations:<br>';
+                if(conc>50) resp += '• Reduce concentration in top holding<br>';
+                resp += '• Set stop-losses at 5-10% below entry<br>';
+                resp += '• Keep 10-20% cash for opportunities';
+                return resp;
+            }
+            else if(q.includes('tip') || q.includes('advice') || q.includes('strategy')) {
+                var tips = [
+                    '💡 Use trailing stops to lock in profits while allowing room for growth.',
+                    '💡 Never risk more than 1-2% of your portfolio on a single trade.',
+                    '💡 The trend is your friend - dont fight the market direction.',
+                    '💡 Take profits on the way up, dont wait for the top.',
+                    '💡 Keep a trading journal to learn from your mistakes.',
+                    '💡 Diversification is the only free lunch in investing.'
+                ];
+                var resp = '💡 <strong>Trading Tips</strong><br><br>';
+                resp += tips[Math.floor(Math.random()*tips.length)]+'<br><br>';
+                resp += 'Current RSI Strategy for '+sel.sym+': ';
+                if(rsi<30) resp += 'Consider accumulating - RSI suggests oversold conditions.';
+                else if(rsi>70) resp += 'Consider taking profits - RSI suggests overbought conditions.';
+                else resp += 'Hold current position - RSI in neutral territory.';
+                return resp;
+            }
+            else {
+                var resp = 'Based on current conditions:<br><br>';
+                resp += '• '+sel.sym+' RSI: '+rsi.toFixed(1)+' ('+(rsi<30?'oversold':rsi>70?'overbought':'neutral')+')<br>';
+                resp += '• Portfolio: '+$('port-chg').textContent+' today<br>';
+                resp += '• Market: '+(pct>=0?'Positive':'Negative')+' momentum<br><br>';
+                resp += 'Ask me about: portfolio, analysis, market, risks, or tips!';
+                return resp;
+            }
         }
 
         window.sendAI = function() {
             var q = $('ai-input').value.trim();
             if(!q) return;
-            aiHistory.push({role:'user',text:q});
+            aiHistory.push({role:'user',text:q,time:Date.now()});
             $('ai-input').value='';
             renderAIChat();
+            saveChatHistory();
+            showTyping();
             setTimeout(function() {
-                var rsi = calcRSI(history[sel.sym]||genHistory(sel.price,100));
-                var resp = 'Based on current conditions, RSI of '+sel.sym+' is '+rsi.toFixed(1)+' ('+(rsi<30?'oversold':rsi>70?'overbought':'neutral')+'). ';
-                if(rsi<30) resp += 'Potential buying opportunity. ';
-                else if(rsi>70) resp += 'Consider taking profits. ';
-                resp += 'Portfolio shows '+$('port-chg').textContent+' today.';
-                aiHistory.push({role:'ai',text:resp});
+                hideTyping();
+                var resp = generateAIResponse(q);
+                aiHistory.push({role:'ai',text:resp,time:Date.now()});
                 renderAIChat();
-            }, 800);
+                saveChatHistory();
+            }, 1000+Math.random()*500);
         };
 
         // Portfolio Management Functions
