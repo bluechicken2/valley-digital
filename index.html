@@ -3,6 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="TradingAI Neural Nexus - AI-powered portfolio intelligence dashboard with real-time market analysis, technical indicators, and trading insights.">
+    <meta name="keywords" content="trading, AI, portfolio, cryptocurrency, stocks, market analysis, technical indicators, RSI, MACD, dashboard">
+    <meta name="author" content="TradingAI">
+    <meta name="robots" content="index, follow">
+    <!-- Open Graph -->
+    <meta property="og:title" content="TradingAI - Neural Nexus">
+    <meta property="og:description" content="AI-powered portfolio intelligence dashboard">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://dashboard.ottawav.com">
+    <meta property="og:image" content="https://dashboard.ottawav.com/og-image.png">
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="TradingAI - Neural Nexus">
+    <meta name="twitter:description" content="AI-powered portfolio intelligence dashboard">
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
+
     <meta name="description" content="TradingAI Neural Nexus - AI-powered portfolio intelligence dashboard">
     <title>TradingAI - Neural Nexus v12.1</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Space+Grotesk:wght@400;500;600&family=JetBrains+Mono&display=swap" rel="stylesheet">
@@ -715,7 +732,7 @@
                     </div>
                     <div class="ai-input">
                         <input type="text" id="ai-input" placeholder="Ask about your portfolio, market trends, or strategies..." onkeypress="if(event.key==='Enter')sendAI()">
-                        <button onclick="sendAI()">SEND</button>
+                        <button onclick="sendAI()" aria-label="Send message">SEND</button>
                     </div>
                 </div>
             </div>
@@ -736,16 +753,22 @@
     <div class="modal-overlay" id="portfolio-modal"><div class="modal modal-lg"><div class="modal-header"><span class="modal-title">Portfolio Holdings</span><button class="modal-close" onclick="hidePortfolioEdit()">X</button></div><div class="modal-body"><div id="holdings-list"></div><div style="margin-top:12px"><button class="btn-primary" onclick="saveHoldings()">SAVE CHANGES</button></div></div></div></div>
 
     <!-- Add Asset Modal -->
-    <div class="modal-overlay" id="add-asset-modal"><div class="modal"><div class="modal-header"><span class="modal-title">Add Asset to Portfolio</span><button class="modal-close" onclick="hideAddAsset()">X</button></div><div class="modal-body"><input type="text" class="add-asset-search" id="asset-search" placeholder="Search assets..." oninput="searchAssets()"><div id="asset-options"></div></div></div></div>
+    <div class="modal-overlay" id="add-asset-modal"><div class="modal"><div class="modal-header"><span class="modal-title">Add Asset to Portfolio</span><button class="modal-close" onclick="hideAddAsset()" aria-label="Close modal">X</button></div><div class="modal-body"><input type="text" class="add-asset-search" id="asset-search" placeholder="Search assets..." oninput="searchAssets()"><div id="asset-options"></div></div></div></div>
 
     <!-- PR Modal -->
-    <div class="modal-overlay" id="pr-modal"><div class="modal modal-lg"><div class="modal-header"><span class="modal-title">Create Pull Request</span><button class="modal-close" onclick="hidePRModal()">X</button></div><div class="modal-body"><div class="form-group"><label for="pr-branch">Branch Name</label><input type="text" id="pr-branch" placeholder="feature/my-changes"></div><div class="form-group"><label for="pr-title">PR Title</label><input type="text" id="pr-title" placeholder="Add new feature"></div><div class="form-group"><label for="pr-desc">Description</label><textarea id="pr-desc" style="width:100%;height:80px;background:var(--bg-surface);border:1px solid var(--border);border-radius:6px;padding:10px;color:var(--text-bright);resize:none" placeholder="Describe your changes..."></textarea></div><button class="btn-primary" onclick="createPR()">CREATE PULL REQUEST</button><div style="margin-top:16px"><span class="panel-title">Recent Pull Requests</span></div><div class="pr-list" id="pr-list" style="margin-top:8px"></div></div></div></div>
+    <div class="modal-overlay" id="pr-modal"><div class="modal modal-lg"><div class="modal-header"><span class="modal-title">Create Pull Request</span><button class="modal-close" onclick="hidePRModal()" aria-label="Close modal">X</button></div><div class="modal-body"><div class="form-group"><label for="pr-branch">Branch Name</label><input type="text" id="pr-branch" placeholder="feature/my-changes"></div><div class="form-group"><label for="pr-title">PR Title</label><input type="text" id="pr-title" placeholder="Add new feature"></div><div class="form-group"><label for="pr-desc">Description</label><textarea id="pr-desc" style="width:100%;height:80px;background:var(--bg-surface);border:1px solid var(--border);border-radius:6px;padding:10px;color:var(--text-bright);resize:none" placeholder="Describe your changes..."></textarea></div><button class="btn-primary" onclick="createPR()">CREATE PULL REQUEST</button><div style="margin-top:16px"><span class="panel-title">Recent Pull Requests</span></div><div class="pr-list" id="pr-list" style="margin-top:8px"></div></div></div></div>
     <div class="toast" id="toast"></div>
     
     <script>
     (function() {
         'use strict';
         var $ = function(id) { return document.getElementById(id); };
+
+        function sanitize(str) {
+            if(!str) return '';
+            return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+        }
+
         var SUPABASE_URL = 'https://dkxydhuojaspmbpjfyoz.supabase.co';
         var SUPABASE_KEY = 'sb_publishable_ydepQXbHFjFA-_TIwOYNHg_SwN0m5PL';
         var API_BASE = 'https://tradingapi-proxy.cloudflare-5m9f2.workers.dev';
@@ -1587,7 +1610,7 @@ window.selAsset = function(s) { for(var i=0;i<data.length;i++) if(data[i].sym===
         }
 
         window.sendAI = function() {
-            var q = $('ai-input').value.trim();
+            var q = sanitize($('ai-input').value.trim());
             if(!q) return;
             aiHistory.push({role:'user',text:q,time:Date.now()});
             $('ai-input').value='';
