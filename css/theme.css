@@ -321,26 +321,157 @@
         
         /* Responsive */
         @media (max-width: 1200px) { .grid-2 { grid-template-columns: 1fr; } .grid-3 { grid-template-columns: 1fr; } .analytics-grid { grid-template-columns: repeat(3, 1fr); } }
+
         @media (max-width: 768px) {
-            .header { flex-wrap: wrap; gap: 6px; padding: 8px 12px; justify-content: flex-start; }
-            .header-controls { flex-wrap: wrap; gap: 6px; width: 100%; justify-content: flex-start; }
-            .status { order: 3; width: 100%; font-size: 0.65rem; gap: 6px; }
-            .header-btn { padding: 4px 6px; font-size: 0.6rem; }
+            /* Header - improved touch targets and readability */
+            .header { flex-wrap: wrap; gap: 10px; padding: 12px; }
+            .logo { font-size: 1.1rem; }
+            .header-controls { flex-wrap: wrap; gap: 10px; }
+            .header-btn { min-height: 44px; min-width: 44px; padding: 10px 14px; font-size: 0.8rem; }
             .header-btn .badge { display: none; }
-            .user-menu-btn { padding: 4px 8px; font-size: 0.7rem; }
-            .theme-toggle { padding: 4px 6px; }
-            .logo { font-size: 1rem; }
-            .header { flex-wrap: wrap; gap: 8px; padding: 10px 14px; }
-            .status { flex-wrap: wrap; gap: 8px; font-size: 0.7rem; }
-            .header-btn { padding: 4px 8px; font-size: 0.65rem; }
-            .main { padding: 10px; }
-            .ind-grid { grid-template-columns: repeat(2, 1fr); }
-            .sector-grid { grid-template-columns: repeat(2, 1fr); }
-            .analytics-grid { grid-template-columns: repeat(2, 1fr); }
+            .user-menu-btn { min-height: 44px; padding: 10px 14px; font-size: 0.85rem; }
+            .theme-toggle { min-height: 44px; min-width: 44px; padding: 12px; font-size: 1.1rem; }
+            .status { flex-wrap: wrap; font-size: 0.75rem; gap: 10px; }
+
+            /* Navigation Tabs */
+            .nav-tabs { padding: 10px 12px; gap: 8px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            .nav-tab { min-height: 44px; padding: 10px 16px; font-size: 0.8rem; white-space: nowrap; }
+
+            /* Main Layout */
+            .main { padding: 12px; }
+            .grid-2 { grid-template-columns: 1fr; }
+            .grid-3 { grid-template-columns: 1fr; }
+
+            /* Chart Area - improved for mobile */
+            .chart-area { height: 280px; }
+            .chart-toolbar { gap: 10px; flex-wrap: wrap; }
+            .chart-tools-left, .chart-tools-right { flex-wrap: wrap; gap: 8px; }
+            .chart-btn { min-height: 44px; padding: 10px 14px; font-size: 0.8rem; }
+            .chart-tool-btn { min-height: 44px; min-width: 44px; padding: 10px; font-size: 0.75rem; }
+            .chart-sym { font-size: 1.2rem; }
+            .chart-header { flex-wrap: wrap; gap: 10px; }
+            .chart-indicator-legend { flex-wrap: wrap; gap: 8px; font-size: 0.75rem; }
+            .price-axis { width: 50px; font-size: 0.7rem; }
+            .vol-chart { height: 60px; }
+
+            /* Indicators Grid */
+            .ind-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+            .ind-card { padding: 12px; }
+            .ind-label { font-size: 0.75rem; }
+            .ind-val { font-size: 1rem; }
+            .ind-sub { font-size: 0.75rem; }
+
+            /* Sectors */
+            .sector-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+            .sector { padding: 12px; }
+
+            /* Analytics */
+            .analytics-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+            .analytics-label { font-size: 0.75rem; }
+            .analytics-value { font-size: 1.1rem; }
+
+            /* Asset List */
+            #assets { gap: 6px; }
+            .asset { padding: 12px; min-height: 60px; }
+            .asset-name { font-size: 0.95rem; }
+            .asset-type { font-size: 0.8rem; }
+            .asset-price { font-size: 0.9rem; }
+            .asset-chg { font-size: 0.8rem; }
+            .asset-icon { width: 36px; height: 36px; font-size: 0.75rem; }
+
+            /* Panels */
+            .panel-body { padding: 12px; }
+            .panel-title { font-size: 0.75rem; }
+            .panel-header { padding: 12px; }
+
+            /* Portfolio */
+            .portfolio-value { font-size: 1.5rem; }
+            .portfolio-change { font-size: 0.9rem; }
+
+            /* Ticker */
+            .ticker { padding: 12px 0; }
+            .ticker-item { padding: 0 16px; font-size: 0.85rem; }
+
+            /* Modals */
+            .modal { width: 95%; max-height: 90vh; margin: 10px; }
+            .modal-header { padding: 14px 16px; }
+            .modal-body { padding: 16px; }
+            .modal-title { font-size: 1rem; }
+            .modal-close { min-width: 44px; min-height: 44px; }
+
+            /* Forms - prevent iOS zoom on inputs */
+            .form-group input, .form-group select { font-size: 16px; padding: 12px; min-height: 48px; }
+            .btn-primary { min-height: 50px; font-size: 1rem; }
+            .tier-option { padding: 14px; }
+
+            /* Pricing */
             .pricing-cards { flex-direction: column; }
-            .chart-area { height: 200px; }
+            .pricing-card { padding: 20px; }
+            .pricing-btn { min-height: 48px; }
+
+            /* AI Chat */
+            .ai-chat { padding: 10px; }
+            .ai-msg-bubble { font-size: 0.85rem; padding: 10px 14px; }
+            .ai-avatar { width: 32px; height: 32px; }
+            .ai-quick-btn { min-height: 44px; padding: 8px 14px; font-size: 0.75rem; }
+            .ai-input input { min-height: 48px; font-size: 16px; padding: 12px 16px; }
+            .ai-input button { min-height: 48px; padding: 12px 18px; }
+
+ /* Interactive Elements */
+            .star { font-size: 1.2rem; padding: 8px; min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }
+            .action-badge { font-size: 0.75rem; padding: 6px 12px; }
+            .news-title { font-size: 0.9rem; }
+            .calendar-event { font-size: 0.85rem; }
+            .toast { left: 10px; right: 10px; bottom: 10px; font-size: 0.9rem; padding: 14px; }
+
+            /* Fear & Greed */
+            .fg-value { font-size: 1.3rem; }
+            .fg-label { font-size: 0.85rem; }
+
+            /* Weight Row */
+            .weight-sym { font-size: 0.85rem; }
+            .weight-pct { font-size: 0.8rem; }
+
+            /* Paper Trading */
+            .paper-stats { grid-template-columns: repeat(2, 1fr); }
+            .trade-btn { min-height: 44px; padding: 10px 16px; }
+
+            /* Screener */
+            .screener-filter { min-height: 44px; padding: 10px 14px; font-size: 0.85rem; }
+
+            /* Correlation */
+            .corr-grid { font-size: 0.7rem; }
+
+            /* Auth */
+            .auth-box { padding: 24px 16px; }
+            .auth-logo { font-size: 1.5rem; }
         }
-        
+
+        @media (max-width: 480px) {
+            /* Extra small phones */
+            .header { padding: 10px; gap: 8px; }
+            .logo { font-size: 1rem; }
+            .header-btn { padding: 8px 10px; font-size: 0.75rem; }
+            .nav-tab { padding: 8px 12px; font-size: 0.75rem; }
+            .main { padding: 10px; }
+            .chart-area { height: 220px; }
+            .ind-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+            .sector-grid { grid-template-columns: 1fr; }
+            .analytics-grid { grid-template-columns: 1fr; }
+            .paper-stats { grid-template-columns: 1fr 1fr; }
+            .chart-btns { flex-wrap: wrap; gap: 4px; }
+            .chart-btn { padding: 8px 12px; font-size: 0.75rem; }
+            .asset-icon { width: 32px; height: 32px; font-size: 0.7rem; }
+            .portfolio-value { font-size: 1.3rem; }
+            .chart-sym { font-size: 1rem; }
+            .ai-quick-actions { gap: 6px; }
+            .ai-quick-btn { font-size: 0.7rem; padding: 6px 12px; }
+            .nav-tabs { padding: 8px 10px; }
+            .panel-body { padding: 10px; }
+            .ind-card { padding: 10px; }
+            .modal-body { padding: 12px; }
+        }
+
         /* Accessibility */
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
