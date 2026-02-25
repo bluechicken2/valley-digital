@@ -49,7 +49,7 @@
             <div id="login-success" class="auth-success"></div>
             <div class="form-group"><label for="login-email">Email</label><input type="email" id="login-email" placeholder="you@example.com"></div>
             <div class="form-group"><label for="login-password">Password</label><input type="password" id="login-password" placeholder="Enter your password"></div>
-            <button class="btn-primary" onclick="handleLogin()">SIGN IN</button>
+            <button aria-label="Sign in" class="btn-primary" onclick="handleLogin()">SIGN IN</button>
             <div class="auth-link"><a onclick="showReset()">Forgot password?</a></div>
             <div class="auth-link">Don't have an account? <a onclick="showSignup()">Create Account</a></div>
         </div>
@@ -67,11 +67,11 @@
             <div class="form-group">
                 <label for="tier-select">Select Plan</label>
                 <div class="tier-select" id="tier-select">
-                    <div class="tier-option selected" onclick="selectTier('free')"><div class="name">FREE</div><div class="price">$0<span>/mo</span></div><div style="font-size:0.7rem;color:var(--text-dim)">3 Assets</div></div>
-                    <div class="tier-option" role="button" tabindex="0" onclick="selectTier('pro')"><div class="name">PRO</div><div class="price">$19<span>/mo</span></div><div style="font-size:0.7rem;color:var(--text-dim)">Unlimited</div></div>
+                    <div class="tier-option selected" onclick="selectTier('free')"><div class="name">FREE</div><div class="price">$0<span>/mo</span></div><div class="tier-detail">3 Assets</div></div>
+                    <div class="tier-option" role="button" tabindex="0" onclick="selectTier('pro')"><div class="name">PRO</div><div class="price">$19<span>/mo</span></div><div class="tier-detail">Unlimited</div></div>
                 </div>
             </div>
-            <button class="btn-primary" onclick="handleSignup()">CREATE ACCOUNT</button>
+            <button aria-label="Create account" class="btn-primary" onclick="handleSignup()">CREATE ACCOUNT</button>
             <div class="auth-link">Already have an account? <a onclick="showLogin()">Sign In</a></div>
         </div>
     </div>
@@ -83,7 +83,7 @@
             <div id="reset-error" class="auth-error"></div>
             <div id="reset-success" class="auth-success"></div>
             <div class="form-group"><label for="reset-email">Email</label><input type="email" id="reset-email" placeholder="you@example.com"></div>
-            <button class="btn-primary" onclick="handleReset()">SEND RESET LINK</button>
+            <button aria-label="Send reset link" class="btn-primary" onclick="handleReset()">SEND RESET LINK</button>
             <div class="auth-link"><a onclick="showLogin()">Back to Sign In</a></div>
         </div>
     </div>
@@ -100,11 +100,11 @@
                     <span id="time"></span>
                 </div>
                 <button class="header-btn" onclick="toggleFullscreen()" aria-label="Toggle fullscreen" title="Fullscreen">[]</button>
-                <button class="header-btn" onclick="exportCSV()" title="Export">⬇</button>
-                <button class="header-btn" onclick="showAlerts()" title="Alerts">* <span class="badge" id="alert-count">0</span></button>
-                <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn">&#9790;</button>
+                <button aria-label="Export data" class="header-btn" onclick="exportCSV()" title="Export">⬇</button>
+                <button aria-label="View alerts" class="header-btn" onclick="showAlerts()" title="Alerts">* <span class="badge" id="alert-count">0</span></button>
+                <button aria-label="Toggle dark mode" class="theme-toggle" onclick="toggleTheme()" id="theme-btn">&#9790;</button>
                 <div class="user-menu">
-                    <button class="user-menu-btn" onclick="toggleUserMenu()"><span id="header-email">User</span> v</button>
+                    <button aria-label="User menu" class="user-menu-btn" onclick="toggleUserMenu()"><span id="header-email">User</span> v</button>
                     <div class="user-menu-dropdown" id="user-dropdown">
                         <div class="user-menu-item" onclick="showPRModal()">Pull Requests</div><div class="user-menu-item" onclick="showWatchlists()">Watchlists</div>
                         <div class="user-menu-item" onclick="showProfile()">Account Settings</div>
@@ -131,7 +131,7 @@
             <div class="grid grid-2">
                 <div>
                     <div class="panel">
-                        <div class="panel-header"><span class="panel-title">Portfolio Value</span><button class="port-edit-btn" onclick="showPortfolioEdit()">EDIT</button><button class="port-edit-btn" onclick="showAddAsset()">ADD</button><span class="panel-badge live" id="data-badge">LIVE</span></div>
+                        <div class="panel-header"><span class="panel-title">Portfolio Value</span><button aria-label="Edit portfolio" class="port-edit-btn" onclick="showPortfolioEdit()">EDIT</button><button aria-label="Add asset" class="port-edit-btn" onclick="showAddAsset()">ADD</button><span class="panel-badge live" id="data-badge">LIVE</span></div>
                         <div class="panel-body">
                             <div class="portfolio-value" id="port-val">$0.00</div>
                             <div class="portfolio-change up" id="port-chg">+$0.00 (0.00%)</div>
@@ -140,9 +140,9 @@
                             </div>
                         </div>
                     </div>
-                    <div class="panel" style="margin-top:16px">
+                    <div class="panel" class="panel-spacing">
                         <div class="panel-header"><span class="panel-title">Assets</span></div>
-                        <input type="text" id="asset-search" placeholder="Search assets..." oninput="filterAssets(this.value)" style="width:100%;padding:8px;margin-bottom:8px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:12px;">
+                        <input type="text" id="asset-search" class="asset-search-input" placeholder="Search assets..." oninput="filterAssets(this.value)">
                         <div class="panel-body" id="assets"></div>
                     </div>
                 </div>
@@ -152,26 +152,26 @@
                         <div class="panel-header"><span class="panel-title">Price Chart</span></div>
                         <div class="panel-body">
                             <div class="chart-header">
-                                <div class="chart-sym"><span id="chart-sym">BTC/</span><span id="chart-price" class="chart-price">$0.00</span><span id="chart-chg" class="chart-chg" style="margin-left:8px">+0.00%</span></div>
+                                <div class="chart-sym"><span id="chart-sym">BTC/</span><span id="chart-price" class="chart-price">$0.00</span><span id="chart-chg" class="chart-chg" class="chart-change">+0.00%</span></div>
                                 <div class="chart-btns">
                                     <button class="chart-btn" onclick="setTf('1H')" aria-label="1 hour timeframe">1H</button>
                                     <button class="chart-btn on" onclick="setTf('1D')" aria-label="1 day timeframe">1D</button>
                                     <button class="chart-btn" onclick="setTf('1W')" aria-label="1 week timeframe">1W</button>
                                     <button class="chart-btn" onclick="setTf('1M')" aria-label="1 month timeframe">1M</button>
                                     <button class="chart-btn" onclick="setTf('3M')" aria-label="3 month timeframe">3M</button>
-                                    <button class="chart-btn chart-type-btn" onclick="toggleChartType()" id="chart-type-btn">LINE</button>
+                                    <button aria-label="Toggle chart type" class="chart-btn chart-type-btn" onclick="toggleChartType()" id="chart-type-btn">LINE</button>
                                 </div>
                             </div>
                                                         <div class="chart-container">
                                 <div class="chart-toolbar">
                                     <div class="chart-tools-left">
-                                        <button class="chart-tool-btn" id="draw-trend" onclick="setDrawMode('trend')">↗ Trend</button>
-                                        <button class="chart-tool-btn" id="draw-hline" onclick="setDrawMode('hline')">─ H-Line</button>
+                                        <button aria-label="Draw trend line" class="chart-tool-btn" id="draw-trend" onclick="setDrawMode('trend')">↗ Trend</button>
+                                        <button aria-label="Draw horizontal line" class="chart-tool-btn" id="draw-hline" onclick="setDrawMode('hline')">─ H-Line</button>
                                         <button class="chart-tool-btn" id="draw-clear" onclick="clearDrawings()" aria-label="Clear all drawings">✕ Clear</button>
-                                        <button class="chart-tool-btn" id="toggle-ind" onclick="toggleIndicators()">📊 Indicators</button>
+                                        <button aria-label="Toggle indicators" class="chart-tool-btn" id="toggle-ind" onclick="toggleIndicators()">📊 Indicators</button>
                                     </div>
                                     <div class="chart-tools-right">
-                                        <button class="chart-tool-btn" id="toggle-bb" onclick="toggleBollinger()">BB</button>
+                                        <button aria-label="Toggle Bollinger Bands" class="chart-tool-btn" id="toggle-bb" onclick="toggleBollinger()">BB</button>
                                         <button class="chart-tool-btn" id="toggle-ema" onclick="toggleEMA()" aria-label="Toggle EMA lines">EMA</button>
                                         <button class="chart-tool-btn active" id="toggle-sma20" onclick="toggleSMA20()" aria-label="Toggle SMA 20">SMA20</button>
                                         <button class="chart-tool-btn" id="toggle-sma200" onclick="toggleSMA200()" aria-label="Toggle SMA 200">SMA200</button>
@@ -203,25 +203,25 @@
                                     </div>
                                 </div>
                             </div>
-                            <div style="text-align:center;font-size:0.7rem;color:var(--text-dim);margin-top:8px" id="last-update"></div>
+                            <div class="last-update" id="last-update"></div>
                         </div>
                     </div>
                     
-                    <div class="panel" style="margin-top:16px">
+                    <div class="panel" class="panel-spacing">
                         <div class="panel-header"><span class="panel-title">Technical Indicators</span></div>
                         <div class="panel-body" id="inds"></div>
                     </div>
                 </div>
             </div>
             
-            <div class="grid grid-3" style="margin-top:16px">
+            <div class="grid grid-3" class="panel-spacing">
                 <div class="panel">
                     <div class="panel-header"><span class="panel-title">Fear & Greed</span></div>
                     <div class="panel-body">
                         <div class="fg-container">
                             <div class="fg-bar"></div>
                             <div class="fg-dot" id="fg-dot"></div>
-                            <div style="display:flex;justify-content:space-between;margin-top:12px">
+                            <div class="fg-footer">
                                 <div><div class="fg-value" id="fg-val">50</div><div class="fg-label" id="fg-lbl">NEUTRAL</div></div>
                             </div>
                         </div>
@@ -237,7 +237,7 @@
                 </div>
             </div>
             
-            <div class="grid grid-3" style="margin-top:16px">
+            <div class="grid grid-3" class="panel-spacing">
                 <div class="panel">
                     <div class="panel-header"><span class="panel-title">Predictions</span></div>
                     <div class="panel-body" id="preds"></div>
@@ -261,7 +261,7 @@
                     <div class="analytics-grid" id="analytics-grid"></div>
                 </div>
             </div>
-            <div class="grid grid-2" style="margin-top:16px">
+            <div class="grid grid-2" class="panel-spacing">
                 <div class="panel">
                     <div class="panel-header"><span class="panel-title">Correlation Matrix</span></div>
                     <div class="panel-body" id="corr-matrix"></div>
@@ -308,8 +308,8 @@
                     <div class="paper-stats" id="paper-stats"></div>
                     <div id="paper-positions"></div>
                     <div style="margin-top:12px">
-                        <button class="trade-btn" onclick="paperBuy()">BUY</button>
-                        <button class="trade-btn sell" onclick="paperSell()">SELL</button>
+                        <button aria-label="Buy (paper trading)" class="trade-btn" onclick="paperBuy()">BUY</button>
+                        <button aria-label="Sell (paper trading)" class="trade-btn sell" onclick="paperSell()">SELL</button>
                     </div>
                 </div>
             </div>
@@ -322,11 +322,11 @@
                 <div class="panel-body">
                     <div class="ai-chat" id="ai-chat"></div>
                     <div class="ai-quick-actions" id="ai-quick">
-                        <button class="ai-quick-btn" onclick="quickAI('portfolio')">📊 Portfolio</button>
-                        <button class="ai-quick-btn" onclick="quickAI('analysis')">📈 Analysis</button>
-                        <button class="ai-quick-btn" onclick="quickAI('market')">🌍 Market</button>
-                        <button class="ai-quick-btn" onclick="quickAI('risks')">⚠️ Risks</button>
-                        <button class="ai-quick-btn" onclick="quickAI('tips')">💡 Tips</button>
+                        <button aria-label="AI portfolio analysis" class="ai-quick-btn" onclick="quickAI('portfolio')">📊 Portfolio</button>
+                        <button aria-label="AI technical analysis" class="ai-quick-btn" onclick="quickAI('analysis')">📈 Analysis</button>
+                        <button aria-label="AI market overview" class="ai-quick-btn" onclick="quickAI('market')">🌍 Market</button>
+                        <button aria-label="AI risk analysis" class="ai-quick-btn" onclick="quickAI('risks')">⚠️ Risks</button>
+                        <button aria-label="AI trading tips" class="ai-quick-btn" onclick="quickAI('tips')">💡 Tips</button>
                     </div>
                     <div class="ai-input">
                         <input type="text" id="ai-input" placeholder="Ask about your portfolio, market trends, or strategies..." onkeypress="if(event.key==='Enter')sendAI()">
@@ -340,21 +340,21 @@
     </div>
     
     <!-- Modals -->
-    <div class="modal-overlay" id="help-modal"><div class="modal"><div class="modal-header"><span class="modal-title">Keyboard Shortcuts</span><button class="modal-close" onclick="hideHelp()">X</button></div><div class="modal-body"><div class="shortcut"><span>Navigate assets</span><span class="shortcut-key">1-8</span></div><div class="shortcut"><span>Toggle favorite</span><span class="shortcut-key">F</span></div><div class="shortcut"><span>Open alerts</span><span class="shortcut-key">A</span></div><div class="shortcut"><span>Refresh prices</span><span class="shortcut-key">R</span></div><div class="shortcut"><span>Show help</span><span class="shortcut-key">?</span></div><div class="shortcut"><span>Close modal</span><span class="shortcut-key">ESC</span></div><div class="shortcut"><span>Toggle theme</span><span class="shortcut-key">T</span></div></div></div></div>
-    <div class="modal-overlay" id="profile-modal"><div class="modal"><div class="modal-header"><span class="modal-title">Account Settings</span><button class="modal-close" onclick="hideProfile()">X</button></div><div class="modal-body"><div class="profile-item"><span class="profile-label">Email</span><span class="profile-value" id="profile-email">-</span></div><div class="profile-item"><span class="profile-label">Plan</span><span class="profile-value" id="profile-tier">FREE</span></div><div class="profile-item"><span class="profile-label">Member Since</span><span class="profile-value" id="profile-since">-</span></div></div></div></div>
-    <div class="modal-overlay" id="pricing-modal"><div class="modal"><div class="modal-header"><span class="modal-title">Upgrade Plan</span><button class="modal-close" onclick="hidePricing()">X</button></div><div class="modal-body"><div class="pricing-cards" id="pricing-cards"></div></div></div></div>
-    <div class="modal-overlay" id="alerts-modal"><div class="modal"><div class="modal-header"><span class="modal-title">Price Alerts</span><button class="modal-close" onclick="hideAlerts()">X</button></div><div class="modal-body"><div id="alerts-list"></div><button class="btn-primary" style="margin-top:12px" onclick="showAddAlert()">Add Alert</button></div></div></div>
-    <div class="modal-overlay" id="add-alert-modal"><div class="modal"><div class="modal-header"><span class="modal-title">Create Alert</span><button class="modal-close" onclick="hideAddAlert()">X</button></div><div class="modal-body"><div class="form-group"><label for="alert-asset">Asset</label><select id="alert-asset"></select></div><div class="form-group"><label for="alert-cond">Condition</label><select id="alert-cond"><option value="above">Price goes above</option><option value="below">Price goes below</option></select></div><div class="form-group"><label for="alert-price">Target Price ($)</label><input type="number" id="alert-price" placeholder="0.00"></div><button class="btn-primary" onclick="createAlert()">CREATE ALERT</button></div></div></div>
-    <div class="modal-overlay" id="watchlists-modal"><div class="modal"><div class="modal-header"><span class="modal-title">Watchlists</span><button class="modal-close" onclick="hideWatchlists()">X</button></div><div class="modal-body"><div id="watchlists-list"></div><button class="btn-primary" style="margin-top:12px" onclick="createWatchlist()">Create Watchlist</button></div></div></div>
+    <div class="modal-overlay" id="help-modal"><div class="modal"><div class="modal-header"><span class="modal-title">Keyboard Shortcuts</span><button aria-label="Close help" class="modal-close" onclick="hideHelp()">X</button></div><div class="modal-body"><div class="shortcut"><span>Navigate assets</span><span class="shortcut-key">1-8</span></div><div class="shortcut"><span>Toggle favorite</span><span class="shortcut-key">F</span></div><div class="shortcut"><span>Open alerts</span><span class="shortcut-key">A</span></div><div class="shortcut"><span>Refresh prices</span><span class="shortcut-key">R</span></div><div class="shortcut"><span>Show help</span><span class="shortcut-key">?</span></div><div class="shortcut"><span>Close modal</span><span class="shortcut-key">ESC</span></div><div class="shortcut"><span>Toggle theme</span><span class="shortcut-key">T</span></div></div></div></div>
+    <div class="modal-overlay" id="profile-modal"><div class="modal"><div class="modal-header"><span class="modal-title">Account Settings</span><button aria-label="Close profile" class="modal-close" onclick="hideProfile()">X</button></div><div class="modal-body"><div class="profile-item"><span class="profile-label">Email</span><span class="profile-value" id="profile-email">-</span></div><div class="profile-item"><span class="profile-label">Plan</span><span class="profile-value" id="profile-tier">FREE</span></div><div class="profile-item"><span class="profile-label">Member Since</span><span class="profile-value" id="profile-since">-</span></div></div></div></div>
+    <div class="modal-overlay" id="pricing-modal"><div class="modal"><div class="modal-header"><span class="modal-title">Upgrade Plan</span><button aria-label="Close pricing" class="modal-close" onclick="hidePricing()">X</button></div><div class="modal-body"><div class="pricing-cards" id="pricing-cards"></div></div></div></div>
+    <div class="modal-overlay" id="alerts-modal"><div class="modal"><div class="modal-header"><span class="modal-title">Price Alerts</span><button aria-label="Close alerts" class="modal-close" onclick="hideAlerts()">X</button></div><div class="modal-body"><div id="alerts-list"></div><button aria-label="Add alert" class="btn-primary" style="margin-top:12px" onclick="showAddAlert()">Add Alert</button></div></div></div>
+    <div class="modal-overlay" id="add-alert-modal"><div class="modal"><div class="modal-header"><span class="modal-title">Create Alert</span><button aria-label="Close" class="modal-close" onclick="hideAddAlert()">X</button></div><div class="modal-body"><div class="form-group"><label for="alert-asset">Asset</label><select id="alert-asset"></select></div><div class="form-group"><label for="alert-cond">Condition</label><select id="alert-cond"><option value="above">Price goes above</option><option value="below">Price goes below</option></select></div><div class="form-group"><label for="alert-price">Target Price ($)</label><input type="number" id="alert-price" placeholder="0.00"></div><button aria-label="Create alert" class="btn-primary" onclick="createAlert()">CREATE ALERT</button></div></div></div>
+    <div class="modal-overlay" id="watchlists-modal"><div class="modal"><div class="modal-header"><span class="modal-title">Watchlists</span><button aria-label="Close watchlists" class="modal-close" onclick="hideWatchlists()">X</button></div><div class="modal-body"><div id="watchlists-list"></div><button aria-label="Create watchlist" class="btn-primary" style="margin-top:12px" onclick="createWatchlist()">Create Watchlist</button></div></div></div>
     
         <!-- Portfolio Edit Modal -->
-    <div class="modal-overlay" id="portfolio-modal"><div class="modal modal-lg"><div class="modal-header"><span class="modal-title">Portfolio Holdings</span><button class="modal-close" onclick="hidePortfolioEdit()">X</button></div><div class="modal-body"><div id="holdings-list"></div><div style="margin-top:12px"><button class="btn-primary" onclick="saveHoldings()">SAVE CHANGES</button></div></div></div></div>
+    <div class="modal-overlay" id="portfolio-modal"><div class="modal modal-lg"><div class="modal-header"><span class="modal-title">Portfolio Holdings</span><button aria-label="Close" class="modal-close" onclick="hidePortfolioEdit()">X</button></div><div class="modal-body"><div id="holdings-list"></div><div style="margin-top:12px"><button aria-label="Save changes" class="btn-primary" onclick="saveHoldings()">SAVE CHANGES</button></div></div></div></div>
 
     <!-- Add Asset Modal -->
     <div class="modal-overlay" id="add-asset-modal"><div class="modal"><div class="modal-header"><span class="modal-title">Add Asset to Portfolio</span><button class="modal-close" onclick="hideAddAsset()" aria-label="Close modal">X</button></div><div class="modal-body"><input type="text" class="add-asset-search" id="asset-search" placeholder="Search assets..." oninput="searchAssets()"><div id="asset-options"></div></div></div></div>
 
     <!-- PR Modal -->
-    <div class="modal-overlay" id="pr-modal"><div class="modal modal-lg"><div class="modal-header"><span class="modal-title">Create Pull Request</span><button class="modal-close" onclick="hidePRModal()" aria-label="Close modal">X</button></div><div class="modal-body"><div class="form-group"><label for="pr-branch">Branch Name</label><input type="text" id="pr-branch" placeholder="feature/my-changes"></div><div class="form-group"><label for="pr-title">PR Title</label><input type="text" id="pr-title" placeholder="Add new feature"></div><div class="form-group"><label for="pr-desc">Description</label><textarea id="pr-desc" style="width:100%;height:80px;background:var(--bg-surface);border:1px solid var(--border);border-radius:6px;padding:10px;color:var(--text-bright);resize:none" placeholder="Describe your changes..."></textarea></div><button class="btn-primary" onclick="createPR()">CREATE PULL REQUEST</button><div style="margin-top:16px"><span class="panel-title">Recent Pull Requests</span></div><div class="pr-list" id="pr-list" style="margin-top:8px"></div></div></div></div>
+    <div class="modal-overlay" id="pr-modal"><div class="modal modal-lg"><div class="modal-header"><span class="modal-title">Create Pull Request</span><button class="modal-close" onclick="hidePRModal()" aria-label="Close modal">X</button></div><div class="modal-body"><div class="form-group"><label for="pr-branch">Branch Name</label><input type="text" id="pr-branch" placeholder="feature/my-changes"></div><div class="form-group"><label for="pr-title">PR Title</label><input type="text" id="pr-title" placeholder="Add new feature"></div><div class="form-group"><label for="pr-desc">Description</label><textarea id="pr-desc" style="width:100%;height:80px;background:var(--bg-surface);border:1px solid var(--border);border-radius:6px;padding:10px;color:var(--text-bright);resize:none" placeholder="Describe your changes..."></textarea></div><button aria-label="Create pull request" class="btn-primary" onclick="createPR()">CREATE PULL REQUEST</button><div class="panel-spacing"><span class="panel-title">Recent Pull Requests</span></div><div class="pr-list" id="pr-list" style="margin-top:8px"></div></div></div></div>
     <div class="toast" id="toast"></div>
     
     <script src="js/app.js"></script>

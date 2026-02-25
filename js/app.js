@@ -2,7 +2,16 @@
 
 (function() {
         'use strict';
-        var $ = function(id) { return document.getElementById(id); };
+        
+// Input sanitization to prevent XSS
+function escapeHtml(text) {
+    if (typeof text !== 'string') return text;
+    return text.replace(/[&<>"']/g, function(m) {
+        return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];
+    });
+}
+
+var $ = function(id) { return document.getElementById(id); };
 
         function sanitize(str) {
             if(!str) return '';
@@ -29,7 +38,6 @@
 
         // Connection status monitoring
         window.addEventListener('online', function() {
-            console.log('Browser online');
             var banner = $('offline-banner');
             if(banner) banner.style.display = 'none';
             $('status-dot').className='status-dot';
@@ -37,7 +45,6 @@
             refreshPrices();
         });
         window.addEventListener('offline', function() {
-            console.log('Browser offline');
             var banner = $('offline-banner');
             if(banner) banner.style.display = 'block';
             $('status-dot').className='status-dot error';
@@ -104,7 +111,6 @@ var CONFIG = {
 
             // Load from localStorage first (always works)
             loadSavedHoldings();
-            console.log('Loaded from localStorage');
 
             // Then try to load from Supabase (may override localStorage)
             if(user){
@@ -115,7 +121,6 @@ var CONFIG = {
                 try {
                     await loadPortfolioFromSupabase();
                 } catch(e) {
-                    console.log('Supabase load failed, using localStorage data');
                 }
             }
             renderAll();
@@ -1053,7 +1058,6 @@ window.deleteAlert = function(idx) { alerts.splice(idx,1); localStorage.setItem(
             var holdings = {};
             for(var i=0;i<data.length;i++) holdings[data[i].sym] = data[i].hold;
             localStorage.setItem('holdings', JSON.stringify(holdings));
-            console.log('Saved to localStorage:', holdings);
 
             // Try to save to Supabase (may fail)
             try {
@@ -1187,8 +1191,6 @@ window.deleteAlert = function(idx) { alerts.splice(idx,1); localStorage.setItem(
         // Save portfolio to Supabase
         async function savePortfolioToSupabase() {
             var token = localStorage.getItem('sb_token');
-            console.log('savePortfolioToSupabase called, token:', token ? 'exists' : 'missing', 'user:', user ? user.id : 'missing');
-            if(!token || !user) { console.log('Skipping save - no auth'); return; }
 
             var entries = [];
             for(var i=0;i<data.length;i++) {
@@ -1202,12 +1204,10 @@ window.deleteAlert = function(idx) { alerts.splice(idx,1); localStorage.setItem(
                     });
                 }
             }
-            console.log('Entries to save:', entries);
 
             try {
                 // First, delete existing portfolio entries for this user
                 var delUrl = SUPABASE_URL+'/rest/v1/portfolios?user_id=eq.'+user.id;
-                console.log('DELETE URL:', delUrl);
                 var delRes = await fetch(delUrl, {
                     method: 'DELETE',
                     headers: {
@@ -1217,11 +1217,8 @@ window.deleteAlert = function(idx) { alerts.splice(idx,1); localStorage.setItem(
                         'Prefer': 'return=representation'
                     }
                 });
-                console.log('DELETE status:', delRes.status);
                 var delData = await delRes.text();
-                console.log('DELETE response:', delData);
 
-                console.log('Entries to insert:', entries);
 
                 if(entries.length > 0) {
                     var postRes = await fetch(SUPABASE_URL+'/rest/v1/portfolios', {
@@ -1234,9 +1231,7 @@ window.deleteAlert = function(idx) { alerts.splice(idx,1); localStorage.setItem(
                         },
                         body: JSON.stringify(entries)
                     });
-                    console.log('POST status:', postRes.status);
                     var postData = await postRes.text();
-                    console.log('POST response:', postData);
                     if(postRes.ok) {
                         showToast('Portfolio saved to cloud!');
                     } else {
@@ -1254,12 +1249,9 @@ window.deleteAlert = function(idx) { alerts.splice(idx,1); localStorage.setItem(
         // Load portfolio from Supabase
         async function loadPortfolioFromSupabase() {
             var token = localStorage.getItem('sb_token');
-            console.log('loadPortfolioFromSupabase called, user:', user ? user.id : 'missing');
-            if(!token || !user) { console.log('Skipping load - no auth'); return; }
 
             try {
                 var url = SUPABASE_URL+'/rest/v1/portfolios?user_id=eq.'+user.id;
-                console.log('GET URL:', url);
                 var r = await fetch(url, {
                     headers: {
                         'apikey': SUPABASE_KEY,
@@ -1267,23 +1259,18 @@ window.deleteAlert = function(idx) { alerts.splice(idx,1); localStorage.setItem(
                     }
                 });
 
-                console.log('GET status:', r.status);
                 if(r.ok) {
                     var portfolio = await r.json();
-                    console.log('Loaded portfolio:', portfolio);
                     for(var i=0;i<portfolio.length;i++) {
                         var entry = portfolio[i];
                         var asset = data.find(function(a){return a.sym===entry.symbol;});
                         if(asset) {
                             asset.hold = entry.holdings || 0;
                             asset.fav = entry.favorite || false;
-                            console.log('Updated', entry.symbol, ': hold=', asset.hold, 'fav=', asset.fav);
                         }
                     }
-                    console.log('Portfolio loaded from Supabase:', portfolio.length, 'assets');
                     $('db-status').innerHTML='<span style="color:var(--purple)">[DB]</span> SYNCED';
                 } else {
-                    console.log('GET failed:', await r.text());
                 }
             } catch(e) {
                 console.error('Failed to load portfolio:', e);
@@ -1328,14 +1315,10 @@ window.deleteAlert = function(idx) { alerts.splice(idx,1); localStorage.setItem(
             } catch(e) { console.error('loadSavedHoldings error:', e); }
         }
         function init() { 
-            console.log('INIT CALLED');
             setTimeout(function(){
-                console.log('TIMEOUT FIRED');
                 if(checkSession()){
-                    console.log('SESSION FOUND - SHOWING DASHBOARD');
                     showDashboard();
                 }else{
-                    console.log('NO SESSION - SHOWING LOGIN');
                     showLogin();
                 }
             },CONFIG.INIT_DELAY); 
