@@ -286,7 +286,7 @@ function generateTimeLabels(count, tf) {
 
 async function fetchSectors() {
     try {
-        var res = await fetch(WORKER_URL+'/sectors');
+        var res = await fetch(API_BASE+'/sectors');
         var json = await res.json();
         if(json && json.length > 0) {
             sectorData = json.map(function(s) {
