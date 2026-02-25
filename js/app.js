@@ -5,13 +5,13 @@
         // Global error boundary
         window.onerror = function(msg, url, line, col, error) {
             console.error('Global error:', msg, 'at', line + ':' + col);
-            showToast('An error occurred. Please refresh if issues persist.', 'error');
+            // showToast not available yet during init - will be defined later
             return false;
         };
 
         window.onunhandledrejection = function(event) {
             console.error('Unhandled promise rejection:', event.reason);
-            showToast('Connection error. Please check your network.', 'error');
+            // showToast not available yet during init - will be defined later
         };
 
 
