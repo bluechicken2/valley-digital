@@ -81,7 +81,7 @@ var CONFIG = {
         sel = data[0];
         
         function fmt(n) { return n >= 1000 ? n.toLocaleString('en-US',{maximumFractionDigits:0}) : n.toFixed(n < 1 ? 4 : 2); }
-        function genHistory(base, len) { var arr = []; for (var i = 0; i < len; i++) arr.push(base * (1 + (Math.random() - 0.5) * 0.04)); return arr; }
+        function genHistory(base, len) { var arr = []; var price = base; var trend = (Math.random() - 0.5) * 0.002; for (var i = 0; i < len; i++) { var change = trend + (Math.random() - 0.5) * 0.02; price = price * (1 + change); arr.push(price); } if (arr.length > 0) { var ratio = base / arr[arr.length - 1]; arr = arr.map(function(p) { return p * ratio; }); } return arr; }
         function genCandles(base, len) { var arr = []; var p = base; for (var i = 0; i < len; i++) { var o = p; var c = p * (1 + (Math.random() - 0.5) * 0.02); var h = Math.max(o, c) * (1 + Math.random() * 0.01); var l = Math.min(o, c) * (1 - Math.random() * 0.01); arr.push({o:o,h:h,l:l,c:c}); p = c; } return arr; }
         
 // Generate time labels based on timeframe going back from now
@@ -139,7 +139,7 @@ function generateTimeLabels(count, tf) {
         function calcRSI(arr) { var gains = 0, losses = 0, period = 14; for (var i = arr.length - period; i < arr.length; i++) { var diff = arr[i] - arr[i-1]; if (diff > 0) gains += diff; else losses -= diff; } var rs = losses === 0 ? 100 : gains / losses; return 100 - (100 / (1 + rs)); }
         function calcStochastic(arr) { var recent = arr.slice(-14); var high = Math.max.apply(null, recent), low = Math.min.apply(null, recent); var k = high === low ? 50 : ((arr[arr.length-1] - low) / (high - low)) * 100; return { k: k, signal: k > 80 ? 'Overbought' : k < 20 ? 'Oversold' : 'Neutral' }; }
         function calcATR(arr) { var tr = []; for (var i = 1; i < arr.length; i++) tr.push(Math.abs(arr[i] - arr[i-1])); return tr.slice(-14).reduce(function(a,b){return a+b;},0) / 14; }
-        function calcADX(arr) { return 20 + Math.random() * 40; }
+        function calcADX(arr) { if (arr.length < 15) return 25; var plusDM = [], minusDM = [], tr = []; for (var i = 1; i < arr.length; i++) { var up = arr[i] - arr[i-1]; var down = arr[i-1] - arr[i]; plusDM.push(up > down && up > 0 ? up : 0); minusDM.push(down > up && down > 0 ? down : 0); tr.push(Math.abs(arr[i] - arr[i-1])); } var atr = tr.slice(-14).reduce(function(a,b){return a+b;},0)/14; var smoothPlusDM = plusDM.slice(-14).reduce(function(a,b){return a+b;},0)/14; var smoothMinusDM = minusDM.slice(-14).reduce(function(a,b){return a+b;},0)/14; var plusDI = (smoothPlusDM / atr) * 100; var minusDI = (smoothMinusDM / atr) * 100; var dx = Math.abs(plusDI - minusDI) / (plusDI + minusDI) * 100; return dx || 25; }
         function calcWilliams(arr) { var recent = arr.slice(-14); var high = Math.max.apply(null, recent), low = Math.min.apply(null, recent); return high === low ? -50 : -100 * (high - arr[arr.length-1]) / (high - low); }
         
         // Auth
