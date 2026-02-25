@@ -231,7 +231,6 @@ function generateTimeLabels(count, tf) {
         function updateTime() { $('time').textContent = new Date().toLocaleTimeString(); }
         
         async function refreshPrices() {
-            console.log('refreshPrices called');
             $('status-dot').className='status-dot syncing';$('status-text').textContent='UPDATING...';
             showLoading('price-spinner');
             try {
@@ -241,8 +240,8 @@ function generateTimeLabels(count, tf) {
                     crypto = cached.crypto;
                     stocks = cached.stocks;
                 } else {
-                    console.log('Fetching prices from', API_BASE); var cryptoRes = await fetch(API_BASE+'/prices'); console.log('Crypto response status:', cryptoRes.status);
-                    crypto = await cryptoRes.json(); console.log('Crypto data:', crypto);
+                    var cryptoRes = await fetch(API_BASE+'/prices');
+                    crypto = await cryptoRes.json();
                     // Try stocks endpoint, use fallback if not available
                     try {
                         var stocksRes = await fetch(API_BASE+'/stocks');
@@ -261,11 +260,11 @@ function generateTimeLabels(count, tf) {
                 if(stocks && stocks.MSFT){var msft=data.find(function(a){return a.sym==='MSFT';});if(msft){msft.price=stocks.MSFT.price;msft.chg=stocks.MSFT.changePercent||0;}}
                 $('status-dot').className='status-dot';$('status-text').textContent='LIVE';$('data-badge').textContent='LIVE';$('data-badge').className='panel-badge live';$('db-status').innerHTML='<span style="color:var(--purple)">[DB]</span> SYNCED';
                 hideLoading('price-spinner');
-                console.log('Data before renderAll:', data); renderAll(); console.log('renderAll completed');
+                renderAll();
             checkAlerts();} catch(e) { $('status-dot').className='status-dot error';$('status-text').textContent='CACHED';$('data-badge').textContent='CACHED'; }
         }
         
-        function renderAll() { renderAssets();renderPortfolio();renderTicker();renderInds();renderFG();renderSectors();renderActions();renderPreds();renderWeights();renderChart();renderAlloc();renderAnalytics();renderCorrelation();renderAssetDetails();renderNews();renderCalendar(); }
+        function renderAll() { try { renderAssets();renderPortfolio();renderTicker();renderInds();renderFG();renderSectors();renderActions();renderPreds();renderWeights();renderChart();renderAlloc();renderAnalytics();renderCorrelation();renderAssetDetails();renderNews();renderCalendar(); } catch(e) { console.error('renderAll error:', e); } }
         
         function renderAssets() { var h=''; for(var i=0;i<data.length;i++){var a=data[i];h+='<div class="asset'+(a.sym===sel.sym?' active':'')+'" onclick="selAsset(\''+a.sym+'\')"><div style="display:flex;align-items:center"><div class="asset-icon" style="background:'+a.color+'22;color:'+a.color+'">'+a.sym.substr(0,2)+'</div><div><div class="asset-name">'+a.sym+'<span class="star'+(a.fav?' active':'')+'" onclick="event.stopPropagation();toggleFav(\''+a.sym+'\')">*</span></div><div class="asset-type">'+a.name+'</div></div></div><div style="display:flex;align-items:center;gap:6px"><div style="text-align:right"><div class="asset-price">$'+fmt(a.price)+'</div><div class="asset-chg '+(a.chg>=0?'up':'down')+'">'+(a.chg>=0?'+':'')+a.chg.toFixed(2)+'%</div></div></div></div>';} $('assets').innerHTML=h; }
         function renderPortfolio() { var tot=0,chg=0; for(var i=0;i<data.length;i++){tot+=data[i].price*data[i].hold;chg+=data[i].price*data[i].hold*data[i].chg/100;} var pct=chg/tot*100; $('port-val').textContent='$'+fmt(tot);$('port-chg').textContent=(chg>=0?'+':'')+'$'+fmt(Math.abs(chg))+' ('+(pct>=0?'+':'')+pct.toFixed(2)+'%)';$('port-chg').className='portfolio-change '+(chg>=0?'up':'down');$('intel').textContent=Math.round(50+pct*2); }
