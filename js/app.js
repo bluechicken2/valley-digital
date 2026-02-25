@@ -231,6 +231,7 @@ function generateTimeLabels(count, tf) {
         function updateTime() { $('time').textContent = new Date().toLocaleTimeString(); }
         
         async function refreshPrices() {
+            console.log('refreshPrices called');
             $('status-dot').className='status-dot syncing';$('status-text').textContent='UPDATING...';
             showLoading('price-spinner');
             try {
@@ -240,8 +241,8 @@ function generateTimeLabels(count, tf) {
                     crypto = cached.crypto;
                     stocks = cached.stocks;
                 } else {
-                    var cryptoRes = await fetch(API_BASE+'/prices');
-                    crypto = await cryptoRes.json();
+                    console.log('Fetching prices from', API_BASE); var cryptoRes = await fetch(API_BASE+'/prices'); console.log('Crypto response status:', cryptoRes.status);
+                    crypto = await cryptoRes.json(); console.log('Crypto data:', crypto);
                     // Try stocks endpoint, use fallback if not available
                     try {
                         var stocksRes = await fetch(API_BASE+'/stocks');
@@ -260,7 +261,7 @@ function generateTimeLabels(count, tf) {
                 if(stocks && stocks.MSFT){var msft=data.find(function(a){return a.sym==='MSFT';});if(msft){msft.price=stocks.MSFT.price;msft.chg=stocks.MSFT.changePercent||0;}}
                 $('status-dot').className='status-dot';$('status-text').textContent='LIVE';$('data-badge').textContent='LIVE';$('data-badge').className='panel-badge live';$('db-status').innerHTML='<span style="color:var(--purple)">[DB]</span> SYNCED';
                 hideLoading('price-spinner');
-                renderAll();
+                console.log('Data before renderAll:', data); renderAll(); console.log('renderAll completed');
             checkAlerts();} catch(e) { $('status-dot').className='status-dot error';$('status-text').textContent='CACHED';$('data-badge').textContent='CACHED'; }
         }
         
