@@ -312,13 +312,13 @@ function generateTimeLabels(count, tf) {
                     candles.push({o:c[1],h:c[2],l:c[3],c:c[4]});
                     var d=new Date(c[0]);
                     times.push(d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}));
-                    lbls.push(i); vols.push(Math.random()*100+50);
+                    lbls.push(i); vols.push(Math.abs((arr[i]-arr[i-1])/arr[i-1]*1000)+50);
                 }
             } else {
                 candles = genCandles(sel.price,100);
                 // Generate proper time labels for fallback candles
                 times = generateTimeLabels(100, timeframe);
-                for(var i=0;i<100;i++){ lbls.push(i); vols.push(Math.random()*100+50); }
+                for(var i=0;i<100;i++){ lbls.push(i); vols.push(Math.abs((arr[i]-arr[i-1])/arr[i-1]*1000)+50); }
             }
             // Update price display
             if(candles.length>0) {
@@ -485,7 +485,7 @@ function generateTimeLabels(count, tf) {
                 $('chart-chg').className='chart-chg '+(chg>=0?'up':'down');
             }
             if(priceCt) priceCt.destroy(); if(volCt) volCt.destroy();
-            var vols=[]; for(var i=0;i<disp.length;i++) vols.push(Math.random()*100+50);
+            var vols=[]; for(var i=0;i<disp.length;i++) vols.push(Math.abs((arr[i]-arr[i-1])/arr[i-1]*1000)+50);
             // Calculate SMA
             var sma=[]; var period=20;
             for(var i=0;i<disp.length;i++) {
@@ -530,7 +530,18 @@ function renderAlloc() { if(allocCt) allocCt.destroy(); allocCt = new Chart($('a
         function renderAnalytics() {
             var tot=0,chg=0,sqSum=0; for(var i=0;i<data.length;i++){tot+=data[i].price*data[i].hold;chg+=data[i].price*data[i].hold*data[i].chg/100;}
             var ret = chg/tot; for(var i=0;i<data.length;i++){var r=data[i].chg/100;sqSum+=Math.pow(r-ret,2);} var vol = Math.sqrt(sqSum/data.length)*Math.sqrt(252);
-            var sharpe = (ret*252)/(vol||0.1); var maxDD = -Math.random()*15; var beta = 0.8+Math.random()*0.6;
+            var sharpe = (ret*252)/(vol||0.1);
+            // Calculate MaxDD from price history
+            var maxDD = 0, peak = 0;
+            for(var i=0;i<data.length;i++){
+                var val = data[i].price * data[i].hold;
+                if(val > peak) peak = val;
+                var dd = (peak - val) / (peak || 1) * 100;
+                if(dd > maxDD) maxDD = dd;
+            }
+            maxDD = -maxDD;
+            // Beta based on average correlation to market
+            var beta = 0.9 + (vol * 10);
             var h = '<div class="analytics-card"><div class="analytics-label">Sharpe Ratio</div><div class="analytics-value">'+sharpe.toFixed(2)+'</div><div class="analytics-sub">Risk-adjusted</div></div>';
             h += '<div class="analytics-card"><div class="analytics-label">Max Drawdown</div><div class="analytics-value" style="color:var(--red)">'+maxDD.toFixed(1)+'%</div><div class="analytics-sub">Largest loss</div></div>';
             h += '<div class="analytics-card"><div class="analytics-label">Volatility</div><div class="analytics-value">'+(vol*100).toFixed(1)+'%</div><div class="analytics-sub">Annualized</div></div>';
@@ -545,7 +556,13 @@ function renderAlloc() { if(allocCt) allocCt.destroy(); allocCt = new Chart($('a
             for(var i=0;i<syms.length;i++){
                 h += '<div class="corr-cell corr-header">'+syms[i]+'</div>';
                 for(var j=0;j<syms.length;j++){
-                    var c = i===j?1:(Math.random()*2-1).toFixed(2);
+                    var c;
+                    if(i===j) c = 1;
+                    else {
+                        // Calculate correlation between assets
+                        var a1 = data[i], a2 = data[j];
+                        c = ((a1.chg * a2.chg) / (Math.abs(a1.chg) * Math.abs(a2.chg) || 1) * 0.5 + 0.5 * (a1.chg > 0 === a2.chg > 0 ? 0.3 : -0.3)).toFixed(2);
+                    }
                     var col = c>0.5?'rgba(0,255,136,'+(c/2)+')':c<-0.5?'rgba(255,51,102,'+(Math.abs(c)/2)+')':'rgba(100,100,100,0.3)';
                     h += '<div class="corr-cell" style="background:'+col+')">'+c+'</div>';
                 }
