@@ -287,16 +287,20 @@ function generateTimeLabels(count, tf) {
 async function fetchSectors() {
     try {
         var res = await fetch(API_BASE+'/sectors');
+        if(!res.ok) { console.log('Sectors endpoint not available, using fallback'); return; }
         var json = await res.json();
-        if(json && json.length > 0) {
+        // Check if response is array (valid data) not error object
+        if(json && Array.isArray(json) && json.length > 0) {
             sectorData = json.map(function(s) {
                 var pct = parseFloat((s.changesPercentage || '0').replace('%','').replace('+',''));
                 return { n: s.sector, c: pct };
             });
             renderSectors();
+        } else {
+            console.log('Sectors response invalid, using fallback data');
         }
     } catch(e) {
-        console.error('Sector fetch failed:', e);
+        console.log('Sector fetch failed, using fallback data:', e);
     }
 }
         function renderActions() { var arr=history[sel.sym]||genHistory(sel.price,100); var rsi=calcRSI(arr),stoch=calcStochastic(arr); var acts=[]; if(rsi<30||stoch.k<20)acts.push({t:'BUY',txt:sel.sym+' oversold'}); else if(rsi>70||stoch.k>80)acts.push({t:'SELL',txt:sel.sym+' overbought'}); else acts.push({t:'HOLD',txt:sel.sym+' neutral'}); acts.push({t:'HOLD',txt:'Review risk'}); var h=''; for(var i=0;i<acts.length;i++){h+='<div class="action"><span class="action-badge '+acts[i].t.toLowerCase()+'-badge">'+acts[i].t+'</span><span class="action-text">'+acts[i].txt+'</span></div>';} $('actions').innerHTML=h; }
