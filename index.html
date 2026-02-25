@@ -188,7 +188,8 @@
                                     <button class="chart-fullscreen-btn" onclick="toggleFullscreen()" aria-label="Toggle fullscreen">⛶ Fullscreen</button>
                                     <div class="chart-wrapper">
                                         <div class="chart-main">
-                                            <div class="chart-canvas-container" style="position:relative"><div id="chart-loading" class="chart-loading" style="display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10"><div class="loading-spinner"></div></div> id="chart-canvas-container" onmousemove="handleCrosshair(event)" onmouseleave="hideCrosshair()">
+                                            <div class="chart-canvas-container" id="chart-canvas-container" onmousemove="handleCrosshair(event)" onmouseleave="hideCrosshair()" style="position:relative">
+                                                <div id="chart-loading" class="chart-loading" style="display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10"><div class="loading-spinner"></div></div>
                                                 <canvas id="priceCt"></canvas>
                                                 <svg class="drawing-layer" id="drawing-layer"></svg>
                                                 <div class="crosshair-h" id="crosshair-h"></div>

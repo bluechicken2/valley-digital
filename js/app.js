@@ -83,6 +83,59 @@ var CONFIG = {
         function fmt(n) { return n >= 1000 ? n.toLocaleString('en-US',{maximumFractionDigits:0}) : n.toFixed(n < 1 ? 4 : 2); }
         function genHistory(base, len) { var arr = []; for (var i = 0; i < len; i++) arr.push(base * (1 + (Math.random() - 0.5) * 0.04)); return arr; }
         function genCandles(base, len) { var arr = []; var p = base; for (var i = 0; i < len; i++) { var o = p; var c = p * (1 + (Math.random() - 0.5) * 0.02); var h = Math.max(o, c) * (1 + Math.random() * 0.01); var l = Math.min(o, c) * (1 - Math.random() * 0.01); arr.push({o:o,h:h,l:l,c:c}); p = c; } return arr; }
+        
+// Generate time labels based on timeframe going back from now
+function generateTimeLabels(count, tf) {
+    var labels = [];
+    var now = new Date();
+    var interval, format;
+
+    switch(tf) {
+        case '1H':
+            interval = 60 * 60 * 1000; // 1 hour in ms
+            for(var i = count - 1; i >= 0; i--) {
+                var d = new Date(now.getTime() - i * interval);
+                labels.push(d.toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit', hour12: false}));
+            }
+            break;
+        case '1D':
+            interval = 24 * 60 * 60 * 1000; // 1 day in ms
+            for(var i = count - 1; i >= 0; i--) {
+                var d = new Date(now.getTime() - i * interval);
+                labels.push(d.toLocaleDateString('en-US', {month: 'short', day: 'numeric'}));
+            }
+            break;
+        case '1W':
+            interval = 24 * 60 * 60 * 1000; // 1 day in ms (showing hourly points)
+            for(var i = count - 1; i >= 0; i--) {
+                var d = new Date(now.getTime() - i * interval);
+                labels.push(d.toLocaleDateString('en-US', {month: 'short', day: 'numeric'}));
+            }
+            break;
+        case '1M':
+            interval = 24 * 60 * 60 * 1000; // 1 day in ms
+            for(var i = count - 1; i >= 0; i--) {
+                var d = new Date(now.getTime() - i * interval);
+                labels.push(d.toLocaleDateString('en-US', {month: 'short', day: 'numeric'}));
+            }
+            break;
+        case '3M':
+            interval = 24 * 60 * 60 * 1000; // 1 day in ms
+            for(var i = count - 1; i >= 0; i--) {
+                var d = new Date(now.getTime() - i * interval);
+                labels.push(d.toLocaleDateString('en-US', {month: 'short'}));
+            }
+            break;
+        default:
+            interval = 24 * 60 * 60 * 1000;
+            for(var i = count - 1; i >= 0; i--) {
+                var d = new Date(now.getTime() - i * interval);
+                labels.push(d.toLocaleDateString('en-US', {month: 'short', day: 'numeric'}));
+            }
+    }
+    return labels;
+}
+
         function calcRSI(arr) { var gains = 0, losses = 0, period = 14; for (var i = arr.length - period; i < arr.length; i++) { var diff = arr[i] - arr[i-1]; if (diff > 0) gains += diff; else losses -= diff; } var rs = losses === 0 ? 100 : gains / losses; return 100 - (100 / (1 + rs)); }
         function calcStochastic(arr) { var recent = arr.slice(-14); var high = Math.max.apply(null, recent), low = Math.min.apply(null, recent); var k = high === low ? 50 : ((arr[arr.length-1] - low) / (high - low)) * 100; return { k: k, signal: k > 80 ? 'Overbought' : k < 20 ? 'Oversold' : 'Neutral' }; }
         function calcATR(arr) { var tr = []; for (var i = 1; i < arr.length; i++) tr.push(Math.abs(arr[i] - arr[i-1])); return tr.slice(-14).reduce(function(a,b){return a+b;},0) / 14; }
@@ -188,7 +241,9 @@ var CONFIG = {
                 }
             } else {
                 candles = genCandles(sel.price,100);
-                for(var i=0;i<100;i++){ lbls.push(i); vols.push(Math.random()*100+50); times.push(i); }
+                // Generate proper time labels for fallback candles
+                times = generateTimeLabels(100, timeframe);
+                for(var i=0;i<100;i++){ lbls.push(i); vols.push(Math.random()*100+50); }
             }
             // Update price display
             if(candles.length>0) {
@@ -342,9 +397,10 @@ var CONFIG = {
             var len = timeframe==='1H'?24:timeframe==='1W'?168:timeframe==='1M'?720:timeframe==='3M'?2160:96;
             var arr = history[sel.sym]||genHistory(sel.price,len);
             history[sel.sym]=arr; var disp=arr.slice(-len), lbls=[], times=[];
+            // Generate proper time labels based on timeframe
+            times = generateTimeLabels(disp.length, timeframe);
             for(var i=0;i<disp.length;i++) {
                 lbls.push(i);
-                times.push(i);
             }
             // Update price display
             if(disp.length>0) {
@@ -384,6 +440,14 @@ var CONFIG = {
             });
             volCt = new Chart($('volCt'),{type:'bar',data:{labels:lbls,datasets:[{data:vols,backgroundColor:vols.map(function(v,i){return disp[i+1]>disp[i]?'rgba(0,255,136,0.5)':'rgba(255,51,102,0.5)';})}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:false}}}});
             $('last-update').textContent='Last update: '+new Date().toLocaleTimeString();
+            
+            // Update time axis
+            var timeHtml = '';
+            var step = Math.max(1, Math.floor(times.length / 6));
+            for(var i = 0; i < times.length; i += step) {
+                timeHtml += '<span>' + (times[i] || i) + '</span>';
+            }
+            $('time-axis').innerHTML = timeHtml;
         }
 
 function renderAlloc() { if(allocCt) allocCt.destroy(); allocCt = new Chart($('allocCt'),{type:'doughnut',data:{labels:['BTC','ETH','NVDA','AAPL','MSFT','GOOGL','TSLA'],datasets:[{data:[28,18,16,14,12,8,4],backgroundColor:['#00f0ff','#a855f7','#00ff88','#ffd700','#00f0ff','#ff3366','#a855f7'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:{display:false}}}}); }
