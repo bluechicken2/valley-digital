@@ -248,7 +248,7 @@ function generateTimeLabels(count, tf) {
             // Update price display
             if(candles.length>0) {
                 var last=candles[candles.length-1];
-                $('chart-price').textContent='$'+last.c.toLocaleString();
+                $('chart-price').textContent='$'+sel.price.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
                 var chg=((last.c-candles[0].o)/candles[0].o*100).toFixed(2);
                 $('chart-chg').textContent=(chg>=0?'+':'')+chg+'%';
                 $('chart-chg').className='chart-chg '+(chg>=0?'up':'down');
@@ -404,7 +404,7 @@ function generateTimeLabels(count, tf) {
             }
             // Update price display
             if(disp.length>0) {
-                $('chart-price').textContent='$'+disp[disp.length-1].toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+                $('chart-price').textContent='$'+sel.price.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
                 var chg=((disp[disp.length-1]-disp[0])/disp[0]*100).toFixed(2);
                 $('chart-chg').textContent=(chg>=0?'+':'')+chg+'%';
                 $('chart-chg').className='chart-chg '+(chg>=0?'up':'down');
