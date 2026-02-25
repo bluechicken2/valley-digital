@@ -66,6 +66,29 @@ var CONFIG = {
 
         var user = null, userTier = 'free', sel = null, data = [], alerts = [], watchlists = [{name:'Crypto',symbols:['BTC','ETH','SOL']},{name:'Tech',symbols:['AAPL','NVDA','MSFT','GOOGL']}];
         var priceCt = null, volCt = null, allocCt = null, chartType = 'line', timeframe = '1D';
+        
+        // API Response Cache
+        var apiCache = {};
+        var CACHE_TTL = { PRICE: 30000, OHLC: 300000 };
+        function getCached(key, ttl) {
+            var item = apiCache[key];
+            if (item && Date.now() - item.time < ttl) {
+                return item.data;
+            }
+            return null;
+        }
+        function setCache(key, data) {
+            apiCache[key] = { data: data, time: Date.now() };
+        }
+        function showLoading(elId) {
+            var el = document.getElementById(elId);
+            if(el) el.style.display = 'inline-block';
+        }
+        function hideLoading(elId) {
+            var el = document.getElementById(elId);
+            if(el) el.style.display = 'none';
+        }
+
         var history = {}, isLightTheme = false, isFullscreen = false;
         
         data = [
@@ -186,9 +209,21 @@ function generateTimeLabels(count, tf) {
         
         async function refreshPrices() {
             $('status-dot').className='status-dot syncing';$('status-text').textContent='UPDATING...';
+            showLoading('price-spinner');
             try {
-                var crypto=await (await fetch(API_BASE+'/prices')).json();
-                var stocks=await (await fetch(API_BASE+'/stocks')).json();
+                var cached = getCached('prices', CACHE_TTL.PRICE);
+                var crypto, stocks;
+                if(cached) {
+                    crypto = cached.crypto;
+                    stocks = cached.stocks;
+                } else {
+                    var cryptoRes = await fetch(API_BASE+'/prices');
+                    var stocksRes = await fetch(API_BASE+'/stocks');
+                    if(!cryptoRes.ok || !stocksRes.ok) throw new Error('API fetch failed');
+                    crypto = await cryptoRes.json();
+                    stocks = await stocksRes.json();
+                    setCache('prices', { crypto: crypto, stocks: stocks });
+                }
                 if(crypto.bitcoin){var btc=data.find(function(a){return a.sym==='BTC';});btc.price=crypto.bitcoin.usd;btc.chg=crypto.bitcoin.usd_24h_change||0;}
                 if(crypto.ethereum){var eth=data.find(function(a){return a.sym==='ETH';});eth.price=crypto.ethereum.usd;eth.chg=crypto.ethereum.usd_24h_change||0;}
                 if(crypto.solana){var sol=data.find(function(a){return a.sym==='SOL';});sol.price=crypto.solana.usd;sol.chg=crypto.solana.usd_24h_change||0;}
@@ -198,6 +233,7 @@ function generateTimeLabels(count, tf) {
                 if(stocks.GOOGL){var googl=data.find(function(a){return a.sym==='GOOGL';});googl.price=stocks.GOOGL.price;googl.chg=stocks.GOOGL.changePercent||0;}
                 if(stocks.MSFT){var msft=data.find(function(a){return a.sym==='MSFT';});msft.price=stocks.MSFT.price;msft.chg=stocks.MSFT.changePercent||0;}
                 $('status-dot').className='status-dot';$('status-text').textContent='LIVE';$('data-badge').textContent='LIVE';$('data-badge').className='panel-badge live';$('db-status').innerHTML='<span style="color:var(--purple)">[DB]</span> SYNCED';
+                hideLoading('price-spinner');
                 renderAll();
             checkAlerts();} catch(e) { $('status-dot').className='status-dot error';$('status-text').textContent='CACHED';$('data-badge').textContent='CACHED'; }
         }
@@ -217,13 +253,26 @@ function generateTimeLabels(count, tf) {
         
         var ohlcData = {};
         async function fetchOHLC(sym) {
+            var cacheKey = 'ohlc_'+sym+'_'+timeframe;
+            var cached = getCached(cacheKey, CACHE_TTL.OHLC);
+            if(cached) return cached;
+            
+            showLoading('chart-loading');
             var cm = {'BTC':'bitcoin','ETH':'ethereum','SOL':'solana','XRP':'ripple','ADA':'cardano','DOGE':'dogecoin'};
             var coin = cm[sym] || 'bitcoin';
             var days = timeframe==='1H'?'1':timeframe==='1W'?'7':timeframe==='1M'?'30':timeframe==='3M'?'90':'7';
             try {
                 var r = await fetch('https://tradingapi-proxy.cloudflare-5m9f2.workers.dev/ohlc?coin='+coin+'&days='+days);
-                return await r.json();
-            } catch(e) { return null; }
+                if(!r.ok) throw new Error('OHLC fetch failed');
+                var data = await r.json();
+                setCache(cacheKey, data);
+                hideLoading('chart-loading');
+                return data;
+            } catch(e) {
+                hideLoading('chart-loading');
+                showToast('Chart data unavailable - using fallback');
+                return null;
+            }
         }
         function renderChart() {
             if(chartType==='candle') { fetchOHLC(sel.sym).then(function(d){ renderCandles(d); }); }
@@ -1262,6 +1311,7 @@ window.deleteAlert = function(idx) { alerts.splice(idx,1); localStorage.setItem(
 
         // Save portfolio to Supabase
         async function savePortfolioToSupabase() {
+            showLoading('sync-spinner');
             var token = localStorage.getItem('sb_token');
 
             var entries = [];
@@ -1305,6 +1355,7 @@ window.deleteAlert = function(idx) { alerts.splice(idx,1); localStorage.setItem(
                     });
                     var postData = await postRes.text();
                     if(postRes.ok) {
+                        hideLoading('sync-spinner');
                         showToast('Portfolio saved to cloud!');
                     } else {
                         showToast('Save failed - check console');
@@ -1312,7 +1363,9 @@ window.deleteAlert = function(idx) { alerts.splice(idx,1); localStorage.setItem(
                 } else {
                     showToast('No holdings to save');
                 }
+            hideLoading('sync-spinner');
             } catch(e) {
+                hideLoading('sync-spinner');
                 console.error('Failed to save portfolio:', e);
                 showToast('Save error: ' + e.message);
             }
@@ -1320,6 +1373,7 @@ window.deleteAlert = function(idx) { alerts.splice(idx,1); localStorage.setItem(
 
         // Load portfolio from Supabase
         async function loadPortfolioFromSupabase() {
+            showLoading('sync-spinner');
             var token = localStorage.getItem('sb_token');
 
             try {
@@ -1342,9 +1396,12 @@ window.deleteAlert = function(idx) { alerts.splice(idx,1); localStorage.setItem(
                         }
                     }
                     $('db-status').innerHTML='<span style="color:var(--purple)">[DB]</span> SYNCED';
+                hideLoading('sync-spinner');
                 } else {
+                    hideLoading('sync-spinner');
                 }
             } catch(e) {
+                hideLoading('sync-spinner');
                 console.error('Failed to load portfolio:', e);
             }
         }
