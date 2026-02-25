@@ -328,7 +328,7 @@ function generateTimeLabels(count, tf) {
             
             priceCt = new Chart($('priceCt'),{
                 type:'bar',
-                data:{labels:lbls,datasets:datasets},
+                data:{labels:times,datasets:datasets},
                 options:{
                     responsive:true,
                     maintainAspectRatio:false,
@@ -427,7 +427,7 @@ function generateTimeLabels(count, tf) {
             priceCt = new Chart($('priceCt'),{
                 type:'line',
                 data:{
-                    labels:lbls,
+                    labels:times,
                     datasets:lineDatasets
                 },
                 options:{
