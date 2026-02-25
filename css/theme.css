@@ -431,6 +431,20 @@
 .pr-list-container { margin-top: 8px; }
 .panel-spacing { margin-top: 16px; }
 
+
+/* Chart buttons row */
+.chart-btns-row {
+    display: flex;
+    justify-content: flex-start;
+    padding: 8px 12px;
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border);
+}
+.chart-btns-row .chart-btns {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+}
 @media (max-width: 1200px) { .grid-2 { grid-template-columns: 1fr; } .grid-3 { grid-template-columns: 1fr; } .analytics-grid { grid-template-columns: repeat(3, 1fr); } }
 
 /* ==========================================
