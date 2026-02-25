@@ -236,7 +236,7 @@ function generateTimeLabels(count, tf) {
             try {
                 var cached = getCached('prices', CACHE_TTL.PRICE);
                 var crypto, stocks;
-                if(cached) {
+                if(cached && cached.crypto && cached.stocks) {
                     crypto = cached.crypto;
                     stocks = cached.stocks;
                 } else {
@@ -250,14 +250,14 @@ function generateTimeLabels(count, tf) {
                     } catch(e) { stocks = getFallbackStocks(); }
                     setCache('prices', { crypto: crypto, stocks: stocks });
                 }
-                if(crypto.bitcoin){var btc=data.find(function(a){return a.sym==='BTC';});btc.price=crypto.bitcoin.usd;btc.chg=crypto.bitcoin.usd_24h_change||0;}
-                if(crypto.ethereum){var eth=data.find(function(a){return a.sym==='ETH';});eth.price=crypto.ethereum.usd;eth.chg=crypto.ethereum.usd_24h_change||0;}
-                if(crypto.solana){var sol=data.find(function(a){return a.sym==='SOL';});sol.price=crypto.solana.usd;sol.chg=crypto.solana.usd_24h_change||0;}
-                if(stocks.AAPL){var aapl=data.find(function(a){return a.sym==='AAPL';});aapl.price=stocks.AAPL.price;aapl.chg=stocks.AAPL.changePercent||0;}
-                if(stocks.NVDA){var nvda=data.find(function(a){return a.sym==='NVDA';});nvda.price=stocks.NVDA.price;nvda.chg=stocks.NVDA.changePercent||0;}
-                if(stocks.TSLA){var tsla=data.find(function(a){return a.sym==='TSLA';});tsla.price=stocks.TSLA.price;tsla.chg=stocks.TSLA.changePercent||0;}
-                if(stocks.GOOGL){var googl=data.find(function(a){return a.sym==='GOOGL';});googl.price=stocks.GOOGL.price;googl.chg=stocks.GOOGL.changePercent||0;}
-                if(stocks.MSFT){var msft=data.find(function(a){return a.sym==='MSFT';});msft.price=stocks.MSFT.price;msft.chg=stocks.MSFT.changePercent||0;}
+                if(crypto && crypto.bitcoin){var btc=data.find(function(a){return a.sym==='BTC';});if(btc){btc.price=crypto.bitcoin.usd;btc.chg=crypto.bitcoin.usd_24h_change||0;}}
+                if(crypto && crypto.ethereum){var eth=data.find(function(a){return a.sym==='ETH';});if(eth){eth.price=crypto.ethereum.usd;eth.chg=crypto.ethereum.usd_24h_change||0;}}
+                if(crypto && crypto.solana){var sol=data.find(function(a){return a.sym==='SOL';});if(sol){sol.price=crypto.solana.usd;sol.chg=crypto.solana.usd_24h_change||0;}}
+                if(stocks && stocks.AAPL){var aapl=data.find(function(a){return a.sym==='AAPL';});if(aapl){aapl.price=stocks.AAPL.price;aapl.chg=stocks.AAPL.changePercent||0;}}
+                if(stocks && stocks.NVDA){var nvda=data.find(function(a){return a.sym==='NVDA';});if(nvda){nvda.price=stocks.NVDA.price;nvda.chg=stocks.NVDA.changePercent||0;}}
+                if(stocks && stocks.TSLA){var tsla=data.find(function(a){return a.sym==='TSLA';});if(tsla){tsla.price=stocks.TSLA.price;tsla.chg=stocks.TSLA.changePercent||0;}}
+                if(stocks && stocks.GOOGL){var googl=data.find(function(a){return a.sym==='GOOGL';});if(googl){googl.price=stocks.GOOGL.price;googl.chg=stocks.GOOGL.changePercent||0;}}
+                if(stocks && stocks.MSFT){var msft=data.find(function(a){return a.sym==='MSFT';});if(msft){msft.price=stocks.MSFT.price;msft.chg=stocks.MSFT.changePercent||0;}}
                 $('status-dot').className='status-dot';$('status-text').textContent='LIVE';$('data-badge').textContent='LIVE';$('data-badge').className='panel-badge live';$('db-status').innerHTML='<span style="color:var(--purple)">[DB]</span> SYNCED';
                 hideLoading('price-spinner');
                 renderAll();
