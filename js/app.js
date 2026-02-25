@@ -178,7 +178,25 @@ function generateTimeLabels(count, tf) {
         function calcADX(arr) { if (arr.length < 15) return 25; var plusDM = [], minusDM = [], tr = []; for (var i = 1; i < arr.length; i++) { var up = arr[i] - arr[i-1]; var down = arr[i-1] - arr[i]; plusDM.push(up > down && up > 0 ? up : 0); minusDM.push(down > up && down > 0 ? down : 0); tr.push(Math.abs(arr[i] - arr[i-1])); } var atr = tr.slice(-14).reduce(function(a,b){return a+b;},0)/14; var smoothPlusDM = plusDM.slice(-14).reduce(function(a,b){return a+b;},0)/14; var smoothMinusDM = minusDM.slice(-14).reduce(function(a,b){return a+b;},0)/14; var plusDI = (smoothPlusDM / atr) * 100; var minusDI = (smoothMinusDM / atr) * 100; var dx = Math.abs(plusDI - minusDI) / (plusDI + minusDI) * 100; return dx || 25; }
         function calcWilliams(arr) { var recent = arr.slice(-14); var high = Math.max.apply(null, recent), low = Math.min.apply(null, recent); return high === low ? -50 : -100 * (high - arr[arr.length-1]) / (high - low); }
         function calcOBV(arr) { var obv = 0; for (var i = 1; i < arr.length; i++) { if (arr[i] > arr[i-1]) obv += 1; else if (arr[i] < arr[i-1]) obv -= 1; } var trend = obv > 0 ? 'bull' : obv < 0 ? 'bear' : 'neut'; return { val: obv, trend: trend, signal: obv > 2 ? 'Buying pressure' : obv < -2 ? 'Selling pressure' : 'Neutral' }; }
-        function calcMACDInd(arr) { if (arr.length < 26) return { val: '0', trend: 'neut', signal: 'Insufficient data' }; var ema12 = arr.slice(-12).reduce(function(a,b){return a+b;},0)/12; var ema26 = arr.slice(-26).reduce(function(a,b){return a+b;},0)/26; var macd = ema12 - ema26; var trend = macd > 0 ? 'bull' : macd < 0 ? 'bear' : 'neut'; return { val: macd.toFixed(2), trend: trend, signal: macd > 0 ? 'Bullish' : 'Bearish' }; }
+        function calcMACDInd(arr) {
+            if (arr.length < 26) return { val: '0', trend: 'neut', signal: 'Insufficient data' };
+            // Calculate proper EMA
+            function calcEMA(data, period) {
+                var k = 2 / (period + 1);
+                var ema = data[0];
+                for (var i = 1; i < data.length; i++) {
+                    ema = data[i] * k + ema * (1 - k);
+                }
+                return ema;
+            }
+            var ema12 = calcEMA(arr.slice(-26), 12);
+            var ema26 = calcEMA(arr.slice(-26), 26);
+            var macd = ema12 - ema26;
+            // Normalize as percentage of price for display
+            var macdPct = (macd / arr[arr.length-1]) * 100;
+            var trend = macd > 0 ? 'bull' : macd < 0 ? 'bear' : 'neut';
+            return { val: macdPct.toFixed(2) + '%', trend: trend, signal: macd > 0 ? 'Bullish' : 'Bearish' };
+        }
         
         // Auth
         window.showLogin = function() { $('loading').style.display='none'; $('dashboard').style.display='none'; $('auth-login').style.display='flex'; $('auth-signup').style.display='none'; $('auth-reset').style.display='none'; };
