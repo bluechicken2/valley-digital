@@ -952,6 +952,41 @@ window.deleteAlert = function(idx) { alerts.splice(idx,1); localStorage.setItem(
         function showToast(msg) { $('toast').textContent=msg; $('toast').classList.add('show'); setTimeout(function(){$('toast').classList.remove('show');},3000); }
         
         // Keyboard
+        
+        // Enhanced keyboard navigation
+        document.addEventListener('keydown',function(e){
+            // Arrow key navigation through assets
+            if(e.key==='ArrowDown' && !e.target.matches('input,textarea')) {
+                e.preventDefault();
+                var idx = data.findIndex(function(a){return a.sym===sel.sym;});
+                if(idx < data.length - 1) selAsset(data[idx+1].sym);
+            }
+            if(e.key==='ArrowUp' && !e.target.matches('input,textarea')) {
+                e.preventDefault();
+                var idx = data.findIndex(function(a){return a.sym===sel.sym;});
+                if(idx > 0) selAsset(data[idx-1].sym);
+            }
+            // Tab through nav tabs
+            if(e.key==='ArrowLeft' && !e.target.matches('input,textarea')) {
+                var tabs = ['dashboard','analytics','news','calendar','screener','paper','ai'];
+                var activeTab = document.querySelector('.nav-tab.active');
+                if(activeTab) {
+                    var currentTab = activeTab.getAttribute('data-tab');
+                    var currentIdx = tabs.indexOf(currentTab);
+                    if(currentIdx > 0) switchTab(tabs[currentIdx-1]);
+                }
+            }
+            if(e.key==='ArrowRight' && !e.target.matches('input,textarea')) {
+                var tabs = ['dashboard','analytics','news','calendar','screener','paper','ai'];
+                var activeTab = document.querySelector('.nav-tab.active');
+                if(activeTab) {
+                    var currentTab = activeTab.getAttribute('data-tab');
+                    var currentIdx = tabs.indexOf(currentTab);
+                    if(currentIdx < tabs.length - 1) switchTab(tabs[currentIdx+1]);
+                }
+            }
+        });
+
         document.addEventListener('keydown',function(e){
             if(e.key==='Escape'){hideHelp();hideAlerts();hideAddAlert();hideProfile();hidePricing();hideWatchlists();$('user-dropdown').classList.remove('show');}
             if(e.key==='?'&&!e.target.matches('input'))showHelp();
