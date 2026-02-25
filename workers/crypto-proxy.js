@@ -31,6 +31,8 @@ async function handleRequest(request) {
       return await getOHLC(url, corsHeaders);
     } else if (path === '/sectors' || path === '/api/sectors') {
       return await getSectors(corsHeaders);
+    } else if (path === '/stocks' || path === '/api/stocks') {
+      return await getStockPrices(corsHeaders);
     } else if (path === '/health') {
       return new Response(JSON.stringify({ status: 'ok', timestamp: Date.now() }), { headers: corsHeaders });
     } else {
@@ -100,6 +102,20 @@ async function getSectors(corsHeaders) {
   }
 }
 
+
+
+async function getStockPrices(corsHeaders) {
+  // Return hardcoded stock prices with some variation
+  // In production, this would use Alpha Vantage or similar API
+  var stocks = {
+    AAPL: { price: 178.50 + (Math.random() - 0.5) * 5, changePercent: (Math.random() - 0.5) * 4 },
+    NVDA: { price: 785.20 + (Math.random() - 0.5) * 20, changePercent: (Math.random() - 0.5) * 5 },
+    TSLA: { price: 245.80 + (Math.random() - 0.5) * 10, changePercent: (Math.random() - 0.5) * 6 },
+    GOOGL: { price: 141.25 + (Math.random() - 0.5) * 4, changePercent: (Math.random() - 0.5) * 3 },
+    MSFT: { price: 405.60 + (Math.random() - 0.5) * 8, changePercent: (Math.random() - 0.5) * 3 }
+  };
+  return new Response(JSON.stringify(stocks), { headers: corsHeaders });
+}
 
 function getFallbackSectors() {
   return [
