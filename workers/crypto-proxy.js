@@ -1,6 +1,7 @@
 // TradingAPI Proxy Worker v3.0
 // Real OHLC candlestick data + price data
 
+const FMP_API_KEY = 'rmwBYnfwnlHlWAvZS4cSHMX9dcVRIwVL';
 const CRYPTO_IDS = ['bitcoin', 'ethereum', 'solana'];
 const CRYPTO_MAP = { 'BTC': 'bitcoin', 'ETH': 'ethereum', 'SOL': 'solana' };
 
@@ -28,6 +29,8 @@ async function handleRequest(request) {
       return await getCryptoPrices(corsHeaders);
     } else if (path === '/ohlc' || path === '/api/ohlc') {
       return await getOHLC(url, corsHeaders);
+    } else if (path === '/sectors' || path === '/api/sectors') {
+      return await getSectors(corsHeaders);
     } else if (path === '/health') {
       return new Response(JSON.stringify({ status: 'ok', timestamp: Date.now() }), { headers: corsHeaders });
     } else {
@@ -76,6 +79,37 @@ async function getOHLC(url, corsHeaders) {
   } catch (error) {
     return new Response(JSON.stringify(getFallbackOHLC(coin)), { headers: corsHeaders });
   }
+}
+
+
+async function getSectors(corsHeaders) {
+  try {
+    const response = await fetch(
+      'https://financialmodelingprep.com/api/v3/stock/sectors-performance?apikey=' + FMP_API_KEY,
+      { headers: { 'User-Agent': 'TradingAI-Dashboard/3.0', 'Accept': 'application/json' } }
+    );
+
+    if (!response.ok) {
+      return new Response(JSON.stringify(getFallbackSectors()), { headers: corsHeaders });
+    }
+
+    const data = await response.json();
+    return new Response(JSON.stringify(data), { headers: corsHeaders });
+  } catch (error) {
+    return new Response(JSON.stringify(getFallbackSectors()), { headers: corsHeaders });
+  }
+}
+
+
+function getFallbackSectors() {
+  return [
+    { sector: 'Technology', changesPercentage: '+1.2%' },
+    { sector: 'Consumer Cyclical', changesPercentage: '+0.8%' },
+    { sector: 'Financial', changesPercentage: '-0.3%' },
+    { sector: 'Healthcare', changesPercentage: '+0.5%' },
+    { sector: 'Energy', changesPercentage: '-1.1%' },
+    { sector: 'Utilities', changesPercentage: '+0.2%' }
+  ];
 }
 
 function getFallbackPrices() {

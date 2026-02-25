@@ -77,7 +77,7 @@ var CONFIG = {
             VOLUME_HEIGHT: 80             // Volume chart height (px)
         };
 
-        var user = null, userTier = 'free', sel = null, data = [], alerts = [], watchlists = [{name:'Crypto',symbols:['BTC','ETH','SOL']},{name:'Tech',symbols:['AAPL','NVDA','MSFT','GOOGL']}];
+        var user = null, userTier = 'free', sel = null, data = [], alerts = [], sectorData = [], watchlists = [{name:'Crypto',symbols:['BTC','ETH','SOL']},{name:'Tech',symbols:['AAPL','NVDA','MSFT','GOOGL']}];
         var priceCt = null, volCt = null, allocCt = null, chartType = 'line', timeframe = '1D';
         
         // API Response Cache
@@ -258,7 +258,34 @@ function generateTimeLabels(count, tf) {
         function renderTicker() { var h=''; for(var i=0;i<data.length*2;i++){var a=data[i%data.length];h+='<span class="ticker-item" onclick="selAsset(\''+a.sym+'\')"><span class="ticker-sym">'+a.sym+'</span> $'+fmt(a.price)+' <span style="color:'+(a.chg>=0?'var(--green)':'var(--red)')+'">'+(a.chg>=0?'+':'')+a.chg.toFixed(1)+'%</span></span>';} $('ticker').innerHTML=h+h; }
         function renderFG() { var avg=0; for(var i=0;i<data.length;i++)avg+=data[i].chg; avg/=data.length; var v=Math.max(10,Math.min(90,50-avg*2)); var lbl=v>=75?'GREED':v>=55?'OPTIMISM':v>=45?'NEUTRAL':v>=25?'FEAR':'EXTREME FEAR'; var col=v>=55?'var(--green)':v>=45?'var(--cyan)':v>=25?'var(--gold)':'var(--red)'; $('fg-val').textContent=Math.round(v);$('fg-val').style.color=col;$('fg-lbl').textContent=lbl;$('fg-lbl').style.color=col;$('fg-dot').style.left=v+'%'; }
         function renderInds() { var arr=history[sel.sym]||genHistory(sel.price,100); history[sel.sym]=arr; var rsi=calcRSI(arr),stoch=calcStochastic(arr),atr=calcATR(arr),adx=calcADX(arr),will=calcWilliams(arr),obv=calcOBV(arr),macd=calcMACDInd(arr); var h='<div class="ind-grid">'; h+='<div class="ind-card"><div class="ind-label">RSI (14)</div><div class="ind-val '+(rsi<35?'bull':rsi>70?'bear':'neut')+'">'+rsi.toFixed(1)+'</div><div class="ind-sub">'+(rsi<35?'Oversold':rsi>70?'Overbought':'Neutral')+'</div></div>'; h+='<div class="ind-card"><div class="ind-label">MACD</div><div class="ind-val '+macd.trend+'">'+macd.val+'</div><div class="ind-sub">'+macd.signal+'</div></div>'; h+='<div class="ind-card"><div class="ind-label">Stochastic</div><div class="ind-val '+(stoch.k>80?'bear':stoch.k<20?'bull':'neut')+'">'+stoch.k.toFixed(0)+'</div><div class="ind-sub">'+stoch.signal+'</div></div>'; h+='<div class="ind-card"><div class="ind-label">Trend</div><div class="ind-val '+(sel.chg>=0?'bull':'bear')+'">'+(sel.chg>=0?'Uptrend':'Downtrend')+'</div></div>'; h+='<div class="ind-card"><div class="ind-label">ATR</div><div class="ind-val neut">'+(atr/sel.price*100).toFixed(2)+'%</div><div class="ind-sub">Volatility</div></div>'; h+='<div class="ind-card"><div class="ind-label">ADX</div><div class="ind-val '+(adx>25?'bull':'neut')+'">'+adx.toFixed(1)+'</div><div class="ind-sub">'+(adx>25?'Strong':'Weak')+'</div></div>'; h+='<div class="ind-card"><div class="ind-label">Williams %R</div><div class="ind-val '+(will<-80?'bull':will>-20?'bear':'neut')+'">'+will.toFixed(1)+'</div><div class="ind-sub">'+(will<-80?'Oversold':will>-20?'Overbought':'Neutral')+'</div></div>'; h+='<div class="ind-card"><div class="ind-label">OBV</div><div class="ind-val '+obv.trend+'">'+obv.val+'</div><div class="ind-sub">'+obv.signal+'</div></div>'; h+='</div>'; $('inds').innerHTML=h; }
-        function renderSectors() { var secs=[{n:'Crypto',c:-6.2},{n:'Tech',c:1.8},{n:'AI',c:5.8},{n:'EV',c:-1.2},{n:'Finance',c:1.2},{n:'Cloud',c:3.4}]; var h='<div class="sector-grid">'; for(var i=0;i<secs.length;i++){h+='<div class="sector"><div class="sector-name">'+secs[i].n+'</div><div class="sector-chg '+(secs[i].c>=0?'up':'down')+'">'+(secs[i].c>=0?'+':'')+secs[i].c.toFixed(1)+'%</div></div>';} h+='</div>'; $('sectors').innerHTML=h; }
+        function renderSectors() {
+    var secs = sectorData.length > 0 ? sectorData : [
+        {n:'Crypto',c:-6.2},{n:'Tech',c:1.8},{n:'AI',c:5.8},{n:'EV',c:-1.2},{n:'Finance',c:1.2},{n:'Cloud',c:3.4}
+    ];
+    var h='<div class="sector-grid">';
+    for(var i=0;i<secs.length;i++){
+        h+='<div class="sector"><div class="sector-name">'+secs[i].n+'</div>';
+        h+='<div class="sector-chg '+(secs[i].c>=0?'up':'down')+'">'+(secs[i].c>=0?'+':'')+secs[i].c.toFixed(1)+'%</div></div>';
+    }
+    h+='</div>';
+    $('sectors').innerHTML=h;
+}
+
+async function fetchSectors() {
+    try {
+        var res = await fetch(WORKER_URL+'/sectors');
+        var json = await res.json();
+        if(json && json.length > 0) {
+            sectorData = json.map(function(s) {
+                var pct = parseFloat((s.changesPercentage || '0').replace('%','').replace('+',''));
+                return { n: s.sector, c: pct };
+            });
+            renderSectors();
+        }
+    } catch(e) {
+        console.error('Sector fetch failed:', e);
+    }
+}
         function renderActions() { var arr=history[sel.sym]||genHistory(sel.price,100); var rsi=calcRSI(arr),stoch=calcStochastic(arr); var acts=[]; if(rsi<30||stoch.k<20)acts.push({t:'BUY',txt:sel.sym+' oversold'}); else if(rsi>70||stoch.k>80)acts.push({t:'SELL',txt:sel.sym+' overbought'}); else acts.push({t:'HOLD',txt:sel.sym+' neutral'}); acts.push({t:'HOLD',txt:'Review risk'}); var h=''; for(var i=0;i<acts.length;i++){h+='<div class="action"><span class="action-badge '+acts[i].t.toLowerCase()+'-badge">'+acts[i].t+'</span><span class="action-text">'+acts[i].txt+'</span></div>';} $('actions').innerHTML=h; }
         function renderPreds() {
             var arr = history[sel.sym]||genHistory(sel.price,100);
