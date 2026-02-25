@@ -327,13 +327,7 @@ async function fetchSectors() {
         async function fetchOHLC(sym) {
             var cacheKey = 'ohlc_'+sym+'_'+timeframe;
             var cached = getCached(cacheKey, CACHE_TTL.OHLC);
-            if(cached) {
-                // Store close prices in history for indicator calculations
-                if(cached && cached.length > 0) {
-                    history[sym] = cached.map(function(c) { return c.c; });
-                }
-                return cached;
-            }
+            if(cached) return cached;
             
             showLoading('chart-loading');
             var cm = {'BTC':'bitcoin','ETH':'ethereum','SOL':'solana','XRP':'ripple','ADA':'cardano','DOGE':'dogecoin'};
@@ -343,10 +337,6 @@ async function fetchSectors() {
                 var r = await fetch('https://tradingapi-proxy.cloudflare-5m9f2.workers.dev/ohlc?coin='+coin+'&days='+days);
                 if(!r.ok) throw new Error('OHLC fetch failed');
                 var data = await r.json();
-                // Store close prices in history for indicator calculations
-                if(data && data.length > 0) {
-                    history[sym] = data.map(function(c) { return c.c; });
-                }
                 setCache(cacheKey, data);
                 hideLoading('chart-loading');
                 return data;
@@ -970,7 +960,7 @@ function renderAlloc() { if(allocCt) allocCt.destroy(); allocCt = new Chart($('a
             showToast('Exported as ' + format.toUpperCase());
         };
 
-window.selAsset = function(s) { for(var i=0;i<data.length;i++) if(data[i].sym===s){sel=data[i];break;} $('chart-sym').textContent=s; if(!history[s])history[s]=genHistory(sel.price,100); renderAssets();renderInds();renderActions();renderAssetDetails();renderChart(); fetchOHLC(s).then(function(d){ if(d && d.length>0){ history[s]=d.map(function(c){return c.c;}); renderInds();renderActions(); } }); };
+window.selAsset = function(s) { for(var i=0;i<data.length;i++) if(data[i].sym===s){sel=data[i];break;} $('chart-sym').textContent=s; if(!history[s])history[s]=genHistory(sel.price,100); renderAssets();renderInds();renderActions();renderAssetDetails();renderChart(); };
         window.toggleFav = function(s) { for(var i=0;i<data.length;i++) if(data[i].sym===s){data[i].fav=!data[i].fav;renderAssets();showToast(s+(data[i].fav?' added to':' removed from')+' favorites');break;} };
         window.setTf = function(tf) { timeframe=tf; var btns=document.querySelectorAll('.chart-btn'); for(var j=0;j<btns.length;j++){btns[j].classList.remove('on');} if(typeof event!=='undefined' && event.target) event.target.classList.add('on'); ohlcData={}; renderChart(); };
         window.toggleChartType = function() { chartType = chartType==='line'?'candle':'line'; $('chart-type-btn').textContent = chartType.toUpperCase(); renderChart(); };
