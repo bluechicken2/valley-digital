@@ -525,7 +525,15 @@ function renderAlloc() { if(allocCt) allocCt.destroy(); allocCt = new Chart($('a
         // Interactions
         
         // Chart Enhancement Variables
-        var showBollinger = false, showEMA = false, showSR = false, showSMA200 = false, showSMA20 = localStorage.getItem('showSMA20') !== 'false';
+        var showBollinger = false, showEMA = false, showSR = false, showSMA200 = localStorage.getItem('showSMA200') === 'true', showSMA20 = localStorage.getItem('showSMA20') !== 'false';
+        // Sync button states on init
+        document.addEventListener('DOMContentLoaded', function() {
+            if($('toggle-sma20')) $('toggle-sma20').classList.toggle('active', showSMA20);
+            if($('toggle-sma200')) $('toggle-sma200').classList.toggle('active', showSMA200);
+            if($('toggle-bb')) $('toggle-bb').classList.toggle('active', showBollinger);
+            if($('toggle-ema')) $('toggle-ema').classList.toggle('active', showEMA);
+            if($('toggle-sr')) $('toggle-sr').classList.toggle('active', showSR);
+        });
         var drawMode = null, drawings = [];
         var isFullscreen = false;
         
