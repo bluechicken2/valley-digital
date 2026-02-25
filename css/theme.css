@@ -462,6 +462,13 @@
 
 /* Base mobile breakpoint - 768px and below */
 @media (max-width: 768px) {
+    /* Technical Indicators - 2 columns on mobile */
+    .ind-grid { grid-template-columns: repeat(2, 1fr) !important; }
+    .ind-card { min-width: 0; padding: 8px; }
+    .ind-label { font-size: 0.65rem; }
+    .ind-val { font-size: 0.9rem; }
+    .ind-sub { font-size: 0.55rem; }
+
     /* RESET - Remove all positioning issues */
     .header { 
         position: relative !important; 
