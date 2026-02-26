@@ -117,8 +117,8 @@ var CONFIG = {
         sel = data[0];
         
         function fmt(n) { return n >= 1000 ? n.toLocaleString('en-US',{maximumFractionDigits:0}) : n.toFixed(n < 1 ? 4 : 2); }
-        function genHistory(base, len) { var arr = []; var price = base; var trend = (Math.random() - 0.5) * 0.002; for (var i = 0; i < len; i++) { var change = trend + (Math.random() - 0.5) * 0.02; price = price * (1 + change); arr.push(price); } if (arr.length > 0) { var ratio = base / arr[arr.length - 1]; arr = arr.map(function(p) { return p * ratio; }); } return arr; }
-        function genCandles(base, len) { var arr = []; var p = base; for (var i = 0; i < len; i++) { var o = p; var c = p * (1 + (Math.random() - 0.5) * 0.02); var h = Math.max(o, c) * (1 + Math.random() * 0.01); var l = Math.min(o, c) * (1 - Math.random() * 0.01); arr.push({o:o,h:h,l:l,c:c}); p = c; } return arr; }
+        function genHistory(base, len) { return null; }
+        function genCandles(base, len) { return null; }
         
 // Generate time labels based on timeframe going back from now
 function generateTimeLabels(count, tf) {
@@ -173,7 +173,7 @@ function generateTimeLabels(count, tf) {
 }
 
         function calcRSI(arr) {
-            if (!arr || arr.length < 15) return 50;
+            if (!arr || arr.length < 15) return null;
             var gains = 0, losses = 0, period = 14;
             for (var i = arr.length - period; i < arr.length; i++) {
                 if (arr[i] === undefined || arr[i-1] === undefined) continue;
@@ -184,15 +184,15 @@ function generateTimeLabels(count, tf) {
             return 100 - (100 / (1 + rs));
         }
         function calcStochastic(arr) {
-            if (!arr || arr.length < 14) return { k: 50, signal: 'Neutral' };
+            if (!arr || arr.length < 14) return null;
             var recent = arr.slice(-14).filter(function(v) { return !isNaN(v) && v !== undefined; });
-            if (recent.length < 2) return { k: 50, signal: 'Neutral' };
+            if (recent.length < 2) return null;
             var high = Math.max.apply(null, recent), low = Math.min.apply(null, recent);
             var k = high === low ? 50 : ((arr[arr.length-1] - low) / (high - low)) * 100;
             return { k: isNaN(k) ? 50 : k, signal: k > 80 ? 'Overbought' : k < 20 ? 'Oversold' : 'Neutral' };
         }
         function calcATR(arr) {
-            if (!arr || arr.length < 2) return 0;
+            if (!arr || arr.length < 2) return null;
             var tr = [];
             for (var i = 1; i < arr.length; i++) {
                 if (arr[i] !== undefined && arr[i-1] !== undefined) {
@@ -204,17 +204,17 @@ function generateTimeLabels(count, tf) {
         }
         function calcADX(arr) { if (arr.length < 15) return 25; var plusDM = [], minusDM = [], tr = []; for (var i = 1; i < arr.length; i++) { var up = arr[i] - arr[i-1]; var down = arr[i-1] - arr[i]; plusDM.push(up > down && up > 0 ? up : 0); minusDM.push(down > up && down > 0 ? down : 0); tr.push(Math.abs(arr[i] - arr[i-1])); } var atr = tr.slice(-14).reduce(function(a,b){return a+b;},0)/14; var smoothPlusDM = plusDM.slice(-14).reduce(function(a,b){return a+b;},0)/14; var smoothMinusDM = minusDM.slice(-14).reduce(function(a,b){return a+b;},0)/14; var plusDI = (smoothPlusDM / atr) * 100; var minusDI = (smoothMinusDM / atr) * 100; var dx = Math.abs(plusDI - minusDI) / (plusDI + minusDI) * 100; return dx || 25; }
         function calcWilliams(arr) {
-            if (!arr || arr.length < 14) return -50;
+            if (!arr || arr.length < 14) return null;
             var recent = arr.slice(-14).filter(function(v) { return !isNaN(v) && v !== undefined; });
-            if (recent.length < 2) return -50;
+            if (recent.length < 2) return null;
             var high = Math.max.apply(null, recent), low = Math.min.apply(null, recent);
-            if (high === low) return -50;
+            if (high === low) return null;
             var result = -100 * (high - arr[arr.length-1]) / (high - low);
             return isNaN(result) ? -50 : result;
         }
         function calcOBV(arr) { var obv = 0; for (var i = 1; i < arr.length; i++) { if (arr[i] > arr[i-1]) obv += 1; else if (arr[i] < arr[i-1]) obv -= 1; } var trend = obv > 0 ? 'bull' : obv < 0 ? 'bear' : 'neut'; return { val: obv, trend: trend, signal: obv > 2 ? 'Buying pressure' : obv < -2 ? 'Selling pressure' : 'Neutral' }; }
         function calcMACDInd(arr) {
-            if (arr.length < 26) return { val: '0', trend: 'neut', signal: 'Insufficient data' };
+            if (!arr || arr.length < 26) return null;
             // Calculate proper EMA
             function calcEMA(data, period) {
                 var k = 2 / (period + 1);
@@ -325,7 +325,13 @@ function generateTimeLabels(count, tf) {
         function renderPortfolio() { if(!$('port-val')) return; var tot=0,chg=0; for(var i=0;i<data.length;i++){tot+=data[i].price*data[i].hold;chg+=data[i].price*data[i].hold*data[i].chg/100;} var pct=chg/tot*100; $('port-val').textContent='$'+fmt(tot);$('port-chg').textContent=(chg>=0?'+':'')+'$'+fmt(Math.abs(chg))+' ('+(pct>=0?'+':'')+pct.toFixed(2)+'%)';$('port-chg').className='portfolio-change '+(chg>=0?'up':'down');$('intel').textContent=Math.round(50+pct*2); }
         function renderTicker() { if(!$('ticker')) return; var h=''; for(var i=0;i<data.length*2;i++){var a=data[i%data.length];h+='<span class="ticker-item" onclick="selAsset(\''+a.sym+'\')"><span class="ticker-sym">'+a.sym+'</span> $'+fmt(a.price)+' <span style="color:'+(a.chg>=0?'var(--green)':'var(--red)')+'">'+(a.chg>=0?'+':'')+a.chg.toFixed(1)+'%</span></span>';} $('ticker').innerHTML=h+h; }
         function renderFG() { var avg=0; for(var i=0;i<data.length;i++)avg+=data[i].chg; avg/=data.length; var v=Math.max(10,Math.min(90,50-avg*2)); var lbl=v>=75?'GREED':v>=55?'OPTIMISM':v>=45?'NEUTRAL':v>=25?'FEAR':'EXTREME FEAR'; var col=v>=55?'var(--green)':v>=45?'var(--cyan)':v>=25?'var(--gold)':'var(--red)'; $('fg-val').textContent=Math.round(v);$('fg-val').style.color=col;$('fg-lbl').textContent=lbl;$('fg-lbl').style.color=col;$('fg-dot').style.left=v+'%'; }
-        function renderInds() { if(!sel || !$('inds')) return; var arr=history[sel.sym]||genHistory(sel.price,100); history[sel.sym]=arr; var rsi=calcRSI(arr),stoch=calcStochastic(arr),atr=calcATR(arr),adx=calcADX(arr),will=calcWilliams(arr),obv=calcOBV(arr),macd=calcMACDInd(arr); var h='<div class="ind-grid">'; h+='<div class="ind-card"><div class="ind-label">RSI (14)</div><div class="ind-val '+(rsi<35?'bull':rsi>70?'bear':'neut')+'">'+rsi.toFixed(1)+'</div><div class="ind-sub">'+(rsi<35?'Oversold':rsi>70?'Overbought':'Neutral')+'</div></div>'; h+='<div class="ind-card"><div class="ind-label">MACD</div><div class="ind-val '+macd.trend+'">'+macd.val+'</div><div class="ind-sub">'+macd.signal+'</div></div>'; h+='<div class="ind-card"><div class="ind-label">Stochastic</div><div class="ind-val '+(stoch.k>80?'bear':stoch.k<20?'bull':'neut')+'">'+stoch.k.toFixed(0)+'</div><div class="ind-sub">'+stoch.signal+'</div></div>'; h+='<div class="ind-card"><div class="ind-label">Trend</div><div class="ind-val '+(sel.chg>=0?'bull':'bear')+'">'+(sel.chg>=0?'Uptrend':'Downtrend')+'</div></div>'; h+='<div class="ind-card"><div class="ind-label">ATR</div><div class="ind-val neut">'+(atr/sel.price*100).toFixed(2)+'%</div><div class="ind-sub">Volatility</div></div>'; h+='<div class="ind-card"><div class="ind-label">ADX</div><div class="ind-val '+(adx>25?'bull':'neut')+'">'+adx.toFixed(1)+'</div><div class="ind-sub">'+(adx>25?'Strong':'Weak')+'</div></div>'; h+='<div class="ind-card"><div class="ind-label">Williams %R</div><div class="ind-val '+(will<-80?'bull':will>-20?'bear':'neut')+'">'+will.toFixed(1)+'</div><div class="ind-sub">'+(will<-80?'Oversold':will>-20?'Overbought':'Neutral')+'</div></div>'; h+='<div class="ind-card"><div class="ind-label">OBV</div><div class="ind-val '+obv.trend+'">'+obv.val+'</div><div class="ind-sub">'+obv.signal+'</div></div>'; h+='</div>'; $('inds').innerHTML=h; }
+        function renderInds() { 
+            if(!sel || !$('inds')) return;
+            var arr = history[sel.sym];
+            if(!arr || arr.length < 26) {
+                $('inds').innerHTML = '<div style="padding:20px;text-align:center;color:var(--cyan);">Loading indicators...</div>';
+                return;
+            } var rsi=calcRSI(arr),stoch=calcStochastic(arr),atr=calcATR(arr),adx=calcADX(arr),will=calcWilliams(arr),obv=calcOBV(arr),macd=calcMACDInd(arr); var h='<div class="ind-grid">'; h+='<div class="ind-card"><div class="ind-label">RSI (14)</div><div class="ind-val '+(rsi<35?'bull':rsi>70?'bear':'neut')+'">'+rsi.toFixed(1)+'</div><div class="ind-sub">'+(rsi<35?'Oversold':rsi>70?'Overbought':'Neutral')+'</div></div>'; h+='<div class="ind-card"><div class="ind-label">MACD</div><div class="ind-val '+macd.trend+'">'+macd.val+'</div><div class="ind-sub">'+macd.signal+'</div></div>'; h+='<div class="ind-card"><div class="ind-label">Stochastic</div><div class="ind-val '+(stoch.k>80?'bear':stoch.k<20?'bull':'neut')+'">'+stoch.k.toFixed(0)+'</div><div class="ind-sub">'+stoch.signal+'</div></div>'; h+='<div class="ind-card"><div class="ind-label">Trend</div><div class="ind-val '+(sel.chg>=0?'bull':'bear')+'">'+(sel.chg>=0?'Uptrend':'Downtrend')+'</div></div>'; h+='<div class="ind-card"><div class="ind-label">ATR</div><div class="ind-val neut">'+(atr/sel.price*100).toFixed(2)+'%</div><div class="ind-sub">Volatility</div></div>'; h+='<div class="ind-card"><div class="ind-label">ADX</div><div class="ind-val '+(adx>25?'bull':'neut')+'">'+adx.toFixed(1)+'</div><div class="ind-sub">'+(adx>25?'Strong':'Weak')+'</div></div>'; h+='<div class="ind-card"><div class="ind-label">Williams %R</div><div class="ind-val '+(will<-80?'bull':will>-20?'bear':'neut')+'">'+will.toFixed(1)+'</div><div class="ind-sub">'+(will<-80?'Oversold':will>-20?'Overbought':'Neutral')+'</div></div>'; h+='<div class="ind-card"><div class="ind-label">OBV</div><div class="ind-val '+obv.trend+'">'+obv.val+'</div><div class="ind-sub">'+obv.signal+'</div></div>'; h+='</div>'; $('inds').innerHTML=h; }
         function renderSectors() {
     var secs = sectorData.length > 0 ? sectorData : [
         {n:'Crypto',c:-6.2},{n:'Tech',c:1.8},{n:'AI',c:5.8},{n:'EV',c:-1.2},{n:'Finance',c:1.2},{n:'Cloud',c:3.4}
@@ -358,18 +364,26 @@ async function fetchSectors() {
         console.log('Sector fetch failed, using fallback data:', e);
     }
 }
-        function renderActions() { var arr=history[sel.sym]||genHistory(sel.price,100); var rsi=calcRSI(arr),stoch=calcStochastic(arr); var acts=[]; if(rsi<30||stoch.k<20)acts.push({t:'BUY',txt:sel.sym+' oversold'}); else if(rsi>70||stoch.k>80)acts.push({t:'SELL',txt:sel.sym+' overbought'}); else acts.push({t:'HOLD',txt:sel.sym+' neutral'}); acts.push({t:'HOLD',txt:'Review risk'}); var h=''; for(var i=0;i<acts.length;i++){h+='<div class="action"><span class="action-badge '+acts[i].t.toLowerCase()+'-badge">'+acts[i].t+'</span><span class="action-text">'+acts[i].txt+'</span></div>';} $('actions').innerHTML=h; }
+        function renderActions() {
+            var arr = history[sel.sym];
+            if(!arr || arr.length < 14) {
+                $('actions').innerHTML = '<div class="action">Loading actions...</div>';
+                return;
+            } var rsi=calcRSI(arr),stoch=calcStochastic(arr); var acts=[]; if(rsi<30||stoch.k<20)acts.push({t:'BUY',txt:sel.sym+' oversold'}); else if(rsi>70||stoch.k>80)acts.push({t:'SELL',txt:sel.sym+' overbought'}); else acts.push({t:'HOLD',txt:sel.sym+' neutral'}); acts.push({t:'HOLD',txt:'Review risk'}); var h=''; for(var i=0;i<acts.length;i++){h+='<div class="action"><span class="action-badge '+acts[i].t.toLowerCase()+'-badge">'+acts[i].t+'</span><span class="action-text">'+acts[i].txt+'</span></div>';} $('actions').innerHTML=h; }
         function renderPreds() {
-            var arr = history[sel.sym]||genHistory(sel.price,100);
-            history[sel.sym]=arr;
+            var arr = history[sel.sym];
+            if (!arr || arr.length < 20) {
+                if ($('preds')) $('preds').innerHTML = '<div style="padding:10px;color:var(--cyan);">Loading predictions...</div>';
+                return;
+            }
             var base = sel.price;
             var trend = sel.chg / 100; // Current trend as decimal
             var atr = calcATR(arr);
             var volatility = atr / base;
             // Predictions based on trend and volatility
-            var pred24h = base * (1 + trend * 0.1 + (Math.random() - 0.5) * volatility * 0.5);
-            var pred7d = base * (1 + trend * 0.5 + (Math.random() - 0.5) * volatility * 2);
-            var pred30d = base * (1 + trend * 2 + (Math.random() - 0.5) * volatility * 5);
+            var pred24h = base * (1 + trend * 0.1);
+            var pred7d = base * (1 + trend * 0.5 + volatility * 0.5);
+            var pred30d = base * (1 + trend * 2 + volatility * 1.5);
             var preds=[{l:'24H',v:pred24h},{l:'7D',v:pred7d},{l:'30D',v:pred30d}];
             var h=''; for(var i=0;i<preds.length;i++){h+='<div class="pred-row"><span>'+preds[i].l+'</span><span class="pred-val '+(preds[i].v>=base?'bull':'bear')+'" style="color:'+(preds[i].v>=base?'var(--green)':'var(--red)')+'">$'+fmt(preds[i].v)+'</span></div>';} $('preds').innerHTML=h;
         }
@@ -579,8 +593,8 @@ async function fetchSectors() {
         }
         function renderLine() {
             var len = timeframe==='1H'?24:timeframe==='1W'?168:timeframe==='1M'?720:timeframe==='3M'?2160:96;
-            var arr = history[sel.sym]||genHistory(sel.price,len);
-            history[sel.sym]=arr; var disp=arr.slice(-len), lbls=[], times=[];
+            var arr = history[sel.sym];
+            if(!arr || arr.length < len) return; var disp=arr.slice(-len), lbls=[], times=[];
             // Generate proper time labels based on timeframe
             times = generateTimeLabels(disp.length, timeframe);
             for(var i=0;i<disp.length;i++) {
@@ -1023,7 +1037,8 @@ function renderAlloc() { if(allocCt) allocCt.destroy(); allocCt = new Chart($('a
             showToast('Exported as ' + format.toUpperCase());
         };
 
-window.selAsset = function(s) { for(var i=0;i<data.length;i++) if(data[i].sym===s){sel=data[i];break;} $('chart-sym').textContent=s; if(!history[s])history[s]=genHistory(sel.price,100); renderAssets();renderInds();renderActions();renderAssetDetails();renderChart(); fetchOHLC(s).then(function(d){ if(d && d.length>0){ history[s]=d.map(function(c){return c.c;}); renderInds();renderActions(); } }); };
+window.selAsset = function(s) { for(var i=0;i<data.length;i++) if(data[i].sym===s){sel=data[i];break;} $('chart-sym').textContent=s; 
+if(!history[s])history[s]=null; renderAssets();renderInds();renderActions();renderAssetDetails();renderChart(); fetchOHLC(s).then(function(d){ if(d && d.length>0){ history[s]=d.map(function(c){return c.c;}); renderInds();renderActions(); } }); };
         window.toggleFav = function(s) { for(var i=0;i<data.length;i++) if(data[i].sym===s){data[i].fav=!data[i].fav;renderAssets();showToast(s+(data[i].fav?' added to':' removed from')+' favorites');break;} };
         window.setTf = function(tf) { timeframe=tf; var btns=document.querySelectorAll('.chart-btn'); for(var j=0;j<btns.length;j++){btns[j].classList.remove('on');} if(typeof event!=='undefined' && event.target) event.target.classList.add('on'); ohlcData={}; renderChart(); };
         window.toggleChartType = function() { chartType = chartType==='line'?'candle':'line'; $('chart-type-btn').textContent = chartType.toUpperCase(); renderChart(); };
@@ -1305,7 +1320,7 @@ window.deleteAlert = function(idx) { alerts.splice(idx,1); localStorage.setItem(
                     '💡 Diversification is the only free lunch in investing.'
                 ];
                 var resp = '💡 <strong>Trading Tips</strong><br><br>';
-                resp += tips[Math.floor(Math.random()*tips.length)]+'<br><br>';
+                resp += tips[0]+'<br><br>';
                 resp += 'Current RSI Strategy for '+sel.sym+': ';
                 if(rsi<30) resp += 'Consider accumulating - RSI suggests oversold conditions.';
                 else if(rsi>70) resp += 'Consider taking profits - RSI suggests overbought conditions.';
@@ -1336,7 +1351,7 @@ window.deleteAlert = function(idx) { alerts.splice(idx,1); localStorage.setItem(
                 aiHistory.push({role:'ai',text:resp,time:Date.now()});
                 renderAIChat();
                 saveChatHistory();
-            }, 1000+Math.random()*500);
+            }, 1000);
         };
 
         // Portfolio Management Functions
@@ -1428,8 +1443,7 @@ window.deleteAlert = function(idx) { alerts.splice(idx,1); localStorage.setItem(
             var colors = {crypto:'var(--cyan)',stock:'var(--gold)',commodity:'var(--orange)'};
             data.push({
                 sym:sym, name:name, type:type,
-                price:type==='crypto'?Math.random()*1000:type==='stock'?Math.random()*500:Math.random()*100,
-                chg:(Math.random()*10-5),
+                price:0,chg:0,
                 color:colors[type]||'var(--cyan)',
                 hold:0, fav:false,
                 mktCap:0, vol24h:0
