@@ -172,11 +172,46 @@ function generateTimeLabels(count, tf) {
     return labels;
 }
 
-        function calcRSI(arr) { var gains = 0, losses = 0, period = 14; for (var i = arr.length - period; i < arr.length; i++) { var diff = arr[i] - arr[i-1]; if (diff > 0) gains += diff; else losses -= diff; } var rs = losses === 0 ? 100 : gains / losses; return 100 - (100 / (1 + rs)); }
-        function calcStochastic(arr) { var recent = arr.slice(-14); var high = Math.max.apply(null, recent), low = Math.min.apply(null, recent); var k = high === low ? 50 : ((arr[arr.length-1] - low) / (high - low)) * 100; return { k: k, signal: k > 80 ? 'Overbought' : k < 20 ? 'Oversold' : 'Neutral' }; }
-        function calcATR(arr) { var tr = []; for (var i = 1; i < arr.length; i++) tr.push(Math.abs(arr[i] - arr[i-1])); return tr.slice(-14).reduce(function(a,b){return a+b;},0) / 14; }
+        function calcRSI(arr) {
+            if (!arr || arr.length < 15) return 50;
+            var gains = 0, losses = 0, period = 14;
+            for (var i = arr.length - period; i < arr.length; i++) {
+                if (arr[i] === undefined || arr[i-1] === undefined) continue;
+                var diff = arr[i] - arr[i-1];
+                if (diff > 0) gains += diff; else losses -= diff;
+            }
+            var rs = losses === 0 ? 100 : gains / losses;
+            return 100 - (100 / (1 + rs));
+        }
+        function calcStochastic(arr) {
+            if (!arr || arr.length < 14) return { k: 50, signal: 'Neutral' };
+            var recent = arr.slice(-14).filter(function(v) { return !isNaN(v) && v !== undefined; });
+            if (recent.length < 2) return { k: 50, signal: 'Neutral' };
+            var high = Math.max.apply(null, recent), low = Math.min.apply(null, recent);
+            var k = high === low ? 50 : ((arr[arr.length-1] - low) / (high - low)) * 100;
+            return { k: isNaN(k) ? 50 : k, signal: k > 80 ? 'Overbought' : k < 20 ? 'Oversold' : 'Neutral' };
+        }
+        function calcATR(arr) {
+            if (!arr || arr.length < 2) return 0;
+            var tr = [];
+            for (var i = 1; i < arr.length; i++) {
+                if (arr[i] !== undefined && arr[i-1] !== undefined) {
+                    tr.push(Math.abs(arr[i] - arr[i-1]));
+                }
+            }
+            if (tr.length === 0) return 0;
+            return tr.slice(-14).reduce(function(a,b){return a+b;},0) / Math.min(14, tr.length);
+        }
         function calcADX(arr) { if (arr.length < 15) return 25; var plusDM = [], minusDM = [], tr = []; for (var i = 1; i < arr.length; i++) { var up = arr[i] - arr[i-1]; var down = arr[i-1] - arr[i]; plusDM.push(up > down && up > 0 ? up : 0); minusDM.push(down > up && down > 0 ? down : 0); tr.push(Math.abs(arr[i] - arr[i-1])); } var atr = tr.slice(-14).reduce(function(a,b){return a+b;},0)/14; var smoothPlusDM = plusDM.slice(-14).reduce(function(a,b){return a+b;},0)/14; var smoothMinusDM = minusDM.slice(-14).reduce(function(a,b){return a+b;},0)/14; var plusDI = (smoothPlusDM / atr) * 100; var minusDI = (smoothMinusDM / atr) * 100; var dx = Math.abs(plusDI - minusDI) / (plusDI + minusDI) * 100; return dx || 25; }
-        function calcWilliams(arr) { var recent = arr.slice(-14); var high = Math.max.apply(null, recent), low = Math.min.apply(null, recent); return high === low ? -50 : -100 * (high - arr[arr.length-1]) / (high - low); }
+        function calcWilliams(arr) {
+            if (!arr || arr.length < 14) return -50;
+            var recent = arr.slice(-14).filter(function(v) { return !isNaN(v) && v !== undefined; });
+            if (recent.length < 2) return -50;
+            var high = Math.max.apply(null, recent), low = Math.min.apply(null, recent);
+            if (high === low) return -50;
+            var result = -100 * (high - arr[arr.length-1]) / (high - low);
+            return isNaN(result) ? -50 : result;
+        }
         function calcOBV(arr) { var obv = 0; for (var i = 1; i < arr.length; i++) { if (arr[i] > arr[i-1]) obv += 1; else if (arr[i] < arr[i-1]) obv -= 1; } var trend = obv > 0 ? 'bull' : obv < 0 ? 'bear' : 'neut'; return { val: obv, trend: trend, signal: obv > 2 ? 'Buying pressure' : obv < -2 ? 'Selling pressure' : 'Neutral' }; }
         function calcMACDInd(arr) {
             if (arr.length < 26) return { val: '0', trend: 'neut', signal: 'Insufficient data' };
