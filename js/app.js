@@ -202,7 +202,7 @@ function generateTimeLabels(count, tf) {
             if (tr.length === 0) return 0;
             return tr.slice(-14).reduce(function(a,b){return a+b;},0) / Math.min(14, tr.length);
         }
-        function calcADX(arr) { if (arr.length < 15) return 25; var plusDM = [], minusDM = [], tr = []; for (var i = 1; i < arr.length; i++) { var up = arr[i] - arr[i-1]; var down = arr[i-1] - arr[i]; plusDM.push(up > down && up > 0 ? up : 0); minusDM.push(down > up && down > 0 ? down : 0); tr.push(Math.abs(arr[i] - arr[i-1])); } var atr = tr.slice(-14).reduce(function(a,b){return a+b;},0)/14; var smoothPlusDM = plusDM.slice(-14).reduce(function(a,b){return a+b;},0)/14; var smoothMinusDM = minusDM.slice(-14).reduce(function(a,b){return a+b;},0)/14; var plusDI = (smoothPlusDM / atr) * 100; var minusDI = (smoothMinusDM / atr) * 100; var dx = Math.abs(plusDI - minusDI) / (plusDI + minusDI) * 100; return dx || 25; }
+        function calcADX(arr) { if (!arr || arr.length < 15) return null; var plusDM = [], minusDM = [], tr = []; for (var i = 1; i < arr.length; i++) { var up = arr[i] - arr[i-1]; var down = arr[i-1] - arr[i]; plusDM.push(up > down && up > 0 ? up : 0); minusDM.push(down > up && down > 0 ? down : 0); tr.push(Math.abs(arr[i] - arr[i-1])); } var atr = tr.slice(-14).reduce(function(a,b){return a+b;},0)/14; var smoothPlusDM = plusDM.slice(-14).reduce(function(a,b){return a+b;},0)/14; var smoothMinusDM = minusDM.slice(-14).reduce(function(a,b){return a+b;},0)/14; var plusDI = (smoothPlusDM / atr) * 100; var minusDI = (smoothMinusDM / atr) * 100; var dx = Math.abs(plusDI - minusDI) / (plusDI + minusDI) * 100; return dx || 25; }
         function calcWilliams(arr) {
             if (!arr || arr.length < 14) return null;
             var recent = arr.slice(-14).filter(function(v) { return !isNaN(v) && v !== undefined; });
@@ -212,7 +212,7 @@ function generateTimeLabels(count, tf) {
             var result = -100 * (high - arr[arr.length-1]) / (high - low);
             return isNaN(result) ? -50 : result;
         }
-        function calcOBV(arr) { var obv = 0; for (var i = 1; i < arr.length; i++) { if (arr[i] > arr[i-1]) obv += 1; else if (arr[i] < arr[i-1]) obv -= 1; } var trend = obv > 0 ? 'bull' : obv < 0 ? 'bear' : 'neut'; return { val: obv, trend: trend, signal: obv > 2 ? 'Buying pressure' : obv < -2 ? 'Selling pressure' : 'Neutral' }; }
+        function calcOBV(arr) { if (!arr || arr.length < 2) return null; var obv = 0; for (var i = 1; i < arr.length; i++) { if (arr[i] > arr[i-1]) obv += 1; else if (arr[i] < arr[i-1]) obv -= 1; } var trend = obv > 0 ? 'bull' : obv < 0 ? 'bear' : 'neut'; return { val: obv, trend: trend, signal: obv > 2 ? 'Buying pressure' : obv < -2 ? 'Selling pressure' : 'Neutral' }; }
         function calcMACDInd(arr) {
             if (!arr || arr.length < 26) return null;
             // Calculate proper EMA
@@ -233,6 +233,22 @@ function generateTimeLabels(count, tf) {
             return { val: macdPct.toFixed(2) + '%', trend: trend, signal: macd > 0 ? 'Bullish' : 'Bearish' };
         }
         
+        // MACD for AI responses - returns numeric values
+        function calcMACD(arr) {
+            if (!arr || arr.length < 26) return null;
+            var k12 = 2 / 13;
+            var k26 = 2 / 27;
+            var ema12 = arr[0];
+            var ema26 = arr[0];
+            for (var i = 1; i < arr.length; i++) {
+                ema12 = arr[i] * k12 + ema12 * (1 - k12);
+                ema26 = arr[i] * k26 + ema26 * (1 - k26);
+            }
+            var macdVal = ema12 - ema26;
+            var signal = macdVal * 0.2 + macdVal * 0.8;
+            return { macd: macdVal, signal: signal };
+        }
+
         // Auth
         window.showLogin = function() { $('loading').style.display='none'; $('dashboard').style.display='none'; $('auth-login').style.display='flex'; $('auth-signup').style.display='none'; $('auth-reset').style.display='none'; };
         window.showSignup = function() { $('auth-login').style.display='none'; $('auth-signup').style.display='flex'; $('auth-reset').style.display='none'; };
@@ -331,7 +347,24 @@ function generateTimeLabels(count, tf) {
             if(!arr || arr.length < 26) {
                 $('inds').innerHTML = '<div style="padding:20px;text-align:center;color:var(--cyan);">Loading indicators...</div>';
                 return;
-            } var rsi=calcRSI(arr),stoch=calcStochastic(arr),atr=calcATR(arr),adx=calcADX(arr),will=calcWilliams(arr),obv=calcOBV(arr),macd=calcMACDInd(arr); var h='<div class="ind-grid">'; h+='<div class="ind-card"><div class="ind-label">RSI (14)</div><div class="ind-val '+(rsi<35?'bull':rsi>70?'bear':'neut')+'">'+rsi.toFixed(1)+'</div><div class="ind-sub">'+(rsi<35?'Oversold':rsi>70?'Overbought':'Neutral')+'</div></div>'; h+='<div class="ind-card"><div class="ind-label">MACD</div><div class="ind-val '+macd.trend+'">'+macd.val+'</div><div class="ind-sub">'+macd.signal+'</div></div>'; h+='<div class="ind-card"><div class="ind-label">Stochastic</div><div class="ind-val '+(stoch.k>80?'bear':stoch.k<20?'bull':'neut')+'">'+stoch.k.toFixed(0)+'</div><div class="ind-sub">'+stoch.signal+'</div></div>'; h+='<div class="ind-card"><div class="ind-label">Trend</div><div class="ind-val '+(sel.chg>=0?'bull':'bear')+'">'+(sel.chg>=0?'Uptrend':'Downtrend')+'</div></div>'; h+='<div class="ind-card"><div class="ind-label">ATR</div><div class="ind-val neut">'+(atr/sel.price*100).toFixed(2)+'%</div><div class="ind-sub">Volatility</div></div>'; h+='<div class="ind-card"><div class="ind-label">ADX</div><div class="ind-val '+(adx>25?'bull':'neut')+'">'+adx.toFixed(1)+'</div><div class="ind-sub">'+(adx>25?'Strong':'Weak')+'</div></div>'; h+='<div class="ind-card"><div class="ind-label">Williams %R</div><div class="ind-val '+(will<-80?'bull':will>-20?'bear':'neut')+'">'+will.toFixed(1)+'</div><div class="ind-sub">'+(will<-80?'Oversold':will>-20?'Overbought':'Neutral')+'</div></div>'; h+='<div class="ind-card"><div class="ind-label">OBV</div><div class="ind-val '+obv.trend+'">'+obv.val+'</div><div class="ind-sub">'+obv.signal+'</div></div>'; h+='</div>'; $('inds').innerHTML=h; }
+            } var rsi=calcRSI(arr),stoch=calcStochastic(arr),atr=calcATR(arr),adx=calcADX(arr),will=calcWilliams(arr),obv=calcOBV(arr),macd=calcMACDInd(arr); var h='<div class="ind-grid">';
+            // RSI
+            h+='<div class="ind-card"><div class="ind-label">RSI (14)</div><div class="ind-val '+(rsi===null?'neut':rsi<35?'bull':rsi>70?'bear':'neut')+'">'+(rsi===null?'N/A':rsi.toFixed(1))+'</div><div class="ind-sub">'+(rsi===null?'Insufficient data':rsi<35?'Oversold':rsi>70?'Overbought':'Neutral')+'</div></div>';
+            // MACD
+            h+='<div class="ind-card"><div class="ind-label">MACD</div><div class="ind-val '+(macd===null?'neut':macd.trend)+'">'+(macd===null?'N/A':macd.val)+'</div><div class="ind-sub">'+(macd===null?'Insufficient data':macd.signal)+'</div></div>';
+            // Stochastic
+            h+='<div class="ind-card"><div class="ind-label">Stochastic</div><div class="ind-val '+(stoch===null?'neut':stoch.k>80?'bear':stoch.k<20?'bull':'neut')+'">'+(stoch===null?'N/A':stoch.k.toFixed(0))+'</div><div class="ind-sub">'+(stoch===null?'Insufficient data':stoch.signal)+'</div></div>';
+            // Trend
+            h+='<div class="ind-card"><div class="ind-label">Trend</div><div class="ind-val '+(sel.chg>=0?'bull':'bear')+'">'+(sel.chg>=0?'Uptrend':'Downtrend')+'</div></div>';
+            // ATR
+            h+='<div class="ind-card"><div class="ind-label">ATR</div><div class="ind-val neut">'+(atr===null?'N/A':(atr/sel.price*100).toFixed(2)+'%')+'</div><div class="ind-sub">'+(atr===null?'Insufficient data':'Volatility')+'</div></div>';
+            // ADX
+            h+='<div class="ind-card"><div class="ind-label">ADX</div><div class="ind-val '+(adx===null?'neut':adx>25?'bull':'neut')+'">'+(adx===null?'N/A':adx.toFixed(1))+'</div><div class="ind-sub">'+(adx===null?'Insufficient data':(adx>25?'Strong':'Weak'))+'</div></div>';
+            // Williams %R
+            h+='<div class="ind-card"><div class="ind-label">Williams %R</div><div class="ind-val '+(will===null?'neut':will<-80?'bull':will>-20?'bear':'neut')+'">'+(will===null?'N/A':will.toFixed(1))+'</div><div class="ind-sub">'+(will===null?'Insufficient data':(will<-80?'Oversold':will>-20?'Overbought':'Neutral'))+'</div></div>';
+            // OBV
+            h+='<div class="ind-card"><div class="ind-label">OBV</div><div class="ind-val '+(obv===null?'neut':obv.trend)+'">'+(obv===null?'N/A':obv.val)+'</div><div class="ind-sub">'+(obv===null?'Insufficient data':obv.signal)+'</div></div>';
+            h+='</div>'; $('inds').innerHTML=h; }
         function renderSectors() {
     var secs = sectorData.length > 0 ? sectorData : [
         {n:'Crypto',c:-6.2},{n:'Tech',c:1.8},{n:'AI',c:5.8},{n:'EV',c:-1.2},{n:'Finance',c:1.2},{n:'Cloud',c:3.4}
@@ -369,7 +402,7 @@ async function fetchSectors() {
             if(!arr || arr.length < 14) {
                 $('actions').innerHTML = '<div class="action">Loading actions...</div>';
                 return;
-            } var rsi=calcRSI(arr),stoch=calcStochastic(arr); var acts=[]; if(rsi<30||stoch.k<20)acts.push({t:'BUY',txt:sel.sym+' oversold'}); else if(rsi>70||stoch.k>80)acts.push({t:'SELL',txt:sel.sym+' overbought'}); else acts.push({t:'HOLD',txt:sel.sym+' neutral'}); acts.push({t:'HOLD',txt:'Review risk'}); var h=''; for(var i=0;i<acts.length;i++){h+='<div class="action"><span class="action-badge '+acts[i].t.toLowerCase()+'-badge">'+acts[i].t+'</span><span class="action-text">'+acts[i].txt+'</span></div>';} $('actions').innerHTML=h; }
+            } var rsi=calcRSI(arr),stoch=calcStochastic(arr); var acts=[]; if(rsi===null||stoch===null){acts.push({t:'HOLD',txt:sel.sym+' data loading'});}else if(rsi<30||stoch.k<20)acts.push({t:'BUY',txt:sel.sym+' oversold'}); else if(rsi>70||stoch.k>80)acts.push({t:'SELL',txt:sel.sym+' overbought'}); else acts.push({t:'HOLD',txt:sel.sym+' neutral'}); acts.push({t:'HOLD',txt:'Review risk'}); var h=''; for(var i=0;i<acts.length;i++){h+='<div class="action"><span class="action-badge '+acts[i].t.toLowerCase()+'-badge">'+acts[i].t+'</span><span class="action-text">'+acts[i].txt+'</span></div>';} $('actions').innerHTML=h; }
         function renderPreds() {
             var arr = history[sel.sym];
             if (!arr || arr.length < 20) {
@@ -379,6 +412,7 @@ async function fetchSectors() {
             var base = sel.price;
             var trend = sel.chg / 100; // Current trend as decimal
             var atr = calcATR(arr);
+            if(atr === null) { if ($('preds')) $('preds').innerHTML = '<div style="padding:10px;color:var(--cyan);">Insufficient data for predictions</div>'; return; }
             var volatility = atr / base;
             // Predictions based on trend and volatility
             var pred24h = base * (1 + trend * 0.1);
@@ -438,7 +472,7 @@ async function fetchSectors() {
                     lbls.push(i); vols.push(Math.abs((arr[i]-arr[i-1])/arr[i-1]*1000)+50);
                 }
             } else {
-                candles = genCandles(sel.price,100);
+                candles = []; showToast('Chart data unavailable');
                 // Generate proper time labels for fallback candles
                 times = generateTimeLabels(100, timeframe);
                 for(var i=0;i<100;i++){ lbls.push(i); vols.push(Math.abs((arr[i]-arr[i-1])/arr[i-1]*1000)+50); }
@@ -1164,7 +1198,7 @@ window.deleteAlert = function(idx) { alerts.splice(idx,1); localStorage.setItem(
         function renderScreener() {
             $('screener-filters').innerHTML = '<button class="screener-filter'+(screenerFilters.rsi?' on':'')+'" onclick="toggleScreenerFilter(\'rsi\')">RSI<30</button><button class="screener-filter'+(screenerFilters.volume?' on':'')+'" onclick="toggleScreenerFilter(\'volume\')">High Vol</button><button class="screener-filter'+(screenerFilters.change?' on':'')+'" onclick="toggleScreenerFilter(\'change\')">+5% Day</button>';
             var results = data.filter(function(a) {
-                if(screenerFilters.rsi) { var arr=history[a.sym]||genHistory(a.price,100); history[a.sym]=arr; if(calcRSI(arr)>=30) return false; }
+                if(screenerFilters.rsi) { var arr=history[a.sym]; if(!arr||arr.length<15) return true; if(calcRSI(arr)>=30) return false; }
                 if(screenerFilters.volume && a.vol24h<1e9) return false;
                 if(screenerFilters.change && a.chg<5) return false;
                 return true;
@@ -1255,11 +1289,11 @@ window.deleteAlert = function(idx) { alerts.splice(idx,1); localStorage.setItem(
 
         function generateAIResponse(q) {
             q = q.toLowerCase();
-            var rsi = calcRSI(history[sel.sym]||genHistory(sel.price,100));
+            var histArr = history[sel.sym]; var rsi = histArr ? calcRSI(histArr) : null;
             var tot = 0, chg = 0;
             for(var i=0;i<data.length;i++){tot+=data[i].price*data[i].hold;chg+=data[i].price*data[i].hold*data[i].chg/100;}
             var pct = tot>0 ? (chg/tot*100) : 0;
-            var macd = calcMACD(history[sel.sym]||genHistory(sel.price,100));
+            var macd = histArr ? calcMACD(histArr) : null;
             
             if(q.includes('portfolio') || q.includes('summary')) {
                 var top = data.slice().sort(function(a,b){return(b.price*b.hold)-(a.price*a.hold);})[0];
@@ -1322,14 +1356,16 @@ window.deleteAlert = function(idx) { alerts.splice(idx,1); localStorage.setItem(
                 var resp = '💡 <strong>Trading Tips</strong><br><br>';
                 resp += tips[0]+'<br><br>';
                 resp += 'Current RSI Strategy for '+sel.sym+': ';
-                if(rsi<30) resp += 'Consider accumulating - RSI suggests oversold conditions.';
+                if(rsi === null) resp += 'Insufficient data for RSI analysis.';
+                else if(rsi<30) resp += 'Consider accumulating - RSI suggests oversold conditions.';
                 else if(rsi>70) resp += 'Consider taking profits - RSI suggests overbought conditions.';
                 else resp += 'Hold current position - RSI in neutral territory.';
                 return resp;
             }
             else {
                 var resp = 'Based on current conditions:<br><br>';
-                resp += '• '+sel.sym+' RSI: '+rsi.toFixed(1)+' ('+(rsi<30?'oversold':rsi>70?'overbought':'neutral')+')<br>';
+                if(rsi === null) resp += '• '+sel.sym+' RSI: N/A (Insufficient data)<br>';
+                else resp += '• '+sel.sym+' RSI: '+rsi.toFixed(1)+' ('+(rsi<30?'oversold':rsi>70?'overbought':'neutral')+')<br>';
                 resp += '• Portfolio: '+$('port-chg').textContent+' today<br>';
                 resp += '• Market: '+(pct>=0?'Positive':'Negative')+' momentum<br><br>';
                 resp += 'Ask me about: portfolio, analysis, market, risks, or tips!';
