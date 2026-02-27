@@ -485,7 +485,68 @@ async function fetchSectors() {
             var preds=[{l:'24H',v:pred24h},{l:'7D',v:pred7d},{l:'30D',v:pred30d}];
             var h=''; for(var i=0;i<preds.length;i++){h+='<div class="pred-row"><span>'+preds[i].l+'</span><span class="pred-val '+(preds[i].v>=base?'bull':'bear')+'" style="color:'+(preds[i].v>=base?'var(--green)':'var(--red)')+'">$'+fmt(preds[i].v)+'</span></div>';} $('preds').innerHTML=h;
         }
-        function renderWeights() { var w=[{s:'BTC',w:28,c:'var(--cyan)'},{s:'ETH',w:18,c:'var(--purple)'},{s:'NVDA',w:16,c:'var(--green)'},{s:'AAPL',w:14,c:'var(--gold)'},{s:'MSFT',w:12,c:'var(--cyan)'},{s:'GOOGL',w:8,c:'var(--red)'},{s:'TSLA',w:4,c:'var(--purple)'}]; var h=''; for(var i=0;i<w.length;i++){h+='<div class="weight-row"><span class="weight-sym">'+w[i].s+'</span><div class="weight-bar"><div class="weight-fill" style="width:'+w[i].w+'%;background:'+w[i].c+'"></div></div><span class="weight-pct">'+w[i].w+'%</span></div>';} $('weights').innerHTML=h; }
+        function renderWeights() {
+            // Real Risk Parity - based on actual holdings and volatility
+            var held = data.filter(function(a) { return a.hold > 0; });
+            if(held.length === 0) {
+                $('weights').innerHTML = '<div class="empty-state">No holdings to calculate risk parity</div>';
+                return;
+            }
+            
+            // Calculate volatility for each held asset
+            var volatilities = [];
+            for(var i = 0; i < held.length; i++) {
+                var arr = history[held[i].sym];
+                if(arr && arr.length > 14) {
+                    // Calculate 14-day annualized volatility
+                    var returns = [];
+                    for(var j = 1; j < arr.length; j++) {
+                        returns.push((arr[j] - arr[j-1]) / arr[j-1]);
+                    }
+                    var mean = returns.reduce(function(a,b){return a+b;},0) / returns.length;
+                    var variance = returns.reduce(function(a,b){return a + Math.pow(b - mean, 2);},0) / returns.length;
+                    var vol = Math.sqrt(variance) * Math.sqrt(252) * 100; // Annualized %
+                    volatilities.push({sym: held[i].sym, vol: vol, color: held[i].color, hold: held[i].hold});
+                } else {
+                    // Fallback volatility estimates if no history
+                    var defaultVol = held[i].type === 'crypto' ? 80 : 30;
+                    volatilities.push({sym: held[i].sym, vol: defaultVol, color: held[i].color, hold: held[i].hold});
+                }
+            }
+            
+            // Risk Parity: Weight inversely proportional to volatility
+            // Lower volatility = Higher weight (equal risk contribution)
+            var invVols = volatilities.map(function(v) { return {sym: v.sym, invVol: 1/v.vol, color: v.color, hold: v.hold}; });
+            var totalInvVol = invVols.reduce(function(a,b){return a + b.invVol;}, 0);
+            
+            // Calculate risk-adjusted weights (sum to 100%)
+            var weights = invVols.map(function(v) {
+                return {
+                    sym: v.sym,
+                    w: (v.invVol / totalInvVol * 100).toFixed(1),
+                    color: v.color,
+                    hold: v.hold
+                };
+            });
+            
+            // Sort by weight descending
+            weights.sort(function(a,b){return b.w - a.w;});
+            
+            // Render
+            var h = '';
+            for(var i = 0; i < weights.length; i++) {
+                h += '<div class="weight-row">';
+                h += '<span class="weight-sym">'+weights[i].sym+'</span>';
+                h += '<div class="weight-bar"><div class="weight-fill" style="width:'+weights[i].w+'%;background:'+weights[i].color+'"></div></div>';
+                h += '<span class="weight-pct">'+weights[i].w+'%</span>';
+                h += '</div>';
+            }
+            // Add explanation
+            h += '<div class="weight-info" style="margin-top:12px;font-size:0.7rem;color:#5a6a7e;">';
+            h += '<em>Risk parity weights based on inverse volatility</em>';
+            h += '</div>';
+            $('weights').innerHTML = h;
+        }
 
         var ohlcData = {};
         async function fetchOHLC(sym) {
