@@ -119,7 +119,16 @@ var CONFIG = {
 
         
         function fmt(n) { return n >= 1000 ? n.toLocaleString('en-US',{maximumFractionDigits:0}) : n.toFixed(n < 1 ? 4 : 2); }
-        function genHistory(base, len) { var arr=[]; var p=base; for(var i=0;i<len;i++){ p=p*(1+(Math.random()-0.5)*0.02); arr.push(p); } return arr; }
+        function genHistory(base, len) { 
+            // Generate history that ENDS at current price (not starts from it)
+            var arr = new Array(len);
+            arr[len-1] = base; // Last point is current price
+            for(var i = len-2; i >= 0; i--) { 
+                // Walk backwards with random changes
+                arr[i] = arr[i+1] * (1 + (Math.random() - 0.5) * 0.02);
+            }
+            return arr; 
+        }
         
 
         // Flash price cell on change (Phase 2)
