@@ -360,7 +360,7 @@ function generateTimeLabels(count, tf) {
                 for(var i = 0; i < data.length; i++) {
                     var asset = data[i];
                     if(!history[asset.sym] && asset.price > 0) {
-                        history[asset.sym] = genHistory(asset.price, 200);
+                        history[asset.sym] = genHistory(asset.price, 2200);
                     }
                 }
                 $('status-dot').className='status-dot';$('status-text').textContent='LIVE';$('data-badge').textContent='LIVE';$('data-badge').className='panel-badge live';$('db-status').innerHTML='<span style="color:var(--purple)">[DB]</span> SYNCED';
@@ -505,13 +505,13 @@ async function fetchSectors() {
                     candles.push({o:c[1],h:c[2],l:c[3],c:c[4]});
                     var d=new Date(c[0]);
                     times.push(d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}));
-                    lbls.push(i); vols.push(Math.abs((arr[i]-arr[i-1])/arr[i-1]*1000)+50);
+                    lbls.push(i); vols.push(Math.abs((c.c-c.o)/c.o*1000)+50);
                 }
             } else {
                 candles = []; showToast('Chart data unavailable');
                 // Generate proper time labels for fallback candles
                 times = generateTimeLabels(100, timeframe);
-                for(var i=0;i<100;i++){ lbls.push(i); vols.push(Math.abs((arr[i]-arr[i-1])/arr[i-1]*1000)+50); }
+                for(var i=0;i<100;i++){ lbls.push(i); vols.push(50+Math.random()*100); }
             }
             // Update price display (always show sel.price)
             $('chart-price').textContent='$'+fmt(sel.price);
