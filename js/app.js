@@ -489,11 +489,32 @@ async function fetchSectors() {
             // Real Risk Parity - based on actual holdings and volatility
             var held = data.filter(function(a) { return a.hold > 0; });
             if(held.length === 0) {
-                $('weights').innerHTML = '<div class="empty-state">No holdings to calculate risk parity</div>';
+                $('weights').innerHTML = '<div class="empty-state">Add holdings to see risk parity allocation</div>';
                 return;
             }
             
             // Calculate volatility for each held asset
+            var volData = [];
+            for(var i = 0; i < held.length; i++) {
+                var arr = history[held[i].sym];
+                var vol = 0;
+                if(arr && arr.length > 14) {
+                    // Calculate 14-day annualized volatility
+                    var returns = [];
+                    for(var j = 1; j < arr.length; j++) {
+                        returns.push((arr[j] - arr[j-1]) / arr[j-1]);
+                    }
+                    var mean = returns.reduce(function(a,b){return a+b;},0) / returns.length;
+                    var variance = returns.reduce(function(a,b){return a + Math.pow(b - mean, 2);},0) / returns.length;
+                    vol = Math.sqrt(variance) * Math.sqrt(252) * 100; // Annualized %
+                } else {
+                    // Fallback volatility estimates if no history
+                    vol = held[i].type === 'crypto' ? 80 : 30;
+                }
+                volData.push({sym: held[i].sym, vol: vol.toFixed(1), color: held[i].color, hold: held[i].hold});
+            }
+            
+            // Risk Parity: Weight inversely proportional to volatility
             var volatilities = [];
             for(var i = 0; i < held.length; i++) {
                 var arr = history[held[i].sym];
@@ -534,16 +555,20 @@ async function fetchSectors() {
             
             // Render
             var h = '';
+            h += '<div class="risk-parity-info" style="margin-bottom:8px;font-size:0.7rem;color:#5a6a7e;">';
+            h += '<span title="Lower volatility = Higher weight for equal risk contribution">💡 Inverse volatility weighting</span>';
+            h += '</div>';
             for(var i = 0; i < weights.length; i++) {
-                h += '<div class="weight-row">';
+                var volInfo = volData.find(function(v){return v.sym===weights[i].sym;});
+                var volPct = volInfo ? volInfo.vol : 'N/A';
+                h += '<div class="weight-row" title="Volatility: '+volPct+'% | Weight: '+weights[i].w+'%">';
                 h += '<span class="weight-sym">'+weights[i].sym+'</span>';
                 h += '<div class="weight-bar"><div class="weight-fill" style="width:'+weights[i].w+'%;background:'+weights[i].color+'"></div></div>';
                 h += '<span class="weight-pct">'+weights[i].w+'%</span>';
                 h += '</div>';
             }
-            // Add explanation
-            h += '<div class="weight-info" style="margin-top:12px;font-size:0.7rem;color:#5a6a7e;">';
-            h += '<em>Risk parity weights based on inverse volatility</em>';
+            h += '<div class="weight-volatility-legend" style="margin-top:8px;font-size:0.65rem;color:#5a6a7e;">';
+            h += '📈 Crypto typically: 70-90% vol | 📊 Stocks typically: 20-40% vol';
             h += '</div>';
             $('weights').innerHTML = h;
         }
