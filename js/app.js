@@ -637,12 +637,20 @@ async function fetchSectors() {
                             borderWidth:1,
                             titleFont:{size:12,weight:'bold'},
                             callbacks:{
-                                title:function(ctx){return ctx[0].label;},
+                                title:function(ctx){
+                                    var idx = ctx[0].dataIndex;
+                                    var label = times[idx] || ctx[0].label;
+                                    return label;
+                                },
                                 label:function(ctx){
                                     if(ctx.dataset.label && ctx.dataset.label.includes('SMA')) return ctx.dataset.label+': $'+(ctx.raw?ctx.raw.toFixed(2):'N/A');
                                     if(ctx.dataset.label && ctx.dataset.label.includes('EMA')) return ctx.dataset.label+': $'+(ctx.raw?ctx.raw.toFixed(2):'N/A');
-                                    var c=candles[ctx.dataIndex];
-                                    return 'O:$'+c.o.toFixed(2)+' H:$'+c.h.toFixed(2)+' L:$'+c.l.toFixed(2)+' C:$'+c.c.toFixed(2);
+                                    var idx=ctx.dataIndex;
+                                    if(idx >=0 && idx < candles.length){
+                                        var c=candles[idx];
+                                        return 'O:$'+c.o.toFixed(2)+' H:$'+c.h.toFixed(2)+' L:$'+c.l.toFixed(2)+' C:$'+c.c.toFixed(2);
+                                    }
+                                    return '';
                                 }
                             }
                         }
