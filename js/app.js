@@ -105,20 +105,20 @@ var CONFIG = {
         var history = {}, isLightTheme = false, isFullscreen = false;
         
         data = [
-            {sym:'BTC',name:'Bitcoin',type:'crypto',price:65000,chg:2.5,color:'var(--cyan)',hold:0.5,fav:true,mktCap:1.2e12,vol24h:28e9,supply:19.5e6},
-            {sym:'ETH',name:'Ethereum',type:'crypto',price:3500,chg:1.8,color:'var(--purple)',hold:5,fav:true,mktCap:420e9,vol24h:15e9,supply:120e6},
-            {sym:'SOL',name:'Solana',type:'crypto',price:150,chg:4.2,color:'var(--green)',hold:20,fav:false,mktCap:65e9,vol24h:3e9,supply:433e6},
-            {sym:'AAPL',name:'Apple',type:'stock',price:248.32,chg:1.5,color:'var(--gold)',hold:25,fav:false,mktCap:3e12,vol24h:50e6,supply:15.5e9,pe:28,div:0.52},
-            {sym:'NVDA',name:'NVIDIA',type:'stock',price:892.45,chg:4.2,color:'#76b900',hold:10,fav:true,mktCap:2.2e12,vol24h:45e6,supply:2.47e9,pe:65,div:0.04},
-            {sym:'TSLA',name:'Tesla',type:'stock',price:356.78,chg:-1.2,color:'#c00',hold:10,fav:false,mktCap:1.1e12,vol24h:90e6,supply:3.2e9,pe:45,div:0},
-            {sym:'GOOGL',name:'Alphabet',type:'stock',price:175.23,chg:0.8,color:'#4285f4',hold:30,fav:false,mktCap:2.1e12,vol24h:25e6,supply:12.5e9,pe:22,div:0},
-            {sym:'MSFT',name:'Microsoft',type:'stock',price:415.67,chg:1.1,color:'#00a4ef',hold:20,fav:true,mktCap:3.1e12,vol24h:20e6,supply:7.4e9,pe:35,div:0.75}
+            {sym:'BTC',name:'Bitcoin',type:'crypto',price:0,chg:0,color:'var(--cyan)',hold:0.5,fav:true,mktCap:0,vol24h:0,supply:19.5e6},
+            {sym:'ETH',name:'Ethereum',type:'crypto',price:0,chg:0,color:'var(--purple)',hold:5,fav:true,mktCap:0,vol24h:0,supply:120e6},
+            {sym:'SOL',name:'Solana',type:'crypto',price:0,chg:0,color:'var(--green)',hold:20,fav:false,mktCap:0,vol24h:0,supply:433e6},
+            {sym:'AAPL',name:'Apple',type:'stock',price:0,chg:0,color:'var(--gold)',hold:25,fav:false,mktCap:0,vol24h:0,supply:15.5e9,pe:28,div:0.52},
+            {sym:'NVDA',name:'NVIDIA',type:'stock',price:0,chg:0,color:'#76b900',hold:10,fav:true,mktCap:0,vol24h:0,supply:2.47e9,pe:65,div:0.04},
+            {sym:'TSLA',name:'Tesla',type:'stock',price:0,chg:0,color:'#c00',hold:10,fav:false,mktCap:0,vol24h:0,supply:3.2e9,pe:45,div:0},
+            {sym:'GOOGL',name:'Alphabet',type:'stock',price:0,chg:0,color:'#4285f4',hold:30,fav:false,mktCap:0,vol24h:0,supply:12.5e9,pe:22,div:0},
+            {sym:'MSFT',name:'Microsoft',type:'stock',price:0,chg:0,color:'#00a4ef',hold:20,fav:true,mktCap:0,vol24h:0,supply:7.4e9,pe:35,div:0.75}
         ];
         sel = data[0];
         
         function fmt(n) { return n >= 1000 ? n.toLocaleString('en-US',{maximumFractionDigits:0}) : n.toFixed(n < 1 ? 4 : 2); }
-        function genHistory(base, len) { return null; }
-        function genCandles(base, len) { return null; }
+        function genHistory(base, len) { var arr=[]; var p=base; for(var i=0;i<len;i++){ p=p*(1+(Math.random()-0.5)*0.02); arr.push(p); } return arr; }
+        function genCandles(base, len) { var arr=[]; var p=base; for(var i=0;i<len;i++){ var o=p; p=p*(1+(Math.random()-0.5)*0.02); var c=p; var h=Math.max(o,c)*(1+Math.random()*0.01); var l=Math.min(o,c)*(1-Math.random()*0.01); arr.push({o:o,h:h,l:l,c:c}); } return arr; }
         
 // Generate time labels based on timeframe going back from now
 function generateTimeLabels(count, tf) {
