@@ -902,9 +902,13 @@ function renderAlloc() { if(allocCt) allocCt.destroy(); allocCt = new Chart($('a
                     var c;
                     if(i===j) c = 1;
                     else {
-                        // Calculate correlation between assets
-                        var a1 = data[i], a2 = data[j];
-                        c = ((a1.chg * a2.chg) / (Math.abs(a1.chg) * Math.abs(a2.chg) || 1) * 0.5 + 0.5 * (a1.chg > 0 === a2.chg > 0 ? 0.3 : -0.3)).toFixed(2);
+                        // Calculate correlation between assets - find by symbol, not index
+                        var a1 = data.find(function(a){return a.sym===syms[i];});
+                        var a2 = data.find(function(a){return a.sym===syms[j];});
+                        if(!a1 || !a2) { c = 0; }
+                        else {
+                            c = ((a1.chg * a2.chg) / (Math.abs(a1.chg) * Math.abs(a2.chg) || 1) * 0.5 + 0.5 * (a1.chg > 0 === a2.chg > 0 ? 0.3 : -0.3)).toFixed(2);
+                        }
                     }
                     var col = c>0.5?'rgba(0,255,136,'+(c/2)+')':c<-0.5?'rgba(255,51,102,'+(Math.abs(c)/2)+')':'rgba(100,100,100,0.3)';
                     h += '<div class="corr-cell" style="background:'+col+')">'+c+'</div>';
