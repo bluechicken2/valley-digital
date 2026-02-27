@@ -730,22 +730,6 @@ async function fetchSectors() {
             if(priceCt) priceCt.destroy(); if(volCt) volCt.destroy();
             var vols=[]; for(var i=0;i<disp.length;i++) vols.push(Math.abs((arr[i]-arr[i-1])/arr[i-1]*1000)+50);
 
-            // Downsample volume to max 50 bars
-            var maxVolBars = 50;
-            var volStep = Math.ceil(vols.length / maxVolBars);
-            var downsampledVols = [], downsampledLbls = [];
-            for(var vi = 0; vi < vols.length; vi += volStep) {
-                var volSum = 0, count = 0;
-                for(var vj = vi; vj < Math.min(vi + volStep, vols.length); vj++) {
-                    volSum += vols[vj];
-                    count++;
-                }
-                downsampledVols.push(volSum / count);
-                downsampledLbls.push(lbls[Math.min(vi + Math.floor(volStep/2), lbls.length - 1)]);
-            }
-            vols = downsampledVols;
-            lbls = downsampledLbls;
-
             // Calculate SMA
             var sma=[]; var period=20;
             for(var i=0;i<disp.length;i++) {
@@ -794,7 +778,7 @@ async function fetchSectors() {
                     }
                 }
             });
-            volCt = new Chart($('volCt'),{type:'bar',data:{labels:lbls,datasets:[{data:vols,backgroundColor:vols.map(function(v,i){return disp[i+1]>disp[i]?'rgba(0,255,136,0.5)':'rgba(255,51,102,0.5)';})}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:false}}}});
+            volCt = new Chart($('volCt'),{type:'bar',data:{labels:times,datasets:[{data:vols,backgroundColor:vols.map(function(v,i){return disp[i+1]>disp[i]?'rgba(0,255,136,0.5)':'rgba(255,51,102,0.5)';})}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:false}}}});
             $('last-update').textContent='Last update: '+new Date().toLocaleTimeString();
             
             // Update time axis
