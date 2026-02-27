@@ -783,9 +783,11 @@ async function fetchSectors() {
             $('time-axis').innerHTML = timeHtml;
         }
         function renderLine() {
+            try {
+            console.log('renderLine called');
             var len = timeframe==='1H'?24:timeframe==='1W'?168:timeframe==='1M'?720:timeframe==='3M'?2160:96;
             var arr = history[sel.sym]; console.log('renderLine checking', sel.sym, 'history:', arr ? arr.length : 'null');
-            if(!arr || arr.length === 0) return;
+            if(!arr || arr.length === 0) { console.log('renderLine: no data, returning'); return; }
             var disp=arr, lbls=[], times=[]; // Use all available data
             // Generate proper time labels based on timeframe
             times = generateTimeLabels(disp.length, timeframe);
@@ -861,6 +863,8 @@ async function fetchSectors() {
                 timeHtml += '<span>' + (times[i] || i) + '</span>';
             }
             $('time-axis').innerHTML = timeHtml;
+            console.log('renderLine completed successfully');
+            } catch(e) { console.error('renderLine ERROR:', e); }
         }
 
 function renderAlloc() { if(allocCt) allocCt.destroy(); allocCt = new Chart($('allocCt'),{type:'doughnut',data:{labels:['BTC','ETH','NVDA','AAPL','MSFT','GOOGL','TSLA'],datasets:[{data:[28,18,16,14,12,8,4],backgroundColor:['#00f0ff','#a855f7','#00ff88','#ffd700','#00f0ff','#ff3366','#a855f7'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:{display:false}}}}); }
