@@ -498,6 +498,7 @@ async function fetchSectors() {
         }
         function renderCandles(ohlc) {
             var candles=[], lbls=[], vols=[], times=[];
+            var arr = history[sel.sym] || [];
             if(ohlc && ohlc.length>0) {
                 for(var i=0;i<ohlc.length;i++) {
                     var c=ohlc[i];
