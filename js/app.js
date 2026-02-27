@@ -120,8 +120,8 @@ var CONFIG = {
         
         function fmt(n) { return n >= 1000 ? n.toLocaleString('en-US',{maximumFractionDigits:0}) : n.toFixed(n < 1 ? 4 : 2); }
         function genHistory(base, len) {
-            // DEPRECATED: Never generate fake financial data
-            // Real data must come from OHLC API
+            // Returns empty array - charts must wait for real OHLC data from API
+            // fetchOHLC will populate history[sym] with real data
             return [];
         }
         
@@ -260,10 +260,16 @@ function generateTimeLabels(count, tf) {
         function updateDataQualityDisplay() {
             var el = $('data-quality');
             if(!el) return;
-            var quality = dataQuality.real > 0 ? 'LIVE' : 'LOADING';
-            var color = dataQuality.real > 0 ? '#00ff88' : '#ffaa00';
+            var quality, color;
+            if(dataQuality.real > 0) {
+                quality = dataQuality.source === 'cached' ? 'CACHED' : 'LIVE';
+                color = dataQuality.source === 'cached' ? '#ffaa00' : '#00ff88';
+            } else {
+                quality = 'LOADING';
+                color = '#ffaa00';
+            }
             var time = dataQuality.lastUpdate ? dataQuality.lastUpdate.toLocaleTimeString() : '--:--';
-            el.innerHTML = '<span style="color:'+color+'">'+quality+'</span> | Updated: '+time;
+            el.innerHTML = '<span style="color:'+color+'">'+quality+'</span> | '+time;
         }
 
         function calcMACDInd(arr) {
@@ -388,9 +394,8 @@ function generateTimeLabels(count, tf) {
                 // Initialize history with placeholder data if not already set
                 for(var i = 0; i < data.length; i++) {
                     var asset = data[i];
-                    if(!history[asset.sym] && asset.price > 0) {
-                        history[asset.sym] = genHistory(asset.price, 2200);
-                    }
+                    // Don't initialize history with fake data - wait for real OHLC from API
+                    // fetchOHLC will populate history[sym] with real market data
                 }
                 $('status-dot').className='status-dot';$('status-text').textContent='LIVE';$('data-badge').textContent='LIVE';$('data-badge').className='panel-badge live';$('db-status').innerHTML='<span style="color:var(--purple)">[DB]</span> SYNCED';
                 hideLoading('price-spinner');
@@ -496,6 +501,9 @@ async function fetchSectors() {
                 // Store close prices in history for indicator calculations
                 if(cached && cached.length > 0) {
                     history[sym] = cached.map(function(c) { return c[4]; });
+                    dataQuality.source = 'cached';
+                    dataQuality.real = cached.length;
+                    updateDataQualityDisplay();
                 }
                 return cached;
             }
@@ -511,6 +519,10 @@ async function fetchSectors() {
                 // Store close prices in history for indicator calculations
                 if(data && data.length > 0) {
                     history[sym] = data.map(function(c) { return c[4]; });
+                    dataQuality.source = 'live';
+                    dataQuality.real = data.length;
+                    dataQuality.lastUpdate = new Date();
+                    updateDataQualityDisplay();
                 }
                 setCache(cacheKey, data);
                 hideLoading('chart-loading');
@@ -521,8 +533,37 @@ async function fetchSectors() {
                 return null;
             }
         }
+        
+        function showChartLoading() {
+            $('chart-price').textContent = 'Loading...';
+            $('chart-chg').textContent = '';
+            $('chart-chg').className = 'chart-chg';
+            // Clear any existing chart
+            if(priceCt) { priceCt.destroy(); priceCt = null; }
+            if(volCt) { volCt.destroy(); volCt = null; }
+        }
+
         function renderChart() {
             if(chartRendering) return; // Prevent overlapping renders
+
+            // Check if we have real data
+            var arr = history[sel.sym];
+            if(!arr || arr.length === 0) {
+                // Show loading state - fetch real data
+                showChartLoading();
+                fetchOHLC(sel.sym).then(function(d) { 
+                    if(d && d.length > 0) {
+                        renderChart();
+                    }
+                });
+                return;
+            }
+
+            // Update data quality indicator
+            dataQuality.real = arr.length;
+            dataQuality.source = 'live';
+            updateDataQualityDisplay();
+
             if(chartType==='candle') { 
                 chartRendering = true;
                 fetchOHLC(sel.sym).then(function(d){ 
