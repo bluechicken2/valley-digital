@@ -431,7 +431,7 @@ async function fetchSectors() {
             if(cached) {
                 // Store close prices in history for indicator calculations
                 if(cached && cached.length > 0) {
-                    history[sym] = cached.map(function(c) { return c.c; });
+                    history[sym] = cached.map(function(c) { return c[4]; });
                 }
                 return cached;
             }
@@ -446,7 +446,7 @@ async function fetchSectors() {
                 var data = await r.json();
                 // Store close prices in history for indicator calculations
                 if(data && data.length > 0) {
-                    history[sym] = data.map(function(c) { return c.c; });
+                    history[sym] = data.map(function(c) { return c[4]; });
                 }
                 setCache(cacheKey, data);
                 hideLoading('chart-loading');
@@ -1072,7 +1072,7 @@ function renderAlloc() { if(allocCt) allocCt.destroy(); allocCt = new Chart($('a
         };
 
 window.selAsset = function(s) { for(var i=0;i<data.length;i++) if(data[i].sym===s){sel=data[i];break;} $('chart-sym').textContent=s; 
-if(!history[s])history[s]=null; renderAssets();renderInds();renderActions();renderAssetDetails();renderChart(); fetchOHLC(s).then(function(d){ if(d && d.length>0){ history[s]=d.map(function(c){return c.c;}); renderInds();renderActions(); } }); };
+if(!history[s])history[s]=null; renderAssets();renderInds();renderActions();renderAssetDetails();renderChart(); fetchOHLC(s).then(function(d){ if(d && d.length>0){ history[s]=d.map(function(c){return c[4];}); renderInds();renderActions(); } }); };
         window.toggleFav = function(s) { for(var i=0;i<data.length;i++) if(data[i].sym===s){data[i].fav=!data[i].fav;renderAssets();showToast(s+(data[i].fav?' added to':' removed from')+' favorites');break;} };
         window.setTf = function(tf) { timeframe=tf; var btns=document.querySelectorAll('.chart-btn'); for(var j=0;j<btns.length;j++){btns[j].classList.remove('on');} if(typeof event!=='undefined' && event.target) event.target.classList.add('on'); ohlcData={}; renderChart(); };
         window.toggleChartType = function() { chartType = chartType==='line'?'candle':'line'; $('chart-type-btn').textContent = chartType.toUpperCase(); renderChart(); };
