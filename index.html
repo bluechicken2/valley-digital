@@ -3,361 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="TradingAI Neural Nexus - AI-powered portfolio intelligence dashboard with real-time market analysis, technical indicators, and trading insights.">
+    <meta name="keywords" content="trading, AI, portfolio, cryptocurrency, stocks, market analysis, technical indicators, RSI, MACD, dashboard">
+    <meta name="author" content="TradingAI">
+    <meta name="robots" content="index, follow">
+    <!-- Open Graph -->
+    <meta property="og:title" content="TradingAI - Neural Nexus">
+    <meta property="og:description" content="AI-powered portfolio intelligence dashboard">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://dashboard.ottawav.com">
+    <meta property="og:image" content="https://dashboard.ottawav.com/og-image.png">
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="TradingAI - Neural Nexus">
+    <meta name="twitter:description" content="AI-powered portfolio intelligence dashboard">
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='https://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
+
     <meta name="description" content="TradingAI Neural Nexus - AI-powered portfolio intelligence dashboard">
-    <meta name="theme-color" content="#030508">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="manifest" href="data:application/json,{&quot;name&quot;:&quot;TradingAI&quot;,&quot;short_name&quot;:&quot;TradingAI&quot;,&quot;start_url&quot;:&quot;/&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;%23030508&quot;,&quot;theme_color&quot;:&quot;%2300f0ff&quot;}">
-    <title>TradingAI - Neural Nexus v12.0</title>
+    <title>TradingAI - Neural Nexus v12.1</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Space+Grotesk:wght@400;500;600&family=JetBrains+Mono&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        :root {
-            --bg-void: #030508; --bg-panel: #0f1218; --bg-surface: #151922;
-            --border: #2a3241; --text-dim: #6a7a8e; --text: #9aacc0; --text-bright: #e8f0ff;
-            --cyan: #00f0ff; --green: #00ff88; --red: #ff3366; --purple: #a855f7; --gold: #ffd700;
-            --orange: #ff8c00; --transition: 0.2s ease;
-        }
-        .light-theme {
-            --bg-void: #f5f7fa; --bg-panel: #ffffff; --bg-surface: #e8ecf1;
-            --border: #d1d9e6; --text-dim: #6b7280; --text: #374151; --text-bright: #111827;
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: var(--bg-void); color: var(--text); font-family: 'Space Grotesk', sans-serif; min-height: 100vh; transition: background var(--transition), color var(--transition); }
-        
-        /* Loading */
-        .loading { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; gap: 20px; }
-        .loading-spinner { width: 60px; height: 60px; border: 3px solid var(--border); border-top-color: var(--cyan); border-radius: 50%; animation: spin 1s linear infinite; }
-        .loading-text { font-family: 'Orbitron', sans-serif; font-size: 0.9rem; color: var(--cyan); letter-spacing: 2px; animation: pulse 1.5s infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-        .fade-in { animation: fadeIn 0.4s ease forwards; }
-        
-        /* Auth */
-        .auth-container { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .auth-box { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 16px; padding: 40px; width: 100%; max-width: 420px; animation: scaleIn 0.3s ease; }
-        .auth-logo { font-family: 'Orbitron', sans-serif; font-size: 1.8rem; font-weight: 800; color: var(--cyan); text-align: center; margin-bottom: 8px; letter-spacing: 3px; }
-        .auth-subtitle { text-align: center; color: var(--text-dim); margin-bottom: 32px; font-size: 0.9rem; }
-        .auth-title { font-family: 'Orbitron', sans-serif; font-size: 1.2rem; color: var(--text-bright); text-align: center; margin-bottom: 24px; }
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 1px; }
-        .form-group input, .form-group select { width: 100%; padding: 14px 16px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 8px; color: var(--text-bright); font-size: 1rem; font-family: inherit; transition: all var(--transition); }
-        .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(0,240,255,0.1); }
-        .btn-primary { width: 100%; padding: 14px; background: linear-gradient(135deg, var(--cyan), var(--purple)); border: none; border-radius: 8px; color: var(--bg-void); font-family: 'Orbitron', sans-serif; font-size: 0.9rem; font-weight: 700; cursor: pointer; transition: all var(--transition); letter-spacing: 1px; }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,240,255,0.3); }
-        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-        .auth-link { text-align: center; color: var(--text-dim); font-size: 0.9rem; margin-top: 16px; }
-        .auth-link a { color: var(--cyan); text-decoration: none; cursor: pointer; }
-        .auth-error, .auth-success { border-radius: 8px; padding: 12px; margin-bottom: 20px; font-size: 0.85rem; display: none; }
-        .auth-error { background: rgba(255,51,102,0.1); border: 1px solid var(--red); color: var(--red); }
-        .auth-success { background: rgba(0,255,136,0.1); border: 1px solid var(--green); color: var(--green); }
-        .auth-error.show, .auth-success.show { display: block; }
-        .tier-select { display: flex; gap: 12px; margin-bottom: 20px; }
-        .tier-option { flex: 1; padding: 16px; background: var(--bg-surface); border: 2px solid var(--border); border-radius: 8px; cursor: pointer; text-align: center; transition: all var(--transition); }
-        .tier-option:hover { border-color: var(--cyan); transform: translateY(-2px); }
-        .tier-option.selected { border-color: var(--cyan); background: rgba(0,240,255,0.1); }
-        .tier-option .name { font-family: 'Orbitron', sans-serif; font-size: 0.9rem; color: var(--text-bright); margin-bottom: 4px; }
-        .tier-option .price { font-size: 1.4rem; font-weight: 700; color: var(--cyan); }
-        
-        /* Header */
-        .header { background: rgba(10, 13, 20, 0.95); border-bottom: 1px solid var(--border); padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; backdrop-filter: blur(10px); }
-        .logo { font-family: 'Orbitron', sans-serif; font-size: 1.3rem; font-weight: 700; color: var(--cyan); letter-spacing: 2px; display: flex; align-items: center; gap: 10px; }
-        .logo-dot { width: 8px; height: 8px; background: var(--cyan); border-radius: 50%; animation: pulse 2s infinite; }
-        .header-controls { display: flex; align-items: center; gap: 12px; }
-        .header-btn { background: var(--bg-surface); border: 1px solid var(--border); border-radius: 6px; padding: 6px 12px; color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; cursor: pointer; transition: all var(--transition); display: flex; align-items: center; gap: 6px; }
-        .header-btn:hover { border-color: var(--cyan); color: var(--cyan); }
-        .header-btn .badge { background: var(--cyan); color: var(--bg-void); border-radius: 10px; padding: 1px 6px; font-size: 0.65rem; font-weight: 700; }
-        .theme-toggle { background: var(--bg-surface); border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px; cursor: pointer; font-size: 1rem; transition: all var(--transition); }
-        .theme-toggle:hover { border-color: var(--cyan); }
-        .status { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--text-dim); display: flex; align-items: center; gap: 16px; }
-        .status-dot { width: 8px; height: 8px; background: var(--green); border-radius: 50%; animation: pulse 2s infinite; }
-        .status-dot.syncing { background: var(--orange); animation: pulse 0.5s infinite; }
-        .status-dot.error { background: var(--red); animation: none; }
-        .user-menu { position: relative; }
-        .user-menu-btn { background: var(--bg-surface); border: 1px solid var(--border); border-radius: 6px; padding: 6px 12px; color: var(--text); font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 8px; }
-        .user-menu-dropdown { position: absolute; top: 100%; right: 0; margin-top: 8px; background: var(--bg-panel); border: 1px solid var(--border); border-radius: 8px; min-width: 200px; display: none; z-index: 101; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
-        .user-menu-dropdown.show { display: block; }
-        .user-menu-item { padding: 10px 14px; color: var(--text); cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 10px; transition: all var(--transition); }
-        .user-menu-item:hover { background: var(--bg-surface); color: var(--cyan); }
-        .user-menu-item.danger { color: var(--red); }
-        .user-menu-divider { height: 1px; background: var(--border); margin: 4px 0; }
-        
-        /* Navigation Tabs */
-        .nav-tabs { display: flex; gap: 4px; padding: 12px 20px; background: var(--bg-panel); border-bottom: 1px solid var(--border); overflow-x: auto; }
-        .nav-tab { padding: 8px 16px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 6px; color: var(--text-dim); font-family: 'Orbitron', sans-serif; font-size: 0.75rem; cursor: pointer; transition: all var(--transition); white-space: nowrap; }
-        .nav-tab:hover { border-color: var(--cyan); color: var(--cyan); }
-        .nav-tab.active { background: var(--cyan); color: var(--bg-void); border-color: var(--cyan); }
-        
-        /* Main Layout */
-        .main { padding: 20px; max-width: 1800px; margin: 0 auto; }
-        .grid { display: grid; gap: 16px; }
-        .grid-2 { grid-template-columns: 280px 1fr; }
-        .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
-        .grid-4 { grid-template-columns: repeat(4, 1fr); }
-        
-        /* Panels */
-        .panel { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
-        .panel-header { padding: 12px 14px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-        .panel-title { font-family: 'Orbitron', sans-serif; font-size: 0.7rem; color: var(--text-dim); letter-spacing: 1px; text-transform: uppercase; }
-        .panel-badge { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; padding: 3px 8px; border-radius: 4px; background: var(--bg-surface); color: var(--text-dim); }
-        .panel-badge.live { background: rgba(0,255,136,0.15); color: var(--green); }
-        .panel-body { padding: 14px; }
-        
-        /* Portfolio Value */
-        .portfolio-value { font-family: 'Orbitron', sans-serif; font-size: 1.8rem; font-weight: 700; color: var(--text-bright); margin-bottom: 4px; }
-        .portfolio-change { font-size: 0.85rem; font-weight: 600; }
-        .portfolio-change.up { color: var(--green); }
-        .portfolio-change.down { color: var(--red); }
-        
-        /* Intel Score Hex */
-        .intel-score { display: flex; align-items: center; justify-content: center; margin: 20px 0; }
-        .hex-container { width: 60px; height: 60px; }
-        .hex { width: 100%; height: 100%; background: linear-gradient(135deg, var(--cyan), var(--purple)); clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); display: flex; align-items: center; justify-content: center; transition: transform var(--transition); }
-        .hex:hover { transform: scale(1.1); }
-        .hex-value { font-family: 'Orbitron', sans-serif; font-size: 1.1rem; font-weight: 700; color: var(--bg-void); }
-        
-        /* Asset List */
-        .asset { padding: 10px; border-radius: 8px; cursor: pointer; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center; transition: all var(--transition); border: 1px solid transparent; }
-        .asset:hover { background: var(--bg-surface); border-color: var(--border); transform: translateX(4px); }
-        .asset.active { background: rgba(0,240,255,0.08); border-color: rgba(0,240,255,0.3); }
-        .asset-icon { width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-family: 'Orbitron', sans-serif; font-size: 0.7rem; font-weight: 700; }
-        .asset-name { font-size: 0.9rem; font-weight: 600; color: var(--text-bright); }
-        .asset-type { font-size: 0.7rem; color: var(--text-dim); }
-        .asset-price { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--text-bright); }
-        .asset-chg { font-size: 0.75rem; font-weight: 600; }
-        .asset-chg.up { color: var(--green); }
-        .asset-chg.down { color: var(--red); }
-        .star { color: var(--text-dim); margin-left: 6px; cursor: pointer; transition: all var(--transition); }
-        .star:hover { color: var(--gold); transform: scale(1.2); }
-        .star.active { color: var(--gold); }
-        
-        /* Charts */
-        .chart-area { height: 280px; position: relative; }
-        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .chart-sym { font-family: 'Orbitron', sans-serif; font-size: 1.2rem; color: var(--cyan); }
-        .chart-btns { display: flex; gap: 6px; }
-        .chart-btn { background: var(--bg-surface); border: 1px solid var(--border); border-radius: 4px; padding: 4px 10px; color: var(--text-dim); font-size: 0.7rem; cursor: pointer; transition: all var(--transition); }
-        .chart-btn:hover { border-color: var(--cyan); color: var(--cyan); }
-        .chart-btn.on { background: var(--cyan); color: var(--bg-void); border-color: var(--cyan); }
-        .chart-tools { display: flex; gap: 4px; margin-top: 8px; }
-        .chart-tool { background: var(--bg-surface); border: 1px solid var(--border); border-radius: 4px; padding: 4px 8px; color: var(--text-dim); font-size: 0.65rem; cursor: pointer; }
-        .chart-tool:hover, .chart-tool.on { border-color: var(--cyan); color: var(--cyan); }
-        .volume-area { height: 60px; margin-top: 8px; }
-        
-        /* Indicators Grid */
-        .ind-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-        .ind-card { background: var(--bg-surface); border-radius: 6px; padding: 10px; text-align: center; transition: all var(--transition); }
-        .ind-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
-        .ind-label { font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; margin-bottom: 4px; }
-        .ind-val { font-family: 'Orbitron', sans-serif; font-size: 0.9rem; font-weight: 700; }
-        .ind-val.bull { color: var(--green); }
-        .ind-val.bear { color: var(--red); }
-        .ind-val.neut { color: var(--cyan); }
-        .ind-sub { font-size: 0.65rem; color: var(--text-dim); margin-top: 2px; }
-        
-        /* Analytics Cards */
-        .analytics-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 16px; }
-        .analytics-card { background: var(--bg-surface); border-radius: 8px; padding: 12px; text-align: center; }
-        .analytics-label { font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; margin-bottom: 4px; }
-        .analytics-value { font-family: 'Orbitron', sans-serif; font-size: 1.1rem; font-weight: 700; color: var(--cyan); }
-        .analytics-sub { font-size: 0.6rem; color: var(--text-dim); margin-top: 2px; }
-        
-        /* Fear & Greed */
-        .fg-container { position: relative; }
-        .fg-bar { height: 8px; background: linear-gradient(90deg, var(--red), var(--gold), var(--green)); border-radius: 4px; margin: 10px 0; }
-        .fg-dot { width: 12px; height: 12px; background: var(--text-bright); border-radius: 50%; position: absolute; top: 28px; transform: translateX(-50%); transition: left 0.5s ease; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
-        .fg-value { font-family: 'Orbitron', sans-serif; font-size: 1.4rem; font-weight: 700; }
-        .fg-label { font-size: 0.75rem; text-transform: uppercase; }
-        
-        /* Sectors */
-        .sector-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
-        .sector { background: var(--bg-surface); border-radius: 4px; padding: 8px; text-align: center; transition: all var(--transition); }
-        .sector:hover { transform: scale(1.02); }
-        .sector-name { font-size: 0.65rem; color: var(--text-dim); }
-        .sector-chg { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; font-weight: 700; }
-        .sector-chg.up { color: var(--green); }
-        .sector-chg.down { color: var(--red); }
-        
-        /* Actions */
-        .action { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--border); }
-        .action:last-child { border-bottom: none; }
-        .action-badge { font-family: 'Orbitron', sans-serif; font-size: 0.6rem; font-weight: 700; padding: 3px 8px; border-radius: 4px; }
-        .buy-badge { background: rgba(0,255,136,0.2); color: var(--green); }
-        .sell-badge { background: rgba(255,51,102,0.2); color: var(--red); }
-        .hold-badge { background: rgba(0,240,255,0.2); color: var(--cyan); }
-        .action-text { font-size: 0.8rem; color: var(--text-dim); }
-        
-        /* Predictions */
-        .pred-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .pred-val { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; }
-        
-        /* Weights */
-        .weight-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-        .weight-sym { font-family: 'Orbitron', sans-serif; font-size: 0.75rem; color: var(--text-dim); width: 40px; }
-        .weight-bar { flex: 1; height: 6px; background: var(--bg-surface); border-radius: 3px; overflow: hidden; }
-        .weight-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
-        .weight-pct { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--text-dim); width: 30px; text-align: right; }
-        
-        /* Allocation */
-        .alloc-chart { height: 140px; }
-        
-        /* Ticker */
-        .ticker { background: var(--bg-panel); border-top: 1px solid var(--border); padding: 10px 0; overflow: hidden; }
-        .ticker-scroll { display: flex; animation: scroll 30s linear infinite; }
-        @keyframes scroll { to { transform: translateX(-50%); } }
-        .ticker-item { white-space: nowrap; padding: 0 20px; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; cursor: pointer; }
-        .ticker-item:hover { color: var(--cyan); }
-        .ticker-sym { font-weight: 700; color: var(--text-bright); }
-        
-        /* News Feed */
-        .news-item { padding: 10px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background var(--transition); }
-        .news-item:hover { background: var(--bg-surface); }
-        .news-item:last-child { border-bottom: none; }
-        .news-title { font-size: 0.85rem; color: var(--text-bright); margin-bottom: 4px; }
-        .news-meta { font-size: 0.7rem; color: var(--text-dim); display: flex; gap: 12px; }
-        .news-tag { background: var(--cyan); color: var(--bg-void); padding: 1px 6px; border-radius: 3px; font-size: 0.6rem; }
-        
-        /* Calendar */
-        .calendar-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); }
-        .calendar-item:last-child { border-bottom: none; }
-        .calendar-date { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--cyan); }
-        .calendar-event { font-size: 0.8rem; color: var(--text); }
-        .calendar-impact { font-size: 0.65rem; padding: 2px 6px; border-radius: 3px; }
-        .impact-high { background: rgba(255,51,102,0.2); color: var(--red); }
-        .impact-medium { background: rgba(255,140,0,0.2); color: var(--orange); }
-        .impact-low { background: rgba(0,255,136,0.2); color: var(--green); }
-        
-        /* Detail Rows */
-        .detail-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .detail-label { color: var(--text-dim); font-size: 0.8rem; }
-        .detail-value { color: var(--text-bright); font-size: 0.8rem; font-family: 'JetBrains Mono', monospace; }
-        
-        /* Correlation Matrix */
-        .corr-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 2px; font-size: 0.6rem; }
-        .corr-cell { padding: 4px; text-align: center; border-radius: 2px; }
-        .corr-header { background: var(--bg-surface); color: var(--text-dim); font-weight: 600; }
-        
-        /* Screener */
-        .screener-filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
-        .screener-filter { background: var(--bg-surface); border: 1px solid var(--border); border-radius: 6px; padding: 6px 12px; font-size: 0.75rem; color: var(--text); cursor: pointer; }
-        .screener-filter.on { border-color: var(--cyan); color: var(--cyan); }
-        .screener-result { display: flex; justify-content: space-between; padding: 8px; background: var(--bg-surface); border-radius: 6px; margin-bottom: 6px; }
-        
-        /* Paper Trading */
-        .paper-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; }
-        .paper-stat { background: var(--bg-surface); border-radius: 6px; padding: 10px; text-align: center; }
-        .paper-stat-label { font-size: 0.6rem; color: var(--text-dim); text-transform: uppercase; }
-        .paper-stat-value { font-family: 'Orbitron', sans-serif; font-size: 0.9rem; font-weight: 700; }
-        .trade-btn { background: var(--green); border: none; border-radius: 6px; padding: 8px 16px; color: var(--bg-void); font-family: 'Orbitron', sans-serif; font-size: 0.7rem; font-weight: 700; cursor: pointer; margin-right: 8px; }
-        .trade-btn.sell { background: var(--red); }
-        
-        /* AI Chat */
-        .ai-chat { height: 250px; overflow-y: auto; background: var(--bg-surface); border-radius: 8px; padding: 12px; margin-bottom: 12px; }
-        .ai-msg { margin-bottom: 10px; }
-        .ai-msg.user { text-align: right; }
-        .ai-msg-text { display: inline-block; padding: 8px 12px; border-radius: 8px; font-size: 0.8rem; max-width: 80%; }
-        .ai-msg.user .ai-msg-text { background: var(--cyan); color: var(--bg-void); }
-        .ai-msg.ai .ai-msg-text { background: var(--bg-panel); border: 1px solid var(--border); }
-        .ai-input { display: flex; gap: 8px; }
-        .ai-input input { flex: 1; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 6px; padding: 10px; color: var(--text-bright); font-size: 0.85rem; }
-        .ai-input button { background: var(--cyan); border: none; border-radius: 6px; padding: 10px 16px; color: var(--bg-void); font-family: 'Orbitron', sans-serif; font-size: 0.7rem; font-weight: 700; cursor: pointer; }
-        
-        /* Rebalance */
-        .rebalance-card { background: var(--bg-surface); border-radius: 8px; padding: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
-        .rebalance-change { font-size: 0.7rem; padding: 4px 8px; border-radius: 4px; }
-        .rebalance-up { background: rgba(0,255,136,0.2); color: var(--green); }
-        .rebalance-down { background: rgba(255,51,102,0.2); color: var(--red); }
-        
-        /* Backtest */
-        .backtest-chart { height: 150px; margin-top: 12px; }
-        
-        /* Modals */
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 200; backdrop-filter: blur(4px); }
-        .modal-overlay.show { display: flex; }
-        .modal { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 12px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; animation: scaleIn 0.2s ease; }
-        .modal-lg { max-width: 700px; }
-        .modal-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-        .modal-title { font-family: 'Orbitron', sans-serif; font-size: 1rem; color: var(--text-bright); }
-        .modal-close { background: none; border: none; color: var(--text-dim); font-size: 1.2rem; cursor: pointer; }
-        .modal-close:hover { color: var(--cyan); }
-        .modal-body { padding: 20px; }
-        
-        /* Shortcuts */
-        .shortcut { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .shortcut:last-child { border-bottom: none; }
-        .shortcut-key { font-family: 'JetBrains Mono', monospace; background: var(--bg-surface); padding: 4px 10px; border-radius: 4px; font-size: 0.8rem; color: var(--cyan); }
-        
-        /* Profile */
-        .profile-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
-        .profile-item:last-child { border-bottom: none; }
-        .profile-label { color: var(--text-dim); font-size: 0.85rem; }
-        .profile-value { color: var(--text-bright); font-size: 0.85rem; }
-        
-        /* Pricing */
-        .pricing-cards { display: flex; gap: 12px; }
-        .pricing-card { flex: 1; background: var(--bg-surface); border: 2px solid var(--border); border-radius: 8px; padding: 16px; text-align: center; transition: all var(--transition); }
-        .pricing-card:hover { border-color: var(--cyan); }
-        .pricing-name { font-family: 'Orbitron', sans-serif; font-size: 0.9rem; margin-bottom: 8px; }
-        .pricing-price { font-size: 1.5rem; font-weight: 700; color: var(--cyan); margin-bottom: 12px; }
-        .pricing-features { font-size: 0.75rem; color: var(--text-dim); margin-bottom: 12px; }
-        .pricing-feature { padding: 4px 0; }
-        .pricing-btn { background: linear-gradient(135deg, var(--cyan), var(--purple)); border: none; border-radius: 6px; padding: 10px 16px; color: var(--bg-void); font-family: 'Orbitron', sans-serif; font-size: 0.75rem; font-weight: 700; cursor: pointer; width: 100%; }
-        .pricing-btn:hover { transform: translateY(-2px); }
-        
-        /* Alerts */
-        .alert-item { display: flex; align-items: center; justify-content: space-between; padding: 10px; background: var(--bg-surface); border-radius: 6px; margin-bottom: 8px; }
-        .alert-item .sym { font-family: 'Orbitron', sans-serif; color: var(--text-bright); }
-        .alert-item .price { font-family: 'JetBrains Mono', monospace; color: var(--cyan); }
-        
-        /* Watchlists */
-        .watchlist-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; background: var(--bg-surface); border-radius: 6px; margin-bottom: 6px; cursor: pointer; }
-        .watchlist-item:hover { background: var(--border); }
-        .watchlist-name { font-size: 0.85rem; color: var(--text-bright); }
-        .watchlist-count { font-size: 0.7rem; color: var(--text-dim); background: var(--bg-panel); padding: 2px 8px; border-radius: 10px; }
-        
-        /* Toast */
-        .toast { position: fixed; bottom: 20px; right: 20px; background: var(--bg-panel); border: 1px solid var(--cyan); border-radius: 8px; padding: 12px 20px; color: var(--text-bright); font-size: 0.85rem; transform: translateY(100px); opacity: 0; transition: all 0.3s; z-index: 1001; }
-        .toast.show { transform: translateY(0); opacity: 1; }
-        
-        /* Fullscreen */
-        .fullscreen .header, .fullscreen .nav-tabs, .fullscreen .ticker { display: none; }
-        .fullscreen .main { padding: 10px; height: 100vh; }
-        
-        /* Sound Toggle */
-        .sound-toggle { position: relative; }
-        .sound-toggle::after { content: 'ON'; position: absolute; right: -20px; font-size: 0.5rem; color: var(--green); }
-        .sound-toggle.muted::after { content: 'OFF'; color: var(--red); }
-        
-        /* Responsive */
-        @media (max-width: 1200px) { .grid-2 { grid-template-columns: 1fr; } .grid-3 { grid-template-columns: 1fr; } .analytics-grid { grid-template-columns: repeat(3, 1fr); } }
-        @media (max-width: 768px) {
-            .header { flex-wrap: wrap; gap: 6px; padding: 8px 12px; justify-content: flex-start; }
-            .header-controls { flex-wrap: wrap; gap: 6px; width: 100%; justify-content: flex-start; }
-            .status { order: 3; width: 100%; font-size: 0.65rem; gap: 6px; }
-            .header-btn { padding: 4px 6px; font-size: 0.6rem; }
-            .header-btn .badge { display: none; }
-            .user-menu-btn { padding: 4px 8px; font-size: 0.7rem; }
-            .theme-toggle { padding: 4px 6px; }
-            .logo { font-size: 1rem; }
-            .main { padding: 10px; }
-            .ind-grid { grid-template-columns: repeat(2, 1fr); }
-            .sector-grid { grid-template-columns: repeat(2, 1fr); }
-            .analytics-grid { grid-template-columns: repeat(2, 1fr); }
-            .pricing-cards { flex-direction: column; }
-            .chart-area { height: 200px; }
-            .paper-stats { grid-template-columns: repeat(2, 1fr); }
-            .corr-grid { grid-template-columns: repeat(4, 1fr); }
-        }
-        
-        /* Accessibility */
-        @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
-        }
-    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial@0.1.1/dist/chartjs-chart-financial.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.4/build/global/luxon.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.3.1/dist/chartjs-adapter-luxon.umd.min.js"></script>
+    <link rel="stylesheet" href="css/theme.css">
+<style>
+/* Offline Banner */
+.offline-banner { display:none; position:fixed; top:0; left:0; right:0; background:linear-gradient(90deg,#ff3366,#ff6633); color:#fff; padding:10px; text-align:center; font-weight:bold; z-index:9999; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.8; } }
+</style>
 </head>
 <body>
+<div id="offline-banner" class="offline-banner">⚠️ You are offline - Data may be outdated</div>
+
     <div id="loading" class="loading"><div class="loading-spinner"></div><div class="loading-text">INITIALIZING</div></div>
     
     <!-- Auth Screens -->
@@ -368,9 +47,9 @@
             <div class="auth-title">Sign In</div>
             <div id="login-error" class="auth-error"></div>
             <div id="login-success" class="auth-success"></div>
-            <div class="form-group"><label>Email</label><input type="email" id="login-email" placeholder="you@example.com"></div>
-            <div class="form-group"><label>Password</label><input type="password" id="login-password" placeholder="Enter your password"></div>
-            <button class="btn-primary" onclick="handleLogin()">SIGN IN</button>
+            <div class="form-group"><label for="login-email">Email</label><input type="email" id="login-email" placeholder="you@example.com"></div>
+            <div class="form-group"><label for="login-password">Password</label><input type="password" id="login-password" placeholder="Enter your password"></div>
+            <button aria-label="Sign in" class="btn-primary" onclick="handleLogin()">SIGN IN</button>
             <div class="auth-link"><a onclick="showReset()">Forgot password?</a></div>
             <div class="auth-link">Don't have an account? <a onclick="showSignup()">Create Account</a></div>
         </div>
@@ -383,16 +62,16 @@
             <div class="auth-title">Create Account</div>
             <div id="signup-error" class="auth-error"></div>
             <div id="signup-success" class="auth-success"></div>
-            <div class="form-group"><label>Email</label><input type="email" id="signup-email" placeholder="you@example.com"></div>
-            <div class="form-group"><label>Password</label><input type="password" id="signup-password" placeholder="Create a password"></div>
+            <div class="form-group"><label for="signup-email">Email</label><input type="email" id="signup-email" placeholder="you@example.com"></div>
+            <div class="form-group"><label for="signup-password">Password</label><input type="password" id="signup-password" placeholder="Create a password"></div>
             <div class="form-group">
-                <label>Select Plan</label>
-                <div class="tier-select">
-                    <div class="tier-option selected" onclick="selectTier('free')"><div class="name">FREE</div><div class="price">$0<span>/mo</span></div><div style="font-size:0.7rem;color:var(--text-dim)">3 Assets</div></div>
-                    <div class="tier-option" onclick="selectTier('pro')"><div class="name">PRO</div><div class="price">$19<span>/mo</span></div><div style="font-size:0.7rem;color:var(--text-dim)">Unlimited</div></div>
+                <label for="tier-select">Select Plan</label>
+                <div class="tier-select" id="tier-select">
+                    <div class="tier-option selected" onclick="selectTier('free')"><div class="name">FREE</div><div class="price">$0<span>/mo</span></div><div class="tier-detail">3 Assets</div></div>
+                    <div class="tier-option" role="button" tabindex="0" onclick="selectTier('pro')"><div class="name">PRO</div><div class="price">$19<span>/mo</span></div><div class="tier-detail">Unlimited</div></div>
                 </div>
             </div>
-            <button class="btn-primary" onclick="handleSignup()">CREATE ACCOUNT</button>
+            <button aria-label="Create account" class="btn-primary" onclick="handleSignup()">CREATE ACCOUNT</button>
             <div class="auth-link">Already have an account? <a onclick="showLogin()">Sign In</a></div>
         </div>
     </div>
@@ -403,8 +82,8 @@
             <div class="auth-title">Reset Password</div>
             <div id="reset-error" class="auth-error"></div>
             <div id="reset-success" class="auth-success"></div>
-            <div class="form-group"><label>Email</label><input type="email" id="reset-email" placeholder="you@example.com"></div>
-            <button class="btn-primary" onclick="handleReset()">SEND RESET LINK</button>
+            <div class="form-group"><label for="reset-email">Email</label><input type="email" id="reset-email" placeholder="you@example.com"></div>
+            <button aria-label="Send reset link" class="btn-primary" onclick="handleReset()">SEND RESET LINK</button>
             <div class="auth-link"><a onclick="showLogin()">Back to Sign In</a></div>
         </div>
     </div>
@@ -416,18 +95,18 @@
             <div class="header-controls">
                 <div class="status">
                     <span class="status-dot" id="status-dot"></span>
-                    <span id="status-text">CONNECTING</span>
-                    <span id="db-status">[DB] OFFLINE</span>
+                    <span id="status-text">CONNECTING</span><span id="price-spinner" class="loading-spinner" style="display:none;width:14px;height:14px;border-width:2px;margin-left:8px;vertical-align:middle;"></span>
+                    <span id="sync-spinner" class="loading-spinner" style="display:none;width:14px;height:14px;border-width:2px;margin-right:6px;vertical-align:middle;"></span><span id="db-status">[DB] OFFLINE</span>
+                    <span id="time"></span>
                 </div>
-                <button class="header-btn" onclick="toggleFullscreen()" title="Fullscreen">[]</button>
-                <button class="header-btn" onclick="exportCSV()" title="Export">DOWN</button>
-                <button class="header-btn" onclick="toggleSound()" title="Sound" id="sound-btn">*S</button>
-                <button class="header-btn" onclick="showAlerts()" title="Alerts">* <span class="badge" id="alert-count">0</span></button>
-                <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn">&#9790;</button>
+                <button class="header-btn" onclick="toggleFullscreen()" aria-label="Toggle fullscreen" title="Fullscreen">[]</button>
+                <button aria-label="Export data" class="header-btn" onclick="exportCSV()" title="Export">⬇</button>
+                <button aria-label="View alerts" class="header-btn" onclick="showAlerts()" title="Alerts">* <span class="badge" id="alert-count">0</span></button>
+                <button aria-label="Toggle dark mode" class="theme-toggle" onclick="toggleTheme()" id="theme-btn">&#9790;</button>
                 <div class="user-menu">
-                    <button class="user-menu-btn" onclick="toggleUserMenu()"><span id="header-email">User</span> v</button>
+                    <button aria-label="User menu" class="user-menu-btn" onclick="toggleUserMenu()"><span id="header-email">User</span> v</button>
                     <div class="user-menu-dropdown" id="user-dropdown">
-                        <div class="user-menu-item" onclick="showWatchlists()">Watchlists</div>
+                        <div class="user-menu-item" onclick="showPRModal()">Pull Requests</div><div class="user-menu-item" onclick="showWatchlists()">Watchlists</div>
                         <div class="user-menu-item" onclick="showProfile()">Account Settings</div>
                         <div class="user-menu-item" onclick="showPricing()">Upgrade Plan</div>
                         <div class="user-menu-divider"></div>
@@ -439,13 +118,12 @@
         
         <nav class="nav-tabs">
             <div class="nav-tab active" onclick="switchTab('dashboard')" data-tab="dashboard">DASHBOARD</div>
-            <div class="nav-tab" onclick="switchTab('analytics')" data-tab="analytics">ANALYTICS</div>
-            <div class="nav-tab" onclick="switchTab('screener')" data-tab="screener">SCREENER</div>
-            <div class="nav-tab" onclick="switchTab('paper')" data-tab="paper">PAPER TRADE</div>
-            <div class="nav-tab" onclick="switchTab('ai')" data-tab="ai">AI ASSISTANT</div>
-            <div class="nav-tab" onclick="switchTab('backtest')" data-tab="backtest">BACKTEST</div>
-            <div class="nav-tab" onclick="switchTab('news')" data-tab="news">NEWS</div>
-            <div class="nav-tab" onclick="switchTab('calendar')" data-tab="calendar">CALENDAR</div>
+            <div class="nav-tab" role="button" tabindex="0" onclick="switchTab('screener')" data-tab="screener">SCREENER</div>
+            <div class="nav-tab" role="button" tabindex="0" onclick="switchTab('paper')" data-tab="paper">PAPER TRADE</div>
+            <div class="nav-tab" role="button" tabindex="0" onclick="switchTab('ai')" data-tab="ai">AI CHAT</div>
+            <div class="nav-tab" role="button" tabindex="0" onclick="switchTab('analytics')" data-tab="analytics">ANALYTICS</div>
+            <div class="nav-tab" role="button" tabindex="0" onclick="switchTab('news')" data-tab="news">NEWS</div>
+            <div class="nav-tab" role="button" tabindex="0" onclick="switchTab('calendar')" data-tab="calendar">CALENDAR</div>
         </nav>
         
         <!-- Dashboard Tab -->
@@ -453,7 +131,7 @@
             <div class="grid grid-2">
                 <div>
                     <div class="panel">
-                        <div class="panel-header"><span class="panel-title">Portfolio Value</span><span class="panel-badge live" id="data-badge">LIVE</span></div>
+                        <div class="panel-header"><span class="panel-title">Portfolio Value</span><button aria-label="Edit portfolio" class="port-edit-btn" onclick="showPortfolioEdit()">EDIT</button><button aria-label="Add asset" class="port-edit-btn" onclick="showAddAsset()">ADD</button><span class="panel-badge live" id="data-badge">LIVE</span></div>
                         <div class="panel-body">
                             <div class="portfolio-value" id="port-val">$0.00</div>
                             <div class="portfolio-change up" id="port-chg">+$0.00 (0.00%)</div>
@@ -462,8 +140,9 @@
                             </div>
                         </div>
                     </div>
-                    <div class="panel" style="margin-top:16px">
+                    <div class="panel" class="panel-spacing">
                         <div class="panel-header"><span class="panel-title">Assets</span></div>
+                        <input type="text" id="asset-search" class="asset-search-input" placeholder="Search assets..." oninput="filterAssets(this.value)">
                         <div class="panel-body" id="assets"></div>
                     </div>
                 </div>
@@ -473,6 +152,214 @@
                         <div class="panel-header"><span class="panel-title">Price Chart</span></div>
                         <div class="panel-body">
                             <div class="chart-header">
-                                <div class="chart-sym" id="chart-sym">BTC</div>
+                                <div class="chart-sym"><span id="chart-sym">BTC</span> <span id="chart-price" class="chart-price">$0.00</span> <span id="chart-chg" class="chart-chg">+0.00%</span></div>
+                            </div>
+                            <div class="chart-btns-row">
                                 <div class="chart-btns">
-                                    <button class="chart-btn" onclick="setTf('1H')
+                                    <button class="chart-btn" onclick="setTf('1H')" aria-label="1 hour timeframe">1H</button>
+                                    <button class="chart-btn on" onclick="setTf('1D')" aria-label="1 day timeframe">1D</button>
+                                    <button class="chart-btn" onclick="setTf('1W')" aria-label="1 week timeframe">1W</button>
+                                    <button class="chart-btn" onclick="setTf('1M')" aria-label="1 month timeframe">1M</button>
+                                    <button class="chart-btn" onclick="setTf('3M')" aria-label="3 month timeframe">3M</button>
+                                    <button aria-label="Toggle chart type" class="chart-btn chart-type-btn" onclick="toggleChartType()" id="chart-type-btn">LINE</button>
+                                </div>
+                            </div>
+                                                        <div class="chart-container">
+                                <div class="chart-toolbar">
+                                    <div class="chart-tools-left">
+                                        <button aria-label="Draw trend line" class="chart-tool-btn" id="draw-trend" onclick="setDrawMode('trend')">↗ Trend</button>
+                                        <button aria-label="Draw horizontal line" class="chart-tool-btn" id="draw-hline" onclick="setDrawMode('hline')">─ H-Line</button>
+                                        <button class="chart-tool-btn" id="draw-clear" onclick="clearDrawings()" aria-label="Clear all drawings">✕ Clear</button>
+                                        <button aria-label="Toggle indicators" class="chart-tool-btn" id="toggle-ind" onclick="toggleIndicators()">📊 Indicators</button>
+                                    </div>
+                                    <div class="chart-tools-right">
+                                        <button aria-label="Toggle Bollinger Bands" class="chart-tool-btn" id="toggle-bb" onclick="toggleBollinger()">BB</button>
+                                        <button class="chart-tool-btn" id="toggle-ema" onclick="toggleEMA()" aria-label="Toggle EMA lines">EMA</button>
+                                        <button class="chart-tool-btn" id="toggle-sma20" onclick="toggleSMA20()" aria-label="Toggle SMA 20">SMA20</button>
+                                        <button class="chart-tool-btn" id="toggle-sma200" onclick="toggleSMA200()" aria-label="Toggle SMA 200">SMA200</button>
+                                        <button class="chart-tool-btn" id="toggle-sr" onclick="toggleSR()" aria-label="Toggle Support/Resistance">S/R</button>
+                                    </div>
+                                </div>
+                                <div class="chart-indicator-legend" id="indicator-legend" style="display:none">
+                                    <div class="indicator-item"><div class="indicator-dot indicator-sma"></div><span>SMA-20</span></div>
+                                    <div class="indicator-item"><div class="indicator-dot indicator-ema9"></div><span>EMA-9</span></div>
+                                    <div class="indicator-item"><div class="indicator-dot indicator-ema21"></div><span>EMA-21</span></div>
+                                    <div class="indicator-item"><div class="indicator-dot indicator-bb"></div><span>Bollinger Bands</span></div>
+                                </div>
+                                <div class="chart-area" id="chart-area">
+                                    <button class="chart-fullscreen-btn" onclick="toggleFullscreen()" aria-label="Toggle fullscreen">⛶ Fullscreen</button>
+                                    <div class="chart-wrapper">
+                                        <div class="chart-main">
+                                            <div class="chart-canvas-container" id="chart-canvas-container" onmousemove="handleCrosshair(event)" onmouseleave="hideCrosshair()" style="position:relative">
+                                                <div id="chart-loading" class="chart-loading" style="display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10"><div class="loading-spinner"></div></div>
+                                                <canvas id="priceCt"></canvas>
+                                                <svg class="drawing-layer" id="drawing-layer"></svg>
+                                                <div class="crosshair-h" id="crosshair-h"></div>
+                                                <div class="crosshair-v" id="crosshair-v"></div>
+                                                <div class="crosshair-price" id="crosshair-price">$0.00</div>
+                                                <div class="crosshair-time" id="crosshair-time">--:--</div>
+                                            </div>
+                                            <div class="vol-chart"><canvas id="volCt"></canvas></div>
+                                            <div class="time-axis" id="time-axis"></div>
+                                        </div>
+                                        <div class="price-axis" id="price-axis"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="last-update" id="last-update"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="panel" class="panel-spacing">
+                        <div class="panel-header"><span class="panel-title">Technical Indicators</span></div>
+                        <div class="panel-body" id="inds"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="grid grid-3" class="panel-spacing">
+                <div class="panel">
+                    <div class="panel-header"><span class="panel-title">Fear & Greed</span></div>
+                    <div class="panel-body">
+                        <div class="fg-container">
+                            <div class="fg-bar"></div>
+                            <div class="fg-dot" id="fg-dot"></div>
+                            <div class="fg-footer">
+                                <div><div class="fg-value" id="fg-val">50</div><div class="fg-label" id="fg-lbl">NEUTRAL</div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="panel">
+                    <div class="panel-header"><span class="panel-title">Sector Performance</span></div>
+                    <div class="panel-body" id="sectors"></div>
+                </div>
+                <div class="panel">
+                    <div class="panel-header"><span class="panel-title">AI Actions</span></div>
+                    <div class="panel-body" id="actions"></div>
+                </div>
+            </div>
+            
+            <div class="grid grid-3" class="panel-spacing">
+                <div class="panel">
+                    <div class="panel-header"><span class="panel-title">Predictions</span></div>
+                    <div class="panel-body" id="preds"></div>
+                </div>
+                <div class="panel">
+                    <div class="panel-header"><span class="panel-title">Risk Parity</span></div>
+                    <div class="panel-body" id="weights"></div>
+                </div>
+                <div class="panel">
+                    <div class="panel-header"><span class="panel-title">Allocation</span></div>
+                    <div class="panel-body"><div class="alloc-chart"><canvas id="allocCt"></canvas></div></div>
+                </div>
+            </div>
+        </main>
+        
+        <!-- Analytics Tab -->
+        <main class="main" id="tab-analytics" style="display:none">
+            <div class="panel">
+                <div class="panel-header"><span class="panel-title">Portfolio Analytics</span></div>
+                <div class="panel-body">
+                    <div class="analytics-grid" id="analytics-grid"></div>
+                </div>
+            </div>
+            <div class="grid grid-2" class="panel-spacing">
+                <div class="panel">
+                    <div class="panel-header"><span class="panel-title">Correlation Matrix</span></div>
+                    <div class="panel-body" id="corr-matrix"></div>
+                </div>
+                <div class="panel">
+                    <div class="panel-header"><span class="panel-title">Asset Details</span></div>
+                    <div class="panel-body" id="asset-details"></div>
+                </div>
+            </div>
+        </main>
+        
+        <!-- News Tab -->
+        <main class="main" id="tab-news" style="display:none">
+            <div class="panel">
+                <div class="panel-header"><span class="panel-title">Market News</span></div>
+                <div class="panel-body" id="news-feed"></div>
+            </div>
+        </main>
+        
+        <!-- Calendar Tab -->
+        <main class="main" id="tab-calendar" style="display:none">
+            <div class="panel">
+                <div class="panel-header"><span class="panel-title">Economic Calendar</span></div>
+                <div class="panel-body" id="calendar"></div>
+            </div>
+        </main>
+        
+        <!-- Screener Tab -->
+        <main class="main" id="tab-screener" style="display:none">
+            <div class="panel">
+                <div class="panel-header"><span class="panel-title">Asset Screener</span></div>
+                <div class="panel-body">
+                    <div class="screener-filters" id="screener-filters"></div>
+                    <div id="screener-results"></div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Paper Trading Tab -->
+        <main class="main" id="tab-paper" style="display:none">
+            <div class="panel">
+                <div class="panel-header"><span class="panel-title">Paper Trading</span></div>
+                <div class="panel-body">
+                    <div class="paper-stats" id="paper-stats"></div>
+                    <div id="paper-positions"></div>
+                    <div style="margin-top:12px">
+                        <button aria-label="Buy (paper trading)" class="trade-btn" onclick="paperBuy()">BUY</button>
+                        <button aria-label="Sell (paper trading)" class="trade-btn sell" onclick="paperSell()">SELL</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- AI Assistant Tab -->
+        <main class="main" id="tab-ai" style="display:none">
+            <div class="panel">
+                <div class="panel-header"><span class="panel-title">AI Portfolio Assistant</span></div>
+                <div class="panel-body">
+                    <div class="ai-chat" id="ai-chat"></div>
+                    <div class="ai-quick-actions" id="ai-quick">
+                        <button aria-label="AI portfolio analysis" class="ai-quick-btn" onclick="quickAI('portfolio')">📊 Portfolio</button>
+                        <button aria-label="AI technical analysis" class="ai-quick-btn" onclick="quickAI('analysis')">📈 Analysis</button>
+                        <button aria-label="AI market overview" class="ai-quick-btn" onclick="quickAI('market')">🌍 Market</button>
+                        <button aria-label="AI risk analysis" class="ai-quick-btn" onclick="quickAI('risks')">⚠️ Risks</button>
+                        <button aria-label="AI trading tips" class="ai-quick-btn" onclick="quickAI('tips')">💡 Tips</button>
+                    </div>
+                    <div class="ai-input">
+                        <input type="text" id="ai-input" placeholder="Ask about your portfolio, market trends, or strategies..." onkeypress="if(event.key==='Enter')sendAI()">
+                        <button onclick="sendAI()" aria-label="Send message">SEND</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <footer class="ticker"><div class="ticker-scroll" id="ticker"></div></footer>
+    </div>
+    
+    <!-- Modals -->
+    <div class="modal-overlay" id="help-modal"><div class="modal"><div class="modal-header"><span class="modal-title">Keyboard Shortcuts</span><button aria-label="Close help" class="modal-close" onclick="hideHelp()">X</button></div><div class="modal-body"><div class="shortcut"><span>Navigate assets</span><span class="shortcut-key">1-8</span></div><div class="shortcut"><span>Toggle favorite</span><span class="shortcut-key">F</span></div><div class="shortcut"><span>Open alerts</span><span class="shortcut-key">A</span></div><div class="shortcut"><span>Refresh prices</span><span class="shortcut-key">R</span></div><div class="shortcut"><span>Show help</span><span class="shortcut-key">?</span></div><div class="shortcut"><span>Close modal</span><span class="shortcut-key">ESC</span></div><div class="shortcut"><span>Toggle theme</span><span class="shortcut-key">T</span></div></div></div></div>
+    <div class="modal-overlay" id="profile-modal"><div class="modal"><div class="modal-header"><span class="modal-title">Account Settings</span><button aria-label="Close profile" class="modal-close" onclick="hideProfile()">X</button></div><div class="modal-body"><div class="profile-item"><span class="profile-label">Email</span><span class="profile-value" id="profile-email">-</span></div><div class="profile-item"><span class="profile-label">Plan</span><span class="profile-value" id="profile-tier">FREE</span></div><div class="profile-item"><span class="profile-label">Member Since</span><span class="profile-value" id="profile-since">-</span></div></div></div></div>
+    <div class="modal-overlay" id="pricing-modal"><div class="modal"><div class="modal-header"><span class="modal-title">Upgrade Plan</span><button aria-label="Close pricing" class="modal-close" onclick="hidePricing()">X</button></div><div class="modal-body"><div class="pricing-cards" id="pricing-cards"></div></div></div></div>
+    <div class="modal-overlay" id="alerts-modal"><div class="modal"><div class="modal-header"><span class="modal-title">Price Alerts</span><button aria-label="Close alerts" class="modal-close" onclick="hideAlerts()">X</button></div><div class="modal-body"><div id="alerts-list"></div><button aria-label="Add alert" class="btn-primary" style="margin-top:12px" onclick="showAddAlert()">Add Alert</button></div></div></div>
+    <div class="modal-overlay" id="add-alert-modal"><div class="modal"><div class="modal-header"><span class="modal-title">Create Alert</span><button aria-label="Close" class="modal-close" onclick="hideAddAlert()">X</button></div><div class="modal-body"><div class="form-group"><label for="alert-asset">Asset</label><select id="alert-asset"></select></div><div class="form-group"><label for="alert-cond">Condition</label><select id="alert-cond"><option value="above">Price goes above</option><option value="below">Price goes below</option></select></div><div class="form-group"><label for="alert-price">Target Price ($)</label><input type="number" id="alert-price" placeholder="0.00"></div><button aria-label="Create alert" class="btn-primary" onclick="createAlert()">CREATE ALERT</button></div></div></div>
+    <div class="modal-overlay" id="watchlists-modal"><div class="modal"><div class="modal-header"><span class="modal-title">Watchlists</span><button aria-label="Close watchlists" class="modal-close" onclick="hideWatchlists()">X</button></div><div class="modal-body"><div id="watchlists-list"></div><button aria-label="Create watchlist" class="btn-primary" style="margin-top:12px" onclick="createWatchlist()">Create Watchlist</button></div></div></div>
+    
+        <!-- Portfolio Edit Modal -->
+    <div class="modal-overlay" id="portfolio-modal"><div class="modal modal-lg"><div class="modal-header"><span class="modal-title">Portfolio Holdings</span><button aria-label="Close" class="modal-close" onclick="hidePortfolioEdit()">X</button></div><div class="modal-body"><div id="holdings-list"></div><div style="margin-top:12px"><button aria-label="Save changes" class="btn-primary" onclick="saveHoldings()">SAVE CHANGES</button></div></div></div></div>
+
+    <!-- Add Asset Modal -->
+    <div class="modal-overlay" id="add-asset-modal"><div class="modal"><div class="modal-header"><span class="modal-title">Add Asset to Portfolio</span><button class="modal-close" onclick="hideAddAsset()" aria-label="Close modal">X</button></div><div class="modal-body"><input type="text" class="add-asset-search" id="asset-search" placeholder="Search assets..." oninput="searchAssets()"><div id="asset-options"></div></div></div></div>
+
+    <!-- PR Modal -->
+    <div class="modal-overlay" id="pr-modal"><div class="modal modal-lg"><div class="modal-header"><span class="modal-title">Create Pull Request</span><button class="modal-close" onclick="hidePRModal()" aria-label="Close modal">X</button></div><div class="modal-body"><div class="form-group"><label for="pr-branch">Branch Name</label><input type="text" id="pr-branch" placeholder="feature/my-changes"></div><div class="form-group"><label for="pr-title">PR Title</label><input type="text" id="pr-title" placeholder="Add new feature"></div><div class="form-group"><label for="pr-desc">Description</label><textarea id="pr-desc" style="width:100%;height:80px;background:var(--bg-surface);border:1px solid var(--border);border-radius:6px;padding:10px;color:var(--text-bright);resize:none" placeholder="Describe your changes..."></textarea></div><button aria-label="Create pull request" class="btn-primary" onclick="createPR()">CREATE PULL REQUEST</button><div class="panel-spacing"><span class="panel-title">Recent Pull Requests</span></div><div class="pr-list" id="pr-list" style="margin-top:8px"></div></div></div></div>
+    <div class="toast" id="toast"></div>
+    
+    <script src="js/app.js"></script>
+</body>
+</html>
