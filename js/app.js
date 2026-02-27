@@ -115,6 +115,8 @@ var CONFIG = {
             {sym:'MSFT',name:'Microsoft',type:'stock',price:0,chg:0,color:'#00a4ef',hold:20,fav:true,mktCap:0,vol24h:0,supply:7.4e9,pe:35,div:0.75}
         ];
         sel = data[0];
+
+
         
         function fmt(n) { return n >= 1000 ? n.toLocaleString('en-US',{maximumFractionDigits:0}) : n.toFixed(n < 1 ? 4 : 2); }
         function genHistory(base, len) { var arr=[]; var p=base; for(var i=0;i<len;i++){ p=p*(1+(Math.random()-0.5)*0.02); arr.push(p); } return arr; }
@@ -329,6 +331,13 @@ function generateTimeLabels(count, tf) {
                 if(stocks && stocks.TSLA){var tsla=data.find(function(a){return a.sym==='TSLA';});if(tsla){tsla.price=stocks.TSLA.price;tsla.chg=stocks.TSLA.changePercent||0;}}
                 if(stocks && stocks.GOOGL){var googl=data.find(function(a){return a.sym==='GOOGL';});if(googl){googl.price=stocks.GOOGL.price;googl.chg=stocks.GOOGL.changePercent||0;}}
                 if(stocks && stocks.MSFT){var msft=data.find(function(a){return a.sym==='MSFT';});if(msft){msft.price=stocks.MSFT.price;msft.chg=stocks.MSFT.changePercent||0;}}
+                // Initialize history with placeholder data if not already set
+                for(var i = 0; i < data.length; i++) {
+                    var asset = data[i];
+                    if(!history[asset.sym] && asset.price > 0) {
+                        history[asset.sym] = genHistory(asset.price, 200);
+                    }
+                }
                 $('status-dot').className='status-dot';$('status-text').textContent='LIVE';$('data-badge').textContent='LIVE';$('data-badge').className='panel-badge live';$('db-status').innerHTML='<span style="color:var(--purple)">[DB]</span> SYNCED';
                 hideLoading('price-spinner');
                 renderAll();
