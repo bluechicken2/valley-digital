@@ -518,7 +518,7 @@ async function fetchSectors() {
                 var data = await r.json();
                 // Store close prices in history for indicator calculations
                 if(data && data.length > 0) {
-                    history[sym] = data.map(function(c) { return c[4]; });
+                    history[sym] = data.map(function(c) { return c[4]; }); console.log('fetchOHLC stored', sym, 'candles:', history[sym].length);
                     dataQuality.source = 'live';
                     dataQuality.real = data.length;
                     dataQuality.lastUpdate = new Date();
@@ -547,7 +547,7 @@ async function fetchSectors() {
             if(chartRendering) return; // Prevent overlapping renders
 
             // Check if we have real data
-            var arr = history[sel.sym];
+            var arr = history[sel.sym]; console.log('renderChart checking', sel.sym, 'history:', arr ? arr.length : 'null');
             if(!arr || arr.length === 0) {
                 // Show loading state - fetch real data
                 showChartLoading();
@@ -784,7 +784,7 @@ async function fetchSectors() {
         }
         function renderLine() {
             var len = timeframe==='1H'?24:timeframe==='1W'?168:timeframe==='1M'?720:timeframe==='3M'?2160:96;
-            var arr = history[sel.sym];
+            var arr = history[sel.sym]; console.log('renderLine checking', sel.sym, 'history:', arr ? arr.length : 'null');
             if(!arr || arr.length === 0) return;
             var disp=arr, lbls=[], times=[]; // Use all available data
             // Generate proper time labels based on timeframe
