@@ -785,7 +785,8 @@ async function fetchSectors() {
         function renderLine() {
             var len = timeframe==='1H'?24:timeframe==='1W'?168:timeframe==='1M'?720:timeframe==='3M'?2160:96;
             var arr = history[sel.sym];
-            if(!arr || arr.length < len) return; var disp=arr.slice(-len), lbls=[], times=[];
+            if(!arr || arr.length === 0) return;
+            var disp=arr, lbls=[], times=[]; // Use all available data
             // Generate proper time labels based on timeframe
             times = generateTimeLabels(disp.length, timeframe);
             for(var i=0;i<disp.length;i++) {
