@@ -737,7 +737,7 @@ async function fetchSectors() {
                 $('chart-chg').className='chart-chg '+(chg>=0?'up':'down');
             }
             if(priceCt) priceCt.destroy(); if(volCt) volCt.destroy();
-            var vols=[]; for(var i=0;i<disp.length;i++) vols.push(Math.abs((arr[i]-arr[i-1])/arr[i-1]*1000)+50);
+            var vols=[]; for(var i=0;i<disp.length;i++) { var prev = i>0 ? disp[i-1] : disp[i]; vols.push(Math.abs((disp[i]-prev)/prev*1000)+50); }
 
             // Calculate SMA
             var sma=[]; var period=20;
