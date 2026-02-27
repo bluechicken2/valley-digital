@@ -14,8 +14,6 @@
             // showToast not available yet during init - will be defined later
         };
 
-
-        
 // Input sanitization to prevent XSS
 function escapeHtml(text) {
     if (typeof text !== 'string') return text;
@@ -47,7 +45,6 @@ var $ = function(id) { return document.getElementById(id); };
                 return null;
             }
         }
-        
 
         // Connection status monitoring
         window.addEventListener('online', function() {
@@ -117,15 +114,12 @@ var CONFIG = {
         ];
         sel = data[0];
 
-
-        
         function fmt(n) { return n >= 1000 ? n.toLocaleString('en-US',{maximumFractionDigits:0}) : n.toFixed(n < 1 ? 4 : 2); }
         function genHistory(base, len) {
             // Returns empty array - charts must wait for real OHLC data from API
             // fetchOHLC will populate history[sym] with real data
             return [];
         }
-        
 
         // Flash price cell on change (Phase 2)
         function flashPriceChange(symbol, direction) {
@@ -492,8 +486,7 @@ async function fetchSectors() {
             var h=''; for(var i=0;i<preds.length;i++){h+='<div class="pred-row"><span>'+preds[i].l+'</span><span class="pred-val '+(preds[i].v>=base?'bull':'bear')+'" style="color:'+(preds[i].v>=base?'var(--green)':'var(--red)')+'">$'+fmt(preds[i].v)+'</span></div>';} $('preds').innerHTML=h;
         }
         function renderWeights() { var w=[{s:'BTC',w:28,c:'var(--cyan)'},{s:'ETH',w:18,c:'var(--purple)'},{s:'NVDA',w:16,c:'var(--green)'},{s:'AAPL',w:14,c:'var(--gold)'},{s:'MSFT',w:12,c:'var(--cyan)'},{s:'GOOGL',w:8,c:'var(--red)'},{s:'TSLA',w:4,c:'var(--purple)'}]; var h=''; for(var i=0;i<w.length;i++){h+='<div class="weight-row"><span class="weight-sym">'+w[i].s+'</span><div class="weight-bar"><div class="weight-fill" style="width:'+w[i].w+'%;background:'+w[i].c+'"></div></div><span class="weight-pct">'+w[i].w+'%</span></div>';} $('weights').innerHTML=h; }
-        
-        
+
         var ohlcData = {};
         async function fetchOHLC(sym) {
             var cacheKey = 'ohlc_'+sym+'_'+timeframe;
@@ -519,7 +512,7 @@ async function fetchSectors() {
                 var data = await r.json();
                 // Store close prices in history for indicator calculations
                 if(data && data.length > 0) {
-                    history[sym] = data.map(function(c) { return c[4]; }); console.log('fetchOHLC stored', sym, 'candles:', history[sym].length);
+                    history[sym] = data.map(function(c) { return c[4]; }); 
                     dataQuality.source = 'live';
                     dataQuality.real = data.length;
                     dataQuality.lastUpdate = new Date();
@@ -548,7 +541,7 @@ async function fetchSectors() {
             if(chartRendering) return; // Prevent overlapping renders
 
             // Check if we have real data
-            var arr = history[sel.sym]; console.log('renderChart checking', sel.sym, 'history:', arr ? arr.length : 'null');
+            var arr = history[sel.sym]; 
             if(!arr || arr.length === 0) {
                 // Show loading state - fetch real data
                 showChartLoading();
@@ -785,10 +778,10 @@ async function fetchSectors() {
         }
         function renderLine() {
             try {
-            console.log('renderLine called');
+            
             var len = timeframe==='1H'?24:timeframe==='1W'?168:timeframe==='1M'?720:timeframe==='3M'?2160:96;
-            var arr = history[sel.sym]; console.log('renderLine checking', sel.sym, 'history:', arr ? arr.length : 'null');
-            if(!arr || arr.length === 0) { console.log('renderLine: no data, returning'); return; }
+            var arr = history[sel.sym]; 
+            if(!arr || arr.length === 0) {  return; }
             var disp=arr, lbls=[], times=[]; // Use all available data
             // Generate proper time labels based on timeframe
             times = generateTimeLabels(disp.length, timeframe);
@@ -864,7 +857,7 @@ async function fetchSectors() {
                 timeHtml += '<span>' + (times[i] || i) + '</span>';
             }
             $('time-axis').innerHTML = timeHtml;
-            console.log('renderLine completed successfully');
+            
             } catch(e) { console.error('renderLine ERROR:', e); }
         }
 
@@ -1198,7 +1191,6 @@ function renderAlloc() { if(allocCt) allocCt.destroy(); allocCt = new Chart($('a
             }
             axis.innerHTML = html;
         }
-        
 
         window.filterAssets = function(query) {
             var q = query.toLowerCase().trim();
@@ -1234,7 +1226,6 @@ function renderAlloc() { if(allocCt) allocCt.destroy(); allocCt = new Chart($('a
                 noResults.style.display = 'none';
             }
         };
-        
 
         window.exportData = function(format) {
             var NL = String.fromCharCode(10);
@@ -1395,8 +1386,7 @@ window.deleteAlert = function(idx) { alerts.splice(idx,1); localStorage.setItem(
         });
         
         document.querySelectorAll('.modal-overlay').forEach(function(o){o.addEventListener('click',function(e){if(e.target===o)o.classList.remove('show');});});
-        
-        
+
         var screenerFilters = {rsi:false, volume:false, change:false};
         var paperBalance = 100000, paperPositions = {};
         var aiHistory = [];
@@ -1786,7 +1776,6 @@ window.deleteAlert = function(idx) { alerts.splice(idx,1); localStorage.setItem(
                     }
                 });
                 var delData = await delRes.text();
-
 
                 if(entries.length > 0) {
                     var postRes = await fetch(SUPABASE_URL+'/rest/v1/portfolios', {
