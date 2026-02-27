@@ -664,3 +664,44 @@
     0%, 100% { opacity: 1; transform: scale(1); }
     50% { opacity: 0.5; transform: scale(1.2); }
 }
+
+
+/* Financial Disclaimer */
+.financial-disclaimer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(20, 25, 35, 0.95);
+    border-top: 1px solid rgba(255, 51, 102, 0.3);
+    padding: 8px 16px;
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+}
+
+.disclaimer-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 11px;
+    color: #8892a0;
+}
+
+.disclaimer-icon {
+    font-size: 14px;
+}
+
+.disclaimer-text strong {
+    color: #ff3366;
+}
+
+/* Data Quality Indicator */
+.data-quality {
+    font-size: 10px;
+    color: #8892a0;
+    padding: 4px 8px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    margin-right: 10px;
+}

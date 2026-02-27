@@ -1,0 +1,442 @@
+// TradingAPI Proxy Worker v4.0
+// Real data from: CoinGecko (crypto), Yahoo Finance (stocks), Alpha Vantage (backup), FMP (sectors)
+
+const FMP_API_KEY = 'rmwBYnfwnlHlWAvZS4cSHMX9dcVRIwVL';
+const ALPHA_VANTAGE_KEY = 'OJJYXLIC9H35HWUY';
+
+const CRYPTO_IDS = ['bitcoin', 'ethereum', 'solana', 'ripple', 'cardano', 'dogecoin'];
+const CRYPTO_MAP = { 'BTC': 'bitcoin', 'ETH': 'ethereum', 'SOL': 'solana', 'XRP': 'ripple', 'ADA': 'cardano', 'DOGE': 'dogecoin' };
+const STOCK_SYMBOLS = ['AAPL', 'NVDA', 'TSLA', 'GOOGL', 'MSFT', 'AMZN', 'META'];
+
+// Cache for rate limiting
+const cache = {
+  stocks: { data: null, timestamp: 0, ttl: 60000 }, // 1 min cache
+  crypto: { data: null, timestamp: 0, ttl: 30000 },   // 30 sec cache
+  sectors: { data: null, timestamp: 0, ttl: 300000 }, // 5 min cache
+  quote: { data: {}, timestamp: {}, ttl: 60000 }       // Per-symbol cache
+};
+
+addEventListener('fetch', event => {
+  event.respondWith(handleRequest(event.request));
+});
+
+async function handleRequest(request) {
+  const url = new URL(request.url);
+  const path = url.pathname;
+  
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Content-Type': 'application/json'
+  };
+  
+  if (request.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+  
+  try {
+    // Route handlers
+    if (path === '/prices' || path === '/api/prices') {
+      return await getCryptoPrices(corsHeaders);
+    } else if (path === '/ohlc' || path === '/api/ohlc') {
+      return await getOHLC(url, corsHeaders);
+    } else if (path === '/sectors' || path === '/api/sectors') {
+      return await getSectors(corsHeaders);
+    } else if (path === '/stocks' || path === '/api/stocks') {
+      return await getStockPrices(corsHeaders);
+    } else if (path === '/quote' || path === '/api/quote') {
+      return await getStockQuote(url, corsHeaders);
+    } else if (path === '/search' || path === '/api/search') {
+      return await searchSymbol(url, corsHeaders);
+    } else if (path === '/history' || path === '/api/history') {
+      return await getPriceHistory(url, corsHeaders);
+    } else if (path === '/health') {
+      return new Response(JSON.stringify({ 
+        status: 'ok', 
+        version: '4.0',
+        endpoints: ['/prices', '/stocks', '/quote', '/ohlc', '/sectors', '/search', '/history'],
+        timestamp: Date.now() 
+      }), { headers: corsHeaders });
+    } else {
+      return new Response(JSON.stringify({ 
+        error: 'Not found', 
+        endpoints: ['/prices', '/stocks', '/quote', '/ohlc', '/sectors', '/search', '/history', '/health'] 
+      }), { headers: corsHeaders });
+    }
+  } catch (error) {
+    console.error('Worker error:', error);
+    return new Response(JSON.stringify({ error: error.message }), { headers: corsHeaders, status: 500 });
+  }
+}
+
+// ============ CRYPTO (CoinGecko) ============
+async function getCryptoPrices(corsHeaders) {
+  // Check cache
+  if (cache.crypto.data && Date.now() - cache.crypto.timestamp < cache.crypto.ttl) {
+    return new Response(JSON.stringify(cache.crypto.data), { headers: corsHeaders });
+  }
+  
+  try {
+    const response = await fetch(
+      'https://api.coingecko.com/api/v3/simple/price?ids=' + CRYPTO_IDS.join(',') + 
+      '&vs_currencies=usd&include_24hr_change=true&include_market_cap=true&include_24hr_vol=true',
+      { headers: { 
+        'User-Agent': 'TradingAI-Dashboard/4.0', 
+        'Accept': 'application/json' 
+      }}
+    );
+    
+    if (!response.ok) {
+      throw new Error('CoinGecko error: ' + response.status);
+    }
+    
+    const data = await response.json();
+    cache.crypto.data = data;
+    cache.crypto.timestamp = Date.now();
+    return new Response(JSON.stringify(data), { headers: corsHeaders });
+  } catch (error) {
+    console.error('Crypto fetch error:', error);
+    // Return cached data if available, otherwise minimal fallback
+    if (cache.crypto.data) {
+      return new Response(JSON.stringify(cache.crypto.data), { headers: corsHeaders });
+    }
+    return new Response(JSON.stringify({ error: 'Crypto data unavailable', retry: 30 }), { 
+      headers: corsHeaders, 
+      status: 503 
+    });
+  }
+}
+
+async function getOHLC(url, corsHeaders) {
+  const coin = url.searchParams.get('coin') || 'bitcoin';
+  const days = url.searchParams.get('days') || '7';
+  
+  try {
+    const response = await fetch(
+      'https://api.coingecko.com/api/v3/coins/' + coin + '/ohlc?vs_currency=usd&days=' + days,
+      { headers: { 'User-Agent': 'TradingAI-Dashboard/4.0', 'Accept': 'application/json' } }
+    );
+    
+    if (!response.ok) throw new Error('CoinGecko OHLC error: ' + response.status);
+    
+    const data = await response.json();
+    return new Response(JSON.stringify(data), { headers: corsHeaders });
+  } catch (error) {
+    console.error('OHLC fetch error:', error);
+    return new Response(JSON.stringify({ error: 'OHLC data unavailable' }), { 
+      headers: corsHeaders, 
+      status: 503 
+    });
+  }
+}
+
+// ============ STOCKS (Yahoo Finance Primary, Alpha Vantage Backup) ============
+
+async function getStockPrices(corsHeaders) {
+  // Check cache
+  if (cache.stocks.data && Date.now() - cache.stocks.timestamp < cache.stocks.ttl) {
+    return new Response(JSON.stringify(cache.stocks.data), { headers: corsHeaders });
+  }
+  
+  // Try Yahoo Finance first (free, no API key)
+  try {
+    const yahooData = await fetchYahooQuotes(STOCK_SYMBOLS);
+    if (yahooData && Object.keys(yahooData).length > 0) {
+      cache.stocks.data = yahooData;
+      cache.stocks.timestamp = Date.now();
+      return new Response(JSON.stringify(yahooData), { headers: corsHeaders });
+    }
+  } catch (error) {
+    console.error('Yahoo Finance error:', error);
+  }
+  
+  // Fallback to Alpha Vantage
+  try {
+    const avData = await fetchAlphaVantageQuotes(STOCK_SYMBOLS);
+    if (avData && Object.keys(avData).length > 0) {
+      cache.stocks.data = avData;
+      cache.stocks.timestamp = Date.now();
+      return new Response(JSON.stringify(avData), { headers: corsHeaders });
+    }
+  } catch (error) {
+    console.error('Alpha Vantage error:', error);
+  }
+  
+  // Fallback to FMP
+  try {
+    const fmpData = await fetchFMPQuotes(STOCK_SYMBOLS);
+    if (fmpData && Object.keys(fmpData).length > 0) {
+      cache.stocks.data = fmpData;
+      cache.stocks.timestamp = Date.now();
+      return new Response(JSON.stringify(fmpData), { headers: corsHeaders });
+    }
+  } catch (error) {
+    console.error('FMP error:', error);
+  }
+  
+  // Return cached data if available
+  if (cache.stocks.data) {
+    return new Response(JSON.stringify(cache.stocks.data), { headers: corsHeaders });
+  }
+  
+  return new Response(JSON.stringify({ error: 'Stock data unavailable', retry: 60 }), { 
+    headers: corsHeaders, 
+    status: 503 
+  });
+}
+
+// Yahoo Finance (free, no API key required)
+async function fetchYahooQuotes(symbols) {
+  const results = {};
+  
+  // Yahoo Finance v8 API
+  const url = 'https://query1.finance.yahoo.com/v7/finance/quote?symbols=' + symbols.join(',') + 
+    '&fields=regularMarketPrice,regularMarketChangePercent,marketCap,regularMarketVolume,fiftyTwoWeekHigh,fiftyTwoWeekLow';
+  
+  const response = await fetch(url, {
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+      'Accept': 'application/json'
+    }
+  });
+  
+  if (!response.ok) throw new Error('Yahoo API error: ' + response.status);
+  
+  const data = await response.json();
+  
+  if (data.quoteResponse && data.quoteResponse.result) {
+    for (const quote of data.quoteResponse.result) {
+      if (quote && quote.symbol) {
+        results[quote.symbol] = {
+          price: quote.regularMarketPrice || 0,
+          changePercent: quote.regularMarketChangePercent || 0,
+          marketCap: quote.marketCap || 0,
+          volume: quote.regularMarketVolume || 0,
+          high52w: quote.fiftyTwoWeekHigh || 0,
+          low52w: quote.fiftyTwoWeekLow || 0,
+          source: 'yahoo'
+        };
+      }
+    }
+  }
+  
+  return results;
+}
+
+// Alpha Vantage (backup)
+async function fetchAlphaVantageQuotes(symbols) {
+  const results = {};
+  
+  // Alpha Vantage requires one request per symbol (rate limit)
+  // Only fetch first 5 to avoid timeout
+  const toFetch = symbols.slice(0, 5);
+  
+  for (const symbol of toFetch) {
+    try {
+      const url = 'https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=' + symbol + '&apikey=' + ALPHA_VANTAGE_KEY;
+      const response = await fetch(url, {
+        headers: { 'User-Agent': 'TradingAI-Dashboard/4.0' }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data['Global Quote']) {
+          const quote = data['Global Quote'];
+          results[symbol] = {
+            price: parseFloat(quote['05. price']) || 0,
+            changePercent: parseFloat((quote['10. change percent'] || '0%').replace('%', '')) || 0,
+            volume: parseInt(quote['06. volume']) || 0,
+            source: 'alphavantage'
+          };
+        }
+      }
+      // Rate limiting - Alpha Vantage allows 5 calls/min
+      await new Promise(r => setTimeout(r, 300));
+    } catch (e) {
+      console.error('Alpha Vantage error for', symbol, e);
+    }
+  }
+  
+  return results;
+}
+
+// FMP (backup for stocks)
+async function fetchFMPQuotes(symbols) {
+  const results = {};
+  
+  const url = 'https://financialmodelingprep.com/api/v3/quote/' + symbols.join(',') + '?apikey=' + FMP_API_KEY;
+  const response = await fetch(url, {
+    headers: { 'User-Agent': 'TradingAI-Dashboard/4.0' }
+  });
+  
+  if (!response.ok) throw new Error('FMP API error: ' + response.status);
+  
+  const data = await response.json();
+  
+  if (Array.isArray(data)) {
+    for (const quote of data) {
+      if (quote && quote.symbol) {
+        results[quote.symbol] = {
+          price: quote.price || 0,
+          changePercent: quote.changesPercentage || 0,
+          marketCap: quote.marketCap || 0,
+          volume: quote.volume || 0,
+          source: 'fmp'
+        };
+      }
+    }
+  }
+  
+  return results;
+}
+
+// Single stock quote
+async function getStockQuote(url, corsHeaders) {
+  const symbol = url.searchParams.get('symbol')?.toUpperCase();
+  
+  if (!symbol) {
+    return new Response(JSON.stringify({ error: 'Symbol parameter required' }), { 
+      headers: corsHeaders, status: 400 
+    });
+  }
+  
+  // Check per-symbol cache
+  if (cache.quote.data[symbol] && Date.now() - cache.quote.timestamp[symbol] < cache.quote.ttl) {
+    return new Response(JSON.stringify(cache.quote.data[symbol]), { headers: corsHeaders });
+  }
+  
+  // Try Yahoo first
+  try {
+    const yahooData = await fetchYahooQuotes([symbol]);
+    if (yahooData && yahooData[symbol]) {
+      cache.quote.data[symbol] = yahooData[symbol];
+      cache.quote.timestamp[symbol] = Date.now();
+      return new Response(JSON.stringify(yahooData[symbol]), { headers: corsHeaders });
+    }
+  } catch (e) {}
+  
+  // Try FMP
+  try {
+    const fmpData = await fetchFMPQuotes([symbol]);
+    if (fmpData && fmpData[symbol]) {
+      cache.quote.data[symbol] = fmpData[symbol];
+      cache.quote.timestamp[symbol] = Date.now();
+      return new Response(JSON.stringify(fmpData[symbol]), { headers: corsHeaders });
+    }
+  } catch (e) {}
+  
+  return new Response(JSON.stringify({ error: 'Quote unavailable for ' + symbol }), { 
+    headers: corsHeaders, status: 404 
+  });
+}
+
+// ============ SECTORS (FMP) ============
+async function getSectors(corsHeaders) {
+  // Check cache
+  if (cache.sectors.data && Date.now() - cache.sectors.timestamp < cache.sectors.ttl) {
+    return new Response(JSON.stringify(cache.sectors.data), { headers: corsHeaders });
+  }
+  
+  try {
+    const response = await fetch(
+      'https://financialmodelingprep.com/api/v3/stock/sectors-performance?apikey=' + FMP_API_KEY,
+      { headers: { 'User-Agent': 'TradingAI-Dashboard/4.0', 'Accept': 'application/json' } }
+    );
+
+    if (!response.ok) throw new Error('FMP sectors error: ' + response.status);
+
+    const data = await response.json();
+    
+    if (Array.isArray(data) && data.length > 0) {
+      cache.sectors.data = data;
+      cache.sectors.timestamp = Date.now();
+      return new Response(JSON.stringify(data), { headers: corsHeaders });
+    }
+  } catch (error) {
+    console.error('Sectors fetch error:', error);
+  }
+  
+  // Return cached if available
+  if (cache.sectors.data) {
+    return new Response(JSON.stringify(cache.sectors.data), { headers: corsHeaders });
+  }
+  
+  return new Response(JSON.stringify({ error: 'Sector data unavailable' }), { 
+    headers: corsHeaders, status: 503 
+  });
+}
+
+// ============ SEARCH ============
+async function searchSymbol(url, corsHeaders) {
+  const query = url.searchParams.get('q');
+  
+  if (!query || query.length < 1) {
+    return new Response(JSON.stringify({ error: 'Query parameter q required' }), { 
+      headers: corsHeaders, status: 400 
+    });
+  }
+  
+  try {
+    // Use FMP for symbol search
+    const response = await fetch(
+      'https://financialmodelingprep.com/api/v3/search?query=' + encodeURIComponent(query) + '&limit=10&apikey=' + FMP_API_KEY,
+      { headers: { 'User-Agent': 'TradingAI-Dashboard/4.0' } }
+    );
+    
+    if (!response.ok) throw new Error('Search error: ' + response.status);
+    
+    const data = await response.json();
+    return new Response(JSON.stringify(data), { headers: corsHeaders });
+  } catch (error) {
+    return new Response(JSON.stringify({ error: 'Search unavailable' }), { 
+      headers: corsHeaders, status: 503 
+    });
+  }
+}
+
+// ============ PRICE HISTORY ============
+async function getPriceHistory(url, corsHeaders) {
+  const symbol = url.searchParams.get('symbol')?.toUpperCase();
+  const days = parseInt(url.searchParams.get('days')) || 30;
+  
+  if (!symbol) {
+    return new Response(JSON.stringify({ error: 'Symbol parameter required' }), { 
+      headers: corsHeaders, status: 400 
+    });
+  }
+  
+  // Check if crypto
+  const cryptoId = CRYPTO_MAP[symbol];
+  if (cryptoId) {
+    try {
+      const response = await fetch(
+        'https://api.coingecko.com/api/v3/coins/' + cryptoId + '/market_chart?vs_currency=usd&days=' + days,
+        { headers: { 'User-Agent': 'TradingAI-Dashboard/4.0' } }
+      );
+      if (response.ok) {
+        const data = await response.json();
+        return new Response(JSON.stringify(data.prices), { headers: corsHeaders });
+      }
+    } catch (e) {}
+  }
+  
+  // Try FMP for stocks
+  try {
+    const response = await fetch(
+      'https://financialmodelingprep.com/api/v3/historical-price-full/' + symbol + '?timeseries=' + days + '&apikey=' + FMP_API_KEY,
+      { headers: { 'User-Agent': 'TradingAI-Dashboard/4.0' } }
+    );
+    if (response.ok) {
+      const data = await response.json();
+      if (data.historical) {
+        const prices = data.historical.map(h => [h.date, h.close]);
+        return new Response(JSON.stringify(prices.reverse()), { headers: corsHeaders });
+      }
+    }
+  } catch (e) {}
+  
+  return new Response(JSON.stringify({ error: 'History unavailable for ' + symbol }), { 
+    headers: corsHeaders, status: 404 
+  });
+}
