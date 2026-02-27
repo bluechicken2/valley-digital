@@ -787,7 +787,7 @@ async function fetchSectors() {
                     }
                 }
             });
-            volCt = new Chart($('volCt'),{type:'bar',data:{labels:times,datasets:[{data:vols,backgroundColor:vols.map(function(v,i){return disp[i+1]>disp[i]?'rgba(0,255,136,0.5)':'rgba(255,51,102,0.5)';})}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:false}}}});
+            volCt = new Chart($('volCt'),{type:'bar',data:{labels:times,datasets:[{data:vols,backgroundColor:vols.map(function(v,i){return disp[i+1]>disp[i]?'rgba(0,255,136,0.5)':'rgba(255,51,102,0.5)';})}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:false,position:'right'}}}});
             $('last-update').textContent='Last update: '+new Date().toLocaleTimeString();
             
             // Update time axis
