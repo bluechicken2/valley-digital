@@ -638,6 +638,7 @@ async function fetchSectors() {
                     responsive:true,
                     maintainAspectRatio:false,
                     interaction:{mode:'index',intersect:false},
+                    layout:{padding:{right:60,top:5,bottom:5,left:5}},
                     plugins:{
                         legend:{display:false},
                         tooltip:{
@@ -762,6 +763,7 @@ async function fetchSectors() {
                     responsive:true,
                     maintainAspectRatio:false,
                     interaction:{mode:'index',intersect:false},
+                    layout:{padding:{right:60,top:5,bottom:5,left:5}},
                     plugins:{
                         legend:{display:false},
                         tooltip:{
