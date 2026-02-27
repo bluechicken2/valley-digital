@@ -78,7 +78,7 @@ var CONFIG = {
         };
 
         var user = null, userTier = 'free', sel = null, data = [], alerts = [], sectorData = [], watchlists = [{name:'Crypto',symbols:['BTC','ETH','SOL']},{name:'Tech',symbols:['AAPL','NVDA','MSFT','GOOGL']}];
-        var priceCt = null, volCt = null, allocCt = null, chartType = 'line', timeframe = '1D';
+        var priceCt = null, volCt = null, allocCt = null, chartType = 'line', timeframe = '1D', chartRendering = false;
         
         // API Response Cache
         var apiCache = {};
@@ -493,7 +493,17 @@ async function fetchSectors() {
             }
         }
         function renderChart() {
-            if(chartType==='candle') { fetchOHLC(sel.sym).then(function(d){ renderCandles(d); }); }
+            if(chartRendering) return; // Prevent overlapping renders
+            if(chartType==='candle') { 
+                chartRendering = true;
+                fetchOHLC(sel.sym).then(function(d){ 
+                    renderCandles(d); 
+                    chartRendering = false;
+                }).catch(function(e) { 
+                    chartRendering = false; 
+                    console.error('Chart render error:', e);
+                }); 
+            }
             else { renderLine(); }
         }
         function renderCandles(ohlc) {
@@ -1128,8 +1138,27 @@ function renderAlloc() { if(allocCt) allocCt.destroy(); allocCt = new Chart($('a
 window.selAsset = function(s) { for(var i=0;i<data.length;i++) if(data[i].sym===s){sel=data[i];break;} $('chart-sym').textContent=s; 
 if(!history[s])history[s]=null; renderAssets();renderInds();renderActions();renderAssetDetails();renderChart(); fetchOHLC(s).then(function(d){ if(d && d.length>0){ history[s]=d.map(function(c){return c[4];}); renderInds();renderActions(); } }); };
         window.toggleFav = function(s) { for(var i=0;i<data.length;i++) if(data[i].sym===s){data[i].fav=!data[i].fav;renderAssets();showToast(s+(data[i].fav?' added to':' removed from')+' favorites');break;} };
-        window.setTf = function(tf) { timeframe=tf; var btns=document.querySelectorAll('.chart-btn'); for(var j=0;j<btns.length;j++){btns[j].classList.remove('on');} if(typeof event!=='undefined' && event.target) event.target.classList.add('on'); ohlcData={}; renderChart(); };
-        window.toggleChartType = function() { chartType = chartType==='line'?'candle':'line'; $('chart-type-btn').textContent = chartType.toUpperCase(); renderChart(); };
+        window.setTf = function(tf) { 
+            // Destroy existing charts immediately
+            if(priceCt) { priceCt.destroy(); priceCt = null; }
+            if(volCt) { volCt.destroy(); volCt = null; }
+            timeframe=tf; 
+            var btns=document.querySelectorAll('.chart-btn'); 
+            for(var j=0;j<btns.length;j++){btns[j].classList.remove('on');} 
+            if(typeof event!=='undefined' && event.target) event.target.classList.add('on'); 
+            ohlcData={}; 
+            chartRendering = false;
+            renderChart(); 
+        };
+        window.toggleChartType = function() { 
+            // Destroy existing charts immediately
+            if(priceCt) { priceCt.destroy(); priceCt = null; }
+            if(volCt) { volCt.destroy(); volCt = null; }
+            chartType = chartType==='line'?'candle':'line'; 
+            $('chart-type-btn').textContent = chartType.toUpperCase(); 
+            chartRendering = false;
+            renderChart(); 
+        };
         
         // Theme
         window.toggleTheme = function() { isLightTheme = !isLightTheme; document.body.classList.toggle('light-theme',isLightTheme); $('theme-btn').innerHTML = isLightTheme?'&#9728;':'&#9790;'; showToast(isLightTheme?'Light mode':'Dark mode'); };
