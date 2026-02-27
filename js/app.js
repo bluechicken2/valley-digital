@@ -583,15 +583,28 @@ async function fetchSectors() {
                 });
             }
             
-            // Candlestick bodies
+            // Candlestick wicks (high-low shadows)
             datasets.push({
                 type:'bar',
-                data:candles.map(function(c){return Math.max(c.o,c.c)-Math.min(c.o,c.c);}),
+                data:candles.map(function(c){ return [c.l, c.h]; }),
+                backgroundColor:'transparent',
+                borderColor:candles.map(function(c){return c.c>=c.o?'rgba(0,255,136,0.9)':'rgba(255,51,102,0.9)';}),
+                borderWidth:1,
+                barPercentage:0.15,
+                order:98,
+                categoryPercentage:1
+            });
+
+            // Candlestick bodies (floating bars from open to close)
+            datasets.push({
+                type:'bar',
+                data:candles.map(function(c){ return [Math.min(c.o,c.c), Math.max(c.o,c.c)]; }),
                 backgroundColor:candles.map(function(c){return c.c>=c.o?'rgba(0,255,136,0.85)':'rgba(255,51,102,0.85)';}),
                 borderColor:candles.map(function(c){return c.c>=c.o?'#00ff88':'#ff3366';}),
                 borderWidth:1,
-                barPercentage:0.8,
-                order:99
+                barPercentage:0.7,
+                order:99,
+                categoryPercentage:1
             });
             
             priceCt = new Chart($('priceCt'),{
