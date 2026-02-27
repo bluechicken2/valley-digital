@@ -65,7 +65,7 @@ var $ = function(id) { return document.getElementById(id); };
         });
 
 var CONFIG = {
-            REFRESH_INTERVAL: 60000,      // Price refresh interval (ms)
+            REFRESH_INTERVAL: 30000,      // Price refresh interval (ms)
             TIME_UPDATE_INTERVAL: 1000,   // Time display update (ms)
             INIT_DELAY: 100,              // Init timeout delay (ms)
             SMA_PERIOD: 20,               // SMA period for charts
@@ -102,7 +102,7 @@ var CONFIG = {
             if(el) el.style.display = 'none';
         }
 
-        var history = {}, isLightTheme = false, isFullscreen = false;
+        var history = {}, prevPrices = {}, isLightTheme = false, isFullscreen = false;
         
         data = [
             {sym:'BTC',name:'Bitcoin',type:'crypto',price:0,chg:0,color:'var(--cyan)',hold:0.5,fav:true,mktCap:0,vol24h:0,supply:19.5e6},
@@ -120,6 +120,31 @@ var CONFIG = {
         
         function fmt(n) { return n >= 1000 ? n.toLocaleString('en-US',{maximumFractionDigits:0}) : n.toFixed(n < 1 ? 4 : 2); }
         function genHistory(base, len) { var arr=[]; var p=base; for(var i=0;i<len;i++){ p=p*(1+(Math.random()-0.5)*0.02); arr.push(p); } return arr; }
+        
+
+        // Flash price cell on change (Phase 2)
+        function flashPriceChange(symbol, direction) {
+            var el = document.querySelector('[data-symbol="' + symbol + '"] .asset-price');
+            if(!el) return;
+            el.classList.remove('flash-up', 'flash-down');
+            void el.offsetWidth; // Force reflow
+            el.classList.add(direction === 'up' ? 'flash-up' : 'flash-down');
+            setTimeout(function() {
+                el.classList.remove('flash-up', 'flash-down');
+            }, 1000);
+        }
+
+        // Track price changes after refresh (Phase 2)
+        function trackPriceChanges() {
+            for(var i = 0; i < data.length; i++) {
+                var asset = data[i];
+                var prev = prevPrices[asset.sym];
+                if(prev !== undefined && prev !== asset.price) {
+                    flashPriceChange(asset.sym, asset.price > prev ? 'up' : 'down');
+                }
+                prevPrices[asset.sym] = asset.price;
+            }
+        }
         function genCandles(base, len) { var arr=[]; var p=base; for(var i=0;i<len;i++){ var o=p; p=p*(1+(Math.random()-0.5)*0.02); var c=p; var h=Math.max(o,c)*(1+Math.random()*0.01); var l=Math.min(o,c)*(1-Math.random()*0.01); arr.push({o:o,h:h,l:l,c:c}); } return arr; }
         
 // Generate time labels based on timeframe going back from now
