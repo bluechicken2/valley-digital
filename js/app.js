@@ -766,7 +766,28 @@ async function fetchSectors() {
                     datasets:lineDatasets
                 },
                 options:{
-                    responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+                    responsive:true,
+                    maintainAspectRatio:false,
+                    interaction:{mode:'index',intersect:false},
+                    plugins:{
+                        legend:{display:false},
+                        tooltip:{
+                            enabled:true,
+                            backgroundColor:'rgba(15,18,24,0.95)',
+                            borderColor:'rgba(0,240,255,0.3)',
+                            borderWidth:1,
+                            titleFont:{size:12,weight:'bold'},
+                            callbacks:{
+                                title:function(ctx){
+                                    var idx=ctx[0].dataIndex;
+                                    return times[idx]||ctx[0].label||'';
+                                },
+                                label:function(ctx){
+                                    return ' $'+ctx.parsed.y.toLocaleString();
+                                }
+                            }
+                        }
+                    },
                     scales:{
                         x:{display:true,grid:{display:false},ticks:{color:'#5a6a7e',font:{size:9},maxTicksLimit:8}},
                         y:{position:'right',grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#5a6a7e',callback:function(v){return'$'+v.toLocaleString();}}}
