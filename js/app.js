@@ -103,6 +103,7 @@ var CONFIG = {
         }
 
         var history = {}, prevPrices = {}, isLightTheme = false, isFullscreen = false;
+        var dataQuality = { source: 'none', real: 0, lastUpdate: null };
         
         data = [
             {sym:'BTC',name:'Bitcoin',type:'crypto',price:0,chg:0,color:'var(--cyan)',hold:0.5,fav:true,mktCap:0,vol24h:0,supply:19.5e6},
