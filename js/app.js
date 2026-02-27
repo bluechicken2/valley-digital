@@ -477,10 +477,10 @@ async function fetchSectors() {
                 times = generateTimeLabels(100, timeframe);
                 for(var i=0;i<100;i++){ lbls.push(i); vols.push(Math.abs((arr[i]-arr[i-1])/arr[i-1]*1000)+50); }
             }
-            // Update price display
+            // Update price display (always show sel.price)
+            $('chart-price').textContent='$'+sel.price.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
             if(candles.length>0) {
                 var last=candles[candles.length-1];
-                $('chart-price').textContent='$'+sel.price.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
                 var chg=((last.c-candles[0].o)/candles[0].o*100).toFixed(2);
                 $('chart-chg').textContent=(chg>=0?'+':'')+chg+'%';
                 $('chart-chg').className='chart-chg '+(chg>=0?'up':'down');
@@ -634,9 +634,9 @@ async function fetchSectors() {
             for(var i=0;i<disp.length;i++) {
                 lbls.push(i);
             }
-            // Update price display
+            // Update price display (always show sel.price)
+            $('chart-price').textContent='$'+sel.price.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
             if(disp.length>0) {
-                $('chart-price').textContent='$'+sel.price.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
                 var chg=((disp[disp.length-1]-disp[0])/disp[0]*100).toFixed(2);
                 $('chart-chg').textContent=(chg>=0?'+':'')+chg+'%';
                 $('chart-chg').className='chart-chg '+(chg>=0?'up':'down');
