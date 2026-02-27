@@ -499,8 +499,13 @@ async function fetchSectors() {
         function renderCandles(ohlc) {
             var candles=[], lbls=[], vols=[], times=[];
             var arr = history[sel.sym] || [];
+
+            // Limit candles to last 100 for performance
+            var maxCandles = 100;
+            var startIdx = ohlc && ohlc.length > maxCandles ? ohlc.length - maxCandles : 0;
+
             if(ohlc && ohlc.length>0) {
-                for(var i=0;i<ohlc.length;i++) {
+                for(var i=startIdx;i<ohlc.length;i++) {
                     var c=ohlc[i];
                     candles.push({o:c[1],h:c[2],l:c[3],c:c[4]});
                     var d=new Date(c[0]);
@@ -583,28 +588,28 @@ async function fetchSectors() {
                 });
             }
             
-            // Candlestick wicks (high-low shadows)
+            // Candlestick wicks (high-low shadows as thin lines)
             datasets.push({
                 type:'bar',
                 data:candles.map(function(c){ return [c.l, c.h]; }),
                 backgroundColor:'transparent',
-                borderColor:candles.map(function(c){return c.c>=c.o?'rgba(0,255,136,0.9)':'rgba(255,51,102,0.9)';}),
-                borderWidth:1,
-                barPercentage:0.15,
+                borderColor:candles.map(function(c){return c.c>=c.o?'#00ff88':'#ff3366';}),
+                borderWidth:1.5,
+                barPercentage:0.08,
                 order:98,
-                categoryPercentage:1
+                categoryPercentage:0.9
             });
 
             // Candlestick bodies (floating bars from open to close)
             datasets.push({
                 type:'bar',
                 data:candles.map(function(c){ return [Math.min(c.o,c.c), Math.max(c.o,c.c)]; }),
-                backgroundColor:candles.map(function(c){return c.c>=c.o?'rgba(0,255,136,0.85)':'rgba(255,51,102,0.85)';}),
+                backgroundColor:candles.map(function(c){return c.c>=c.o?'#00ff88':'#ff3366';}),
                 borderColor:candles.map(function(c){return c.c>=c.o?'#00ff88':'#ff3366';}),
-                borderWidth:1,
-                barPercentage:0.7,
+                borderWidth:0,
+                barPercentage:0.6,
                 order:99,
-                categoryPercentage:1
+                categoryPercentage:0.9
             });
             
             priceCt = new Chart($('priceCt'),{
