@@ -652,14 +652,26 @@ async function fetchSectors() {
                 }
             });
             
-            // Volume chart with MA
-            var volMA = calcSMA(vols, 10);
+            // Volume chart - downsample to max 50 bars for performance
+            var maxVolBars = 50;
+            var volStep = Math.ceil(vols.length / maxVolBars);
+            var downsampledVols = [], downsampledLbls = [];
+            for(var vi = 0; vi < vols.length; vi += volStep) {
+                var volSum = 0, count = 0;
+                for(var vj = vi; vj < Math.min(vi + volStep, vols.length); vj++) {
+                    volSum += vols[vj];
+                    count++;
+                }
+                downsampledVols.push(volSum / count);
+                downsampledLbls.push(lbls[Math.min(vi + Math.floor(volStep/2), lbls.length - 1)]);
+            }
+            var volMA = calcSMA(downsampledVols, 10);
             volCt = new Chart($('volCt'),{
                 type:'bar',
                 data:{
-                    labels:lbls,
+                    labels:downsampledLbls,
                     datasets:[{
-                        data:vols,
+                        data:downsampledVols,
                         backgroundColor:candles.map(function(c){return c.c>=c.o?'rgba(0,255,136,0.5)':'rgba(255,51,102,0.5)';}),
                         borderRadius:2,
                         order:2
@@ -707,6 +719,23 @@ async function fetchSectors() {
             }
             if(priceCt) priceCt.destroy(); if(volCt) volCt.destroy();
             var vols=[]; for(var i=0;i<disp.length;i++) vols.push(Math.abs((arr[i]-arr[i-1])/arr[i-1]*1000)+50);
+
+            // Downsample volume to max 50 bars
+            var maxVolBars = 50;
+            var volStep = Math.ceil(vols.length / maxVolBars);
+            var downsampledVols = [], downsampledLbls = [];
+            for(var vi = 0; vi < vols.length; vi += volStep) {
+                var volSum = 0, count = 0;
+                for(var vj = vi; vj < Math.min(vi + volStep, vols.length); vj++) {
+                    volSum += vols[vj];
+                    count++;
+                }
+                downsampledVols.push(volSum / count);
+                downsampledLbls.push(lbls[Math.min(vi + Math.floor(volStep/2), lbls.length - 1)]);
+            }
+            vols = downsampledVols;
+            lbls = downsampledLbls;
+
             // Calculate SMA
             var sma=[]; var period=20;
             for(var i=0;i<disp.length;i++) {
