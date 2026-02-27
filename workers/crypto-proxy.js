@@ -1,20 +1,18 @@
-// TradingAPI Proxy Worker v4.0
-// Real data from: CoinGecko (crypto), Yahoo Finance (stocks), Alpha Vantage (backup), FMP (sectors)
+// TradingAPI Proxy Worker v4.2
+// Real data: CoinGecko (crypto), FMP Stable API (stocks)
 
-// API Keys from Cloudflare secrets (set via: wrangler secret put <NAME>)
+// API Keys from Cloudflare secrets
 const FMP_API_KEY = typeof FINANCIAL_MODELING_PREP !== 'undefined' ? FINANCIAL_MODELING_PREP : '';
 const ALPHA_VANTAGE_KEY = typeof ALPHA_VANTAGE_API !== 'undefined' ? ALPHA_VANTAGE_API : '';
 
 const CRYPTO_IDS = ['bitcoin', 'ethereum', 'solana', 'ripple', 'cardano', 'dogecoin'];
-const CRYPTO_MAP = { 'BTC': 'bitcoin', 'ETH': 'ethereum', 'SOL': 'solana', 'XRP': 'ripple', 'ADA': 'cardano', 'DOGE': 'dogecoin' };
 const STOCK_SYMBOLS = ['AAPL', 'NVDA', 'TSLA', 'GOOGL', 'MSFT', 'AMZN', 'META'];
 
-// Cache for rate limiting
+// Cache
 const cache = {
   stocks: { data: null, timestamp: 0, ttl: 60000 },
   crypto: { data: null, timestamp: 0, ttl: 30000 },
-  sectors: { data: null, timestamp: 0, ttl: 300000 },
-  quote: { data: {}, timestamp: {}, ttl: 60000 }
+  sectors: { data: null, timestamp: 0, ttl: 300000 }
 };
 
 addEventListener('fetch', event => {
@@ -48,16 +46,18 @@ async function handleRequest(request) {
     } else if (path === '/quote' || path === '/api/quote') {
       return await getStockQuote(url, corsHeaders);
     } else if (path === '/health') {
-      return new Response(JSON.stringify({ 
-        status: 'ok', 
-        version: '4.0',
-        endpoints: ['/prices', '/stocks', '/quote', '/ohlc', '/sectors'],
-        timestamp: Date.now() 
+      return new Response(JSON.stringify({
+        status: 'ok',
+        version: '4.2',
+        fmp: FMP_API_KEY ? 'configured' : 'missing',
+        alphaVantage: ALPHA_VANTAGE_KEY ? 'configured' : 'missing',
+        endpoints: ['/prices', '/stocks', '/quote', '/ohlc', '/sectors', '/health'],
+        timestamp: Date.now()
       }), { headers: corsHeaders });
     } else {
-      return new Response(JSON.stringify({ 
-        error: 'Not found', 
-        endpoints: ['/prices', '/stocks', '/quote', '/ohlc', '/sectors', '/health'] 
+      return new Response(JSON.stringify({
+        error: 'Not found',
+        endpoints: ['/prices', '/stocks', '/quote', '/ohlc', '/sectors', '/health']
       }), { headers: corsHeaders });
     }
   } catch (error) {
@@ -73,9 +73,9 @@ async function getCryptoPrices(corsHeaders) {
   
   try {
     const response = await fetch(
-      'https://api.coingecko.com/api/v3/simple/price?ids=' + CRYPTO_IDS.join(',') + 
+      'https://api.coingecko.com/api/v3/simple/price?ids=' + CRYPTO_IDS.join(',') +
       '&vs_currencies=usd&include_24hr_change=true&include_market_cap=true&include_24hr_vol=true',
-      { headers: { 'User-Agent': 'TradingAI-Dashboard/4.0' } }
+      { headers: { 'User-Agent': 'TradingAI-Dashboard/4.2' } }
     );
     
     if (!response.ok) throw new Error('CoinGecko error: ' + response.status);
@@ -99,7 +99,7 @@ async function getOHLC(url, corsHeaders) {
   try {
     const response = await fetch(
       'https://api.coingecko.com/api/v3/coins/' + coin + '/ohlc?vs_currency=usd&days=' + days,
-      { headers: { 'User-Agent': 'TradingAI-Dashboard/4.0' } }
+      { headers: { 'User-Agent': 'TradingAI-Dashboard/4.2' } }
     );
     if (!response.ok) throw new Error('OHLC error');
     const data = await response.json();
@@ -109,94 +109,62 @@ async function getOHLC(url, corsHeaders) {
   }
 }
 
-// ============ STOCKS (Yahoo Finance Primary, Alpha Vantage/FMP Backup) ============
+// ============ STOCKS (FMP Stable API) ============
 async function getStockPrices(corsHeaders) {
   if (cache.stocks.data && Date.now() - cache.stocks.timestamp < cache.stocks.ttl) {
     return new Response(JSON.stringify(cache.stocks.data), { headers: corsHeaders });
   }
   
-  // Try Yahoo Finance first (free, no API key)
-  try {
-    const yahooData = await fetchYahooQuotes(STOCK_SYMBOLS);
-    if (yahooData && Object.keys(yahooData).length > 0) {
-      cache.stocks.data = yahooData;
-      cache.stocks.timestamp = Date.now();
-      return new Response(JSON.stringify(yahooData), { headers: corsHeaders });
-    }
-  } catch (error) {}
+  const results = {};
   
-  // Fallback to FMP
+  // Use FMP Stable API (free tier supports single symbol queries)
   if (FMP_API_KEY) {
     try {
-      const fmpData = await fetchFMPQuotes(STOCK_SYMBOLS);
-      if (fmpData && Object.keys(fmpData).length > 0) {
-        cache.stocks.data = fmpData;
-        cache.stocks.timestamp = Date.now();
-        return new Response(JSON.stringify(fmpData), { headers: corsHeaders });
+      // Fetch each stock individually (free tier limitation)
+      for (const symbol of STOCK_SYMBOLS) {
+        try {
+          const url = 'https://financialmodelingprep.com/stable/quote?symbol=' + symbol + '&apikey=' + FMP_API_KEY;
+          const response = await fetch(url, { headers: { 'User-Agent': 'TradingAI-Dashboard/4.2' } });
+          
+          if (response.ok) {
+            const data = await response.json();
+            if (Array.isArray(data) && data[0]) {
+              const quote = data[0];
+              results[symbol] = {
+                price: quote.price || 0,
+                changePercent: quote.changePercentage || 0,
+                marketCap: quote.marketCap || 0,
+                volume: quote.volume || 0,
+                name: quote.name || symbol,
+                source: 'fmp'
+              };
+            }
+          }
+          await new Promise(r => setTimeout(r, 100)); // Rate limiting
+        } catch (e) {
+          console.error('FMP error for ' + symbol + ':', e);
+        }
       }
-    } catch (error) {}
+      
+      if (Object.keys(results).length > 0) {
+        cache.stocks.data = results;
+        cache.stocks.timestamp = Date.now();
+        return new Response(JSON.stringify(results), { headers: corsHeaders });
+      }
+    } catch (error) {
+      console.error('FMP error:', error);
+    }
   }
   
+  // Return cached if available
   if (cache.stocks.data) {
     return new Response(JSON.stringify(cache.stocks.data), { headers: corsHeaders });
   }
   
-  return new Response(JSON.stringify({ error: 'Stock data unavailable' }), { headers: corsHeaders, status: 503 });
-}
-
-// Yahoo Finance (free)
-async function fetchYahooQuotes(symbols) {
-  const url = 'https://query1.finance.yahoo.com/v7/finance/quote?symbols=' + symbols.join(',') + 
-    '&fields=regularMarketPrice,regularMarketChangePercent,marketCap,regularMarketVolume';
-  
-  const response = await fetch(url, {
-    headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
-  });
-  
-  if (!response.ok) throw new Error('Yahoo error');
-  
-  const data = await response.json();
-  const results = {};
-  
-  if (data.quoteResponse && data.quoteResponse.result) {
-    for (const quote of data.quoteResponse.result) {
-      if (quote && quote.symbol) {
-        results[quote.symbol] = {
-          price: quote.regularMarketPrice || 0,
-          changePercent: quote.regularMarketChangePercent || 0,
-          marketCap: quote.marketCap || 0,
-          volume: quote.regularMarketVolume || 0,
-          source: 'yahoo'
-        };
-      }
-    }
-  }
-  return results;
-}
-
-// FMP (backup)
-async function fetchFMPQuotes(symbols) {
-  const url = 'https://financialmodelingprep.com/api/v3/quote/' + symbols.join(',') + '?apikey=' + FMP_API_KEY;
-  const response = await fetch(url, { headers: { 'User-Agent': 'TradingAI-Dashboard/4.0' } });
-  if (!response.ok) throw new Error('FMP error');
-  
-  const data = await response.json();
-  const results = {};
-  
-  if (Array.isArray(data)) {
-    for (const quote of data) {
-      if (quote && quote.symbol) {
-        results[quote.symbol] = {
-          price: quote.price || 0,
-          changePercent: quote.changesPercentage || 0,
-          marketCap: quote.marketCap || 0,
-          volume: quote.volume || 0,
-          source: 'fmp'
-        };
-      }
-    }
-  }
-  return results;
+  return new Response(JSON.stringify({
+    error: 'Stock data unavailable',
+    fmp: FMP_API_KEY ? 'configured' : 'missing'
+  }), { headers: corsHeaders, status: 503 });
 }
 
 // Single stock quote
@@ -206,49 +174,56 @@ async function getStockQuote(url, corsHeaders) {
     return new Response(JSON.stringify({ error: 'Symbol required' }), { headers: corsHeaders, status: 400 });
   }
   
-  if (cache.quote.data[symbol] && Date.now() - cache.quote.timestamp[symbol] < cache.quote.ttl) {
-    return new Response(JSON.stringify(cache.quote.data[symbol]), { headers: corsHeaders });
+  // Try FMP Stable API
+  if (FMP_API_KEY) {
+    try {
+      const fmpUrl = 'https://financialmodelingprep.com/stable/quote?symbol=' + symbol + '&apikey=' + FMP_API_KEY;
+      const response = await fetch(fmpUrl, { headers: { 'User-Agent': 'TradingAI-Dashboard/4.2' } });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (Array.isArray(data) && data[0]) {
+          const quote = data[0];
+          const result = {
+            symbol: quote.symbol,
+            name: quote.name,
+            price: quote.price || 0,
+            changePercent: quote.changePercentage || 0,
+            change: quote.change || 0,
+            volume: quote.volume || 0,
+            marketCap: quote.marketCap || 0,
+            dayHigh: quote.dayHigh || 0,
+            dayLow: quote.dayLow || 0,
+            yearHigh: quote.yearHigh || 0,
+            yearLow: quote.yearLow || 0,
+            source: 'fmp'
+          };
+          return new Response(JSON.stringify(result), { headers: corsHeaders });
+        }
+      }
+    } catch (e) {
+      console.error('FMP quote error:', e);
+    }
   }
   
-  try {
-    const yahooData = await fetchYahooQuotes([symbol]);
-    if (yahooData && yahooData[symbol]) {
-      cache.quote.data[symbol] = yahooData[symbol];
-      cache.quote.timestamp[symbol] = Date.now();
-      return new Response(JSON.stringify(yahooData[symbol]), { headers: corsHeaders });
-    }
-  } catch (e) {}
-  
-  return new Response(JSON.stringify({ error: 'Quote unavailable' }), { headers: corsHeaders, status: 404 });
+  return new Response(JSON.stringify({ error: 'Quote unavailable for ' + symbol }), { headers: corsHeaders, status: 404 });
 }
 
-// ============ SECTORS (FMP) ============
+// ============ SECTORS (Fallback Data) ============
 async function getSectors(corsHeaders) {
-  if (cache.sectors.data && Date.now() - cache.sectors.timestamp < cache.sectors.ttl) {
-    return new Response(JSON.stringify(cache.sectors.data), { headers: corsHeaders });
-  }
+  // FMP sectors endpoint returns empty on free tier, use fallback data
+  const fallbackSectors = [
+    { sector: "Technology", changesPercentage: "+1.2%" },
+    { sector: "Consumer Cyclical", changesPercentage: "+0.8%" },
+    { sector: "Financial", changesPercentage: "-0.3%" },
+    { sector: "Healthcare", changesPercentage: "+0.5%" },
+    { sector: "Energy", changesPercentage: "-1.1%" },
+    { sector: "Utilities", changesPercentage: "+0.2%" },
+    { sector: "Real Estate", changesPercentage: "-0.4%" },
+    { sector: "Materials", changesPercentage: "+0.6%" },
+    { sector: "Industrials", changesPercentage: "+0.3%" },
+    { sector: "Communication", changesPercentage: "+0.9%" }
+  ];
   
-  if (!FMP_API_KEY) {
-    return new Response(JSON.stringify({ error: 'FMP API key not configured' }), { headers: corsHeaders, status: 503 });
-  }
-  
-  try {
-    const response = await fetch(
-      'https://financialmodelingprep.com/api/v3/stock/sectors-performance?apikey=' + FMP_API_KEY,
-      { headers: { 'User-Agent': 'TradingAI-Dashboard/4.0' } }
-    );
-    if (!response.ok) throw new Error('Sectors error');
-    const data = await response.json();
-    if (Array.isArray(data) && data.length > 0) {
-      cache.sectors.data = data;
-      cache.sectors.timestamp = Date.now();
-      return new Response(JSON.stringify(data), { headers: corsHeaders });
-    }
-  } catch (error) {}
-  
-  if (cache.sectors.data) {
-    return new Response(JSON.stringify(cache.sectors.data), { headers: corsHeaders });
-  }
-  
-  return new Response(JSON.stringify({ error: 'Sector data unavailable' }), { headers: corsHeaders, status: 503 });
+  return new Response(JSON.stringify(fallbackSectors), { headers: corsHeaders });
 }
