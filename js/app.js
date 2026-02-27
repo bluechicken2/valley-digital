@@ -635,7 +635,9 @@ async function fetchSectors() {
                             backgroundColor:'rgba(15,18,24,0.95)',
                             borderColor:'rgba(0,240,255,0.3)',
                             borderWidth:1,
+                            titleFont:{size:12,weight:'bold'},
                             callbacks:{
+                                title:function(ctx){return ctx[0].label;},
                                 label:function(ctx){
                                     if(ctx.dataset.label && ctx.dataset.label.includes('SMA')) return ctx.dataset.label+': $'+(ctx.raw?ctx.raw.toFixed(2):'N/A');
                                     if(ctx.dataset.label && ctx.dataset.label.includes('EMA')) return ctx.dataset.label+': $'+(ctx.raw?ctx.raw.toFixed(2):'N/A');
