@@ -152,12 +152,13 @@
         try {
             const { data, error } = await supabase
                 .from('portfolios')
-                .insert({
+                .upsert({
                     user_id: currentUser.id,
                     symbol: symbol.toUpperCase(),
                     quantity: parseFloat(quantity),
                     favorite
-                }).select();
+                }, { onConflict: 'user_id,symbol' })
+                .select();
             if (error) throw error;
             showNotification(`Added ${quantity} ${symbol}`, 'success');
             await loadPortfolio();

@@ -316,11 +316,106 @@ function generateTimeLabels(count, tf) {
         window.showSignup = function() { $('auth-login').style.display='none'; $('auth-signup').style.display='flex'; $('auth-reset').style.display='none'; };
         window.showReset = function() { $('auth-login').style.display='none'; $('auth-signup').style.display='none'; $('auth-reset').style.display='flex'; };
         async function supabaseAuth(ep, body) { var r = await fetch(SUPABASE_URL+'/auth/v1'+ep, {method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY},body:JSON.stringify(body)}); return {ok:r.ok,data:await r.json()}; }
-        window.handleLogin = async function() { var email=$('login-email').value,pwd=$('login-password').value; if(!email||!pwd){$('login-error').textContent='Please fill in all fields';$('login-error').classList.add('show');return;} var r=await supabaseAuth('/token?grant_type=password',{email:email,password:pwd}); if(r.ok&&r.data.access_token){localStorage.setItem('sb_token',r.data.access_token);localStorage.setItem('sb_user',JSON.stringify(r.data.user));user=r.data.user;userTier='pro';showDashboard();
-                    setupInfoTooltips();}else{$('login-error').textContent=r.data.error_description||'Login failed';$('login-error').classList.add('show');} };
-        window.handleSignup = async function() { var email=$('signup-email').value,pwd=$('signup-password').value; if(!email||!pwd){$('signup-error').textContent='Please fill in all fields';$('signup-error').classList.add('show');return;} var r=await supabaseAuth('/signup',{email:email,password:pwd}); if(r.ok){$('signup-success').textContent='Account created! Check your email.';$('signup-success').classList.add('show');setTimeout(showLogin,2000);}else{$('signup-error').textContent=r.data.error_description||'Signup failed';$('signup-error').classList.add('show');} };
-        window.handleReset = async function() { var email=$('reset-email').value; if(!email){$('reset-error').textContent='Please enter your email';$('reset-error').classList.add('show');return;} var r=await fetch(SUPABASE_URL+'/auth/v1/recover',{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY},body:JSON.stringify({email:email})}); if(r.ok){$('reset-success').textContent='Check your email for reset link';$('reset-success').classList.add('show');} };
-        window.handleLogout = function() { localStorage.removeItem('sb_token');localStorage.removeItem('sb_user');user=null;showLogin();$('user-dropdown').classList.remove('show'); };
+        window.handleLogin = async function() {
+            var email=$('login-email').value, pwd=$('login-password').value;
+            if(!email||!pwd){$('login-error').textContent='Please fill in all fields';$('login-error').classList.add('show');return;}
+            // Rate limiting: max 5 attempts per 15 minutes
+            var attempts = parseInt(localStorage.getItem('login_attempts')||'0');
+            var lastAttempt = parseInt(localStorage.getItem('last_login_attempt')||'0');
+            if(Date.now() - lastAttempt > 900000) { attempts = 0; }
+            if(attempts >= 5) {
+                var wait = Math.ceil((900000-(Date.now()-lastAttempt))/60000);
+                $('login-error').textContent='Too many attempts. Wait '+wait+' min.';
+                $('login-error').classList.add('show'); return;
+            }
+            $('login-error').classList.remove('show');
+            if(typeof TradingAI !== 'undefined') {
+                var result = await TradingAI.signIn(email, pwd);
+                if(result.success) {
+                    user = result.data.user;
+                    userTier = 'pro';
+                    localStorage.removeItem('login_attempts');
+                    localStorage.removeItem('last_login_attempt');
+                    showDashboard();
+                    setupInfoTooltips();
+                    // Load cloud portfolio
+                    setTimeout(async function() {
+                        try {
+                            var port = await TradingAI.loadPortfolio();
+                            if(port.success && port.data && port.data.length > 0) {
+                                var h = {};
+                                port.data.forEach(function(item){
+                                    if(item.quantity > 0) h[item.symbol] = item.quantity;
+                                });
+                                localStorage.setItem('holdings', JSON.stringify(h));
+                                data.forEach(function(a){ if(h[a.sym]) a.hold = h[a.sym]; });
+                                renderAll();
+                                showToast('Portfolio synced from cloud ☁️');
+                            }
+                        } catch(e) { /* use local holdings */ }
+                    }, 500);
+                } else {
+                    $('login-error').textContent = result.error?.message || 'Login failed';
+                    $('login-error').classList.add('show');
+                    localStorage.setItem('login_attempts', (parseInt(localStorage.getItem('login_attempts')||'0')+1).toString());
+                    localStorage.setItem('last_login_attempt', Date.now().toString());
+                }
+            } else {
+                $('login-error').textContent = 'Auth system not loaded';
+                $('login-error').classList.add('show');
+            }
+        };
+        window.handleSignup = async function() {
+            var email=$('signup-email').value, pwd=$('signup-password').value;
+            if(!email||!pwd){$('signup-error').textContent='Please fill in all fields';$('signup-error').classList.add('show');return;}
+            // Rate limiting: max 3 signups per hour
+            var signupAttempts = parseInt(localStorage.getItem('signup_attempts')||'0');
+            var lastSignup = parseInt(localStorage.getItem('last_signup_attempt')||'0');
+            if(Date.now() - lastSignup > 3600000) { signupAttempts = 0; }
+            if(signupAttempts >= 3) {
+                $('signup-error').textContent='Too many signup attempts. Try again later.';
+                $('signup-error').classList.add('show'); return;
+            }
+            localStorage.setItem('signup_attempts', (signupAttempts+1).toString());
+            localStorage.setItem('last_signup_attempt', Date.now().toString());
+            $('signup-error').classList.remove('show');
+            if(typeof TradingAI !== 'undefined') {
+                var result = await TradingAI.signUp(email, pwd);
+                if(result.success) {
+                    $('signup-success').textContent='Account created! Check your email to verify.';
+                    $('signup-success').classList.add('show');
+                    setTimeout(showLogin, 2000);
+                } else {
+                    $('signup-error').textContent = result.error?.message || 'Signup failed';
+                    $('signup-error').classList.add('show');
+                }
+            } else {
+                $('signup-error').textContent = 'Auth system not loaded';
+                $('signup-error').classList.add('show');
+            }
+        };
+        window.handleReset = async function() {
+            var email=$('reset-email').value;
+            if(!email){$('reset-error').textContent='Please enter your email';$('reset-error').classList.add('show');return;}
+            if(typeof TradingAI !== 'undefined') {
+                var result = await TradingAI.resetPassword(email);
+                if(result.success) {
+                    $('reset-success').textContent='Check your email for reset link';
+                    $('reset-success').classList.add('show');
+                } else {
+                    $('reset-error').textContent = result.error?.message || 'Reset failed';
+                    $('reset-error').classList.add('show');
+                }
+            }
+        };
+        window.handleLogout = async function() {
+            if(typeof TradingAI !== 'undefined') await TradingAI.signOut();
+            localStorage.removeItem('sb_token');
+            localStorage.removeItem('sb_user');
+            user=null;
+            showLogin();
+            $('user-dropdown').classList.remove('show');
+        };
         window.selectTier = function(t) { document.querySelectorAll('.tier-option').forEach(function(o){o.classList.remove('selected');});event.currentTarget.classList.add('selected'); };
         
         function checkSession() { var t=localStorage.getItem('sb_token'),u=localStorage.getItem('sb_user'); if(t&&u){user=JSON.parse(u);userTier='pro';return true;} return false; }
@@ -403,7 +498,7 @@ function generateTimeLabels(count, tf) {
         
         function renderAll() { if(!sel || !data || data.length === 0) { return; } try { renderAssets();renderPortfolio();renderTicker();renderInds();renderFG();renderSectors();renderActions();renderPreds();renderWeights();renderChart();renderAlloc();renderAnalytics();renderCorrelation();renderAssetDetails();renderNews();renderCalendar(); } catch(e) { console.error('renderAll error:', e); } }
         
-        function renderAssets() { if(!$('assets')) return; var h=''; for(var i=0;i<data.length;i++){var a=data[i];h+='<div data-symbol="'+a.sym+'" class="asset'+(a.sym===sel.sym?' active':'')+'" onclick="selAsset(\''+a.sym+'\')"><div style="display:flex;align-items:center"><div class="asset-icon" style="background:'+a.color+'22;color:'+a.color+'">'+a.sym.substr(0,2)+'</div><div><div class="asset-name">'+a.sym+'<span class="star'+(a.fav?' active':'')+'" onclick="event.stopPropagation();toggleFav(\''+a.sym+'\')">*</span></div><div class="asset-type">'+a.name+'</div></div></div><div style="display:flex;align-items:center;gap:6px"><div style="text-align:right"><div class="asset-price">$'+fmt(a.price)+'</div><div class="asset-chg '+(a.chg>=0?'up':'down')+'">'+(a.chg>=0?'+':'')+a.chg.toFixed(2)+'%</div></div></div></div>';} $('assets').innerHTML=h; }
+        function renderAssets() { if(!$('assets')) return; var h=''; for(var i=0;i<data.length;i++){var a=data[i];var eSym=escapeHtml(a.sym);var eName=escapeHtml(a.name);h+='<div data-symbol="'+eSym+'" class="asset'+(a.sym===sel.sym?' active':'')+'" onclick="selAsset(\''+eSym+'\')"><div style="display:flex;align-items:center"><div class="asset-icon" style="background:'+a.color+'22;color:'+a.color+'">'+eSym.substr(0,2)+'</div><div><div class="asset-name">'+eSym+'<span class="star'+(a.fav?' active':'')+'" onclick="event.stopPropagation();toggleFav(\''+eSym+'\')">*</span></div><div class="asset-type">'+eName+'</div></div></div><div style="display:flex;align-items:center;gap:6px"><div style="text-align:right"><div class="asset-price">$'+fmt(a.price)+'</div><div class="asset-chg '+(a.chg>=0?'up':'down')+'">'+(a.chg>=0?'+':'')+a.chg.toFixed(2)+'%</div></div></div></div>';} $('assets').innerHTML=h; }
         function renderPortfolio() { if(!$('port-val')) return; var tot=0,chg=0; for(var i=0;i<data.length;i++){tot+=data[i].price*data[i].hold;chg+=data[i].price*data[i].hold*data[i].chg/100;} var pct=chg/tot*100; $('port-val').textContent='$'+fmt(tot);$('port-chg').textContent=(chg>=0?'+':'')+'$'+fmt(Math.abs(chg))+' ('+(pct>=0?'+':'')+pct.toFixed(2)+'%)';$('port-chg').className='portfolio-change '+(chg>=0?'up':'down');$('intel').textContent=Math.round(50+pct*2); }
         function renderTicker() { if(!$('ticker')) return; var h=''; for(var i=0;i<data.length*2;i++){var a=data[i%data.length];h+='<span class="ticker-item" onclick="selAsset(\''+a.sym+'\')"><span class="ticker-sym">'+a.sym+'</span> $'+fmt(a.price)+' <span style="color:'+(a.chg>=0?'var(--green)':'var(--red)')+'">'+(a.chg>=0?'+':'')+a.chg.toFixed(1)+'%</span></span>';} $('ticker').innerHTML=h+h; }
         function renderFG() { var avg=0; for(var i=0;i<data.length;i++)avg+=data[i].chg; avg/=data.length; var v=Math.max(10,Math.min(90,50-avg*2)); var lbl=v>=75?'GREED':v>=55?'OPTIMISM':v>=45?'NEUTRAL':v>=25?'FEAR':'EXTREME FEAR'; var col=v>=55?'var(--green)':v>=45?'var(--cyan)':v>=25?'var(--gold)':'var(--red)'; $('fg-val').textContent=Math.round(v);$('fg-val').style.color=col;$('fg-lbl').textContent=lbl;$('fg-lbl').style.color=col;$('fg-dot').style.left=v+'%'; }
@@ -1235,13 +1330,74 @@ function renderAlloc() {
             if(sel.div) h += '<div class="detail-row"><span class="detail-label">Dividend</span><span class="detail-value">'+sel.div+'%</span></div>';
             $('asset-details').innerHTML = h;
         }
-        function renderNews() {
-            // News feed coming soon - no hardcoded articles
-            $('news-feed').innerHTML = '<div class="news-placeholder" style="padding:20px;text-align:center;color:var(--text-muted);"><p>News feed coming soon</p></div>';
+        async function renderNews() {
+            var el = $('news-feed');
+            if(!el) return;
+            el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--cyan);">Loading news...</div>';
+            try {
+                var cached = getCached('news', 300000);
+                var articles = cached;
+                if(!articles) {
+                    var r = await fetch(API_BASE+'/news');
+                    if(!r.ok) throw new Error('News unavailable');
+                    articles = await r.json();
+                    setCache('news', articles);
+                }
+                if(!articles || articles.length === 0) {
+                    el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);">No news available</div>';
+                    return;
+                }
+                var h = '';
+                for(var i=0;i<articles.length;i++) {
+                    var a = articles[i];
+                    var sentClass = a.sentiment === 'positive' ? 'up' : a.sentiment === 'negative' ? 'down' : 'neut';
+                    var sentIcon = a.sentiment === 'positive' ? '▲' : a.sentiment === 'negative' ? '▼' : '●';
+                    var tags = (a.currencies||[]).map(function(c){return '<span class="news-tag">'+escapeHtml(c)+'</span>';}).join('');
+                    h += '<div class="news-item">'+
+                        '<a href="'+escapeHtml(a.url)+'" target="_blank" rel="noopener noreferrer" class="news-title">'+escapeHtml(a.title)+'</a>'+
+                        '<div class="news-meta">'+
+                            '<span class="news-source">'+escapeHtml(a.source||'')+'</span>'+
+                            '<span class="news-sentiment '+sentClass+'">'+sentIcon+' '+escapeHtml(a.sentiment||'neutral').toUpperCase()+'</span>'+
+                            tags+
+                        '</div>'+
+                    '</div>';
+                }
+                el.innerHTML = h;
+            } catch(e) {
+                el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);">News temporarily unavailable</div>';
+            }
         }
-        function renderCalendar() {
-            // Economic calendar coming soon - no hardcoded events
-            $('calendar').innerHTML = '<div class="calendar-placeholder" style="padding:20px;text-align:center;color:var(--text-muted);"><p>Economic calendar coming soon</p></div>';
+        async function renderCalendar() {
+            var el = $('calendar');
+            if(!el) return;
+            el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--cyan);">Loading calendar...</div>';
+            try {
+                var r = await fetch(API_BASE+'/calendar');
+                if(!r.ok) throw new Error('Calendar unavailable');
+                var events = await r.json();
+                if(!events || events.length === 0) {
+                    el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);">No upcoming events this week</div>';
+                    return;
+                }
+                var h = '<div class="calendar-grid">';
+                for(var i=0;i<events.length;i++) {
+                    var ev = events[i];
+                    var impactClass = ev.impact === 'high' ? 'down' : ev.impact === 'medium' ? 'bull' : 'neut';
+                    var impactLabel = ev.impact === 'high' ? '🔴' : ev.impact === 'medium' ? '🟡' : '🟢';
+                    h += '<div class="cal-event'+(ev.isToday?' cal-today':'')+'">'+
+                        '<div class="cal-time"><span class="cal-day">'+escapeHtml(ev.dayName||'')+'</span><span class="cal-hour">'+escapeHtml(ev.time||'')+'</span></div>'+
+                        '<div class="cal-info">'+
+                            '<div class="cal-name">'+impactLabel+' '+escapeHtml(ev.event||'')+'</div>'+
+                            '<div class="cal-desc" style="font-size:10px;color:var(--text-muted);">'+escapeHtml(ev.description||'')+'</div>'+
+                        '</div>'+
+                        '<div class="cal-impact '+impactClass+'">'+escapeHtml((ev.impact||'').toUpperCase())+'</div>'+
+                    '</div>';
+                }
+                h += '</div>';
+                el.innerHTML = h;
+            } catch(e) {
+                el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);">Calendar temporarily unavailable</div>';
+            }
         }
         
         // Interactions
@@ -1752,7 +1908,21 @@ window.deleteAlert = function(idx) { alerts.splice(idx,1); localStorage.setItem(
             sendAI();
         };
 
-        function generateAIResponse(q) {
+        async function generateAIResponse(q) {
+            // Try real Venice AI backend first
+            try {
+                var portfolioCtx = data.filter(function(a){return a.hold>0;}).map(function(a){
+                    return {symbol:a.sym, quantity:a.hold, price:a.price, change24h:a.chg};
+                });
+                var aiRes = await fetch(API_BASE+'/ai', {
+                    method:'POST', headers:{'Content-Type':'application/json'},
+                    body:JSON.stringify({messages:[{role:'user',content:q}], portfolio:portfolioCtx})
+                });
+                if(aiRes.ok) {
+                    var aiData = await aiRes.json();
+                    if(aiData.response && !aiData.fallback) return aiData.response;
+                }
+            } catch(e) { /* fall through to local response */ }
             q = q.toLowerCase();
             var histArr = history[sel.sym]; var rsi = histArr ? calcRSI(histArr) : null;
             var tot = 0, chg = 0;
@@ -1838,7 +2008,7 @@ window.deleteAlert = function(idx) { alerts.splice(idx,1); localStorage.setItem(
             }
         }
 
-        window.sendAI = function() {
+        window.sendAI = async function() {
             var q = sanitize($('ai-input').value.trim());
             if(!q) return;
             aiHistory.push({role:'user',text:q,time:Date.now()});
@@ -1848,7 +2018,7 @@ window.deleteAlert = function(idx) { alerts.splice(idx,1); localStorage.setItem(
             showTyping();
             setTimeout(function() {
                 hideTyping();
-                var resp = generateAIResponse(q);
+                var resp = await generateAIResponse(q);
                 aiHistory.push({role:'ai',text:resp,time:Date.now()});
                 renderAIChat();
                 saveChatHistory();
@@ -1883,12 +2053,19 @@ window.deleteAlert = function(idx) { alerts.splice(idx,1); localStorage.setItem(
             for(var i=0;i<data.length;i++) holdings[data[i].sym] = data[i].hold;
             localStorage.setItem('holdings', JSON.stringify(holdings));
 
-            // Try to save to Supabase (may fail)
+            // Sync to Supabase cloud via SDK
             try {
                 localStorage.setItem('assetList', JSON.stringify(data.map(function(a){return{sym:a.sym,name:a.name,type:a.type,color:a.color,hold:a.hold,fav:a.fav}})));
-            await savePortfolioToSupabase();
+                if(typeof TradingAI !== 'undefined' && user) {
+                    for(var si=0;si<data.length;si++) {
+                        if(data[si].hold >= 0) {
+                            await TradingAI.addToPortfolio(data[si].sym, data[si].hold, data[si].fav||false);
+                        }
+                    }
+                    showToast('Portfolio synced to cloud ☁️');
+                }
             } catch(e) {
-                console.error('Supabase save failed:', e);
+                console.error('Supabase sync failed, using local:', e);
             }
 
             renderPortfolio();
@@ -2014,7 +2191,15 @@ window.deleteAlert = function(idx) { alerts.splice(idx,1); localStorage.setItem(
         // Save portfolio to Supabase
         async function savePortfolioToSupabase() {
             showLoading('sync-spinner');
-            var token = localStorage.getItem('sb_token');
+            // Use SDK session token (preferred) with localStorage fallback
+            var token = null;
+            try {
+                if(window.supabaseClient) {
+                    var sess = await window.supabaseClient.auth.getSession();
+                    token = sess && sess.data && sess.data.session ? sess.data.session.access_token : null;
+                }
+            } catch(e) {}
+            if(!token) token = localStorage.getItem('sb_token');
 
             var entries = [];
             for(var i=0;i<data.length;i++) {
@@ -2075,7 +2260,15 @@ window.deleteAlert = function(idx) { alerts.splice(idx,1); localStorage.setItem(
         // Load portfolio from Supabase
         async function loadPortfolioFromSupabase() {
             showLoading('sync-spinner');
-            var token = localStorage.getItem('sb_token');
+            // Use SDK session token (preferred) with localStorage fallback
+            var token = null;
+            try {
+                if(window.supabaseClient) {
+                    var sess = await window.supabaseClient.auth.getSession();
+                    token = sess && sess.data && sess.data.session ? sess.data.session.access_token : null;
+                }
+            } catch(e) {}
+            if(!token) token = localStorage.getItem('sb_token');
 
             try {
                 var url = SUPABASE_URL+'/rest/v1/portfolios?user_id=eq.'+user.id;
@@ -2111,7 +2304,7 @@ window.deleteAlert = function(idx) { alerts.splice(idx,1); localStorage.setItem(
             // Version check: clear old localStorage if version mismatch
             var savedVersion = localStorage.getItem('portfolio_version');
             if (savedVersion !== PORTFOLIO_DATA_VERSION) {
-                console.log('Portfolio data version mismatch. Clearing old localStorage data...');
+                // Portfolio data version mismatch. Clearing old localStorage data...');
                 localStorage.removeItem('assetList');
                 localStorage.removeItem('holdings');
                 localStorage.setItem('portfolio_version', PORTFOLIO_DATA_VERSION);
