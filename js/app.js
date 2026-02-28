@@ -18,7 +18,9 @@
 function escapeHtml(text) {
     if (typeof text !== 'string') return text;
     return text.replace(/[&<>"']/g, function(m) {
-        return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}
+        return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];
+    });
+}
 // Rate limiting helpers (Phase 10)
 function checkRateLimit(action, maxAttempts, lockoutMs) {
     var attempts = parseInt(localStorage.getItem(action+'_attempts')||'0');
@@ -62,9 +64,6 @@ function validateSymbol(sym) {
     return { valid: true, value: sym.toUpperCase() };
 }
 
-[m];
-    });
-}
 
 var $ = function(id) { return document.getElementById(id); };
 
@@ -72,16 +71,6 @@ var $ = function(id) { return document.getElementById(id); };
             if(!str) return '';
             return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
         }
-var currentTheme = localStorage.getItem('theme') || 'dark';
-window.toggleTheme = function() {
-    currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
-    document.body.classList.toggle('light-theme', currentTheme === 'light');
-    $('theme-btn').innerHTML = currentTheme === 'dark' ? '&#9790;' : '&#9788;';
-    localStorage.setItem('theme', currentTheme);
-};
-if(currentTheme === 'light') {
-    document.addEventListener('DOMContentLoaded', function() { document.body.classList.add('light-theme'); });
-}
 
 
         // Supabase configuration - ANON KEY is safe for client-side (publishable key)
