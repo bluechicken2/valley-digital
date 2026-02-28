@@ -353,91 +353,24 @@
         .news-meta { font-size: 0.7rem; color: var(--text-dim); display: flex; gap: 12px; }
         .news-tag { background: var(--cyan); color: var(--bg-void); padding: 1px 6px; border-radius: 3px; font-size: 0.6rem; }
         
+        
         /* Calendar */
-        .calendar-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); }
+        .calendar-item { display: flex; align-items: center; padding: 12px; border-bottom: 1px solid var(--border); gap: 12px; }
         .calendar-item:last-child { border-bottom: none; }
-        .calendar-date { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--cyan); }
-        .calendar-event { font-size: 0.8rem; color: var(--text); }
+        .calendar-date { min-width: 60px; text-align: center; font-family: 'JetBrains Mono', monospace; }
+        .calendar-date .day { display: block; font-weight: 600; color: var(--text-bright); font-size: 0.85rem; }
+        .calendar-date .time { font-size: 0.75rem; color: var(--text-dim); }
+        .calendar-event { flex: 1; font-size: 0.9rem; color: var(--text); }
+        .calendar-meta { display: flex; gap: 8px; align-items: center; }
+        .calendar-meta .currency { background: var(--border); padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; color: var(--text-dim); }
+        .calendar-meta .impact { padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; }
+        .calendar-meta .impact.high { background: rgba(255,51,102,0.2); color: #ff3366; }
+        .calendar-meta .impact.medium { background: rgba(255,199,0,0.2); color: #ffc700; }
+        .calendar-meta .impact.low { background: rgba(100,149,237,0.2); color: #6495ed; }
         .calendar-impact { font-size: 0.65rem; padding: 2px 6px; border-radius: 3px; }
         .impact-high { background: rgba(255,51,102,0.2); color: var(--red); }
         .impact-medium { background: rgba(255,140,0,0.2); color: var(--orange); }
         .impact-low { background: rgba(0,255,136,0.2); color: var(--green); }
-        
-        /* Asset Details */
-        .detail-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .detail-label { color: var(--text-dim); font-size: 0.8rem; }
-        .detail-value { color: var(--text-bright); font-size: 0.8rem; font-family: 'JetBrains Mono', monospace; }
-        
-        /* Correlation Matrix */
-        .corr-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; font-size: 0.6rem; }
-        .corr-cell { padding: 4px; text-align: center; border-radius: 2px; }
-        .corr-header { background: var(--bg-surface); color: var(--text-dim); font-weight: 600; }
-        
-        /* Modals */
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 200; backdrop-filter: blur(4px); }
-        .modal-overlay.show { display: flex; }
-        .modal { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 12px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; animation: scaleIn 0.2s ease; }
-        .modal-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-        .modal-title { font-family: 'Orbitron', sans-serif; font-size: 1rem; color: var(--text-bright); }
-        .modal-close { background: none; border: none; color: var(--text-dim); font-size: 1.2rem; cursor: pointer; }
-        .modal-close:hover { color: var(--cyan); }
-        .modal-body { padding: 20px; }
-        
-        /* Shortcuts */
-        .shortcut { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .shortcut:last-child { border-bottom: none; }
-        .shortcut-key { font-family: 'JetBrains Mono', monospace; background: var(--bg-surface); padding: 4px 10px; border-radius: 4px; font-size: 0.8rem; color: var(--cyan); }
-        
-        /* Profile */
-        .profile-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
-        .profile-item:last-child { border-bottom: none; }
-        .profile-label { color: var(--text-dim); font-size: 0.85rem; }
-        .profile-value { color: var(--text-bright); font-size: 0.85rem; }
-        
-        /* Pricing */
-        .pricing-cards { display: flex; gap: 12px; }
-        .pricing-card { flex: 1; background: var(--bg-surface); border: 2px solid var(--border); border-radius: 8px; padding: 16px; text-align: center; transition: all var(--transition); }
-        .pricing-card:hover { border-color: var(--cyan); }
-        .pricing-name { font-family: 'Orbitron', sans-serif; font-size: 0.9rem; margin-bottom: 8px; }
-        .pricing-price { font-size: 1.5rem; font-weight: 700; color: var(--cyan); margin-bottom: 12px; }
-        .pricing-features { font-size: 0.75rem; color: var(--text-dim); margin-bottom: 12px; }
-        .pricing-feature { padding: 4px 0; }
-        .pricing-btn { background: linear-gradient(135deg, var(--cyan), var(--purple)); border: none; border-radius: 6px; padding: 10px 16px; color: var(--bg-void); font-family: 'Orbitron', sans-serif; font-size: 0.75rem; font-weight: 700; cursor: pointer; width: 100%; }
-        .pricing-btn:hover { transform: translateY(-2px); }
-        
-        /* Alerts */
-        .alert-item { display: flex; align-items: center; justify-content: space-between; padding: 10px; background: var(--bg-surface); border-radius: 6px; margin-bottom: 8px; }
-        .alert-item .sym { font-family: 'Orbitron', sans-serif; color: var(--text-bright); }
-        .alert-item .price { font-family: 'JetBrains Mono', monospace; color: var(--cyan); }
-        
-        /* Watchlists */
-        .watchlist-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; background: var(--bg-surface); border-radius: 6px; margin-bottom: 6px; cursor: pointer; }
-        .watchlist-item:hover { background: var(--border); }
-        .watchlist-name { font-size: 0.85rem; color: var(--text-bright); }
-        .watchlist-count { font-size: 0.7rem; color: var(--text-dim); background: var(--bg-panel); padding: 2px 8px; border-radius: 10px; }
-        
-        /* Toast */
-        .toast { position: fixed; bottom: 20px; right: 20px; background: var(--bg-panel); border: 1px solid var(--cyan); border-radius: 8px; padding: 12px 20px; color: var(--text-bright); font-size: 0.85rem; transform: translateY(100px); opacity: 0; transition: all 0.3s; z-index: 1001; }
-        .toast.show { transform: translateY(0); opacity: 1; }
-        
-        /* Fullscreen */
-        .fullscreen .header, .fullscreen .nav-tabs, .fullscreen .ticker { display: none; }
-        .fullscreen .main { padding: 10px; height: 100vh; }
-        
-        /* Responsive */
-        
-/* Additional utility classes for cleaner HTML */
-.tier-detail { font-size: 0.7rem; color: var(--text-dim); }
-.asset-search-input { width: 100%; padding: 8px; margin-bottom: 8px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 4px; color: var(--text); font-size: 12px; }
-.chart-change { margin-left: 8px; }
-.last-update { text-align: center; font-size: 0.7rem; color: var(--text-dim); margin-top: 8px; }
-.fg-footer { display: flex; justify-content: space-between; margin-top: 12px; }
-.paper-btn-row { margin-top: 12px; }
-.modal-footer { margin-top: 12px; }
-.pr-textarea { width: 100%; height: 80px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 6px; padding: 10px; color: var(--text-bright); resize: none; }
-.pr-section { margin-top: 16px; }
-.pr-list-container { margin-top: 8px; }
-.panel-spacing { margin-top: 16px; }
 
 
 /* Chart buttons row */

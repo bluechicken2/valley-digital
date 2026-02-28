@@ -1251,8 +1251,41 @@ function renderAlloc() {
             }
         }
         function renderCalendar() {
-            // Economic calendar coming soon - no hardcoded events
-            $('calendar').innerHTML = '<div class="calendar-placeholder" style="padding:20px;text-align:center;color:var(--text-muted);"><p>Economic calendar coming soon</p></div>';
+            if(!$('calendar-list') && !$('calendar')) return;
+            var container = $('calendar-list') || $('calendar');
+            try {
+                var cached = getCached('calendar', 3600000); // 1 hour cache
+                var events = cached;
+                if (!events) {
+                    fetch(API_BASE+'/calendar').then(r=>r.json()).then(data => {
+                        if (Array.isArray(data)) {
+                            setCache('calendar', data);
+                            renderCalendarItems(data, container);
+                        } else {
+                            container.innerHTML = '<div class="empty-state">No upcoming events</div>';
+                        }
+                    }).catch(e => {
+                        container.innerHTML = '<div class="empty-state">Calendar unavailable</div>';
+                    });
+                } else {
+                    renderCalendarItems(events, container);
+                }
+            } catch(e) {
+                container.innerHTML = '<div class="empty-state">Calendar unavailable</div>';
+            }
+        }
+        
+        function renderCalendarItems(events, container) {
+            var h = '';
+            var days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+            events.forEach(function(e) {
+                h += '<div class="calendar-item">';
+                h += '<div class="calendar-date"><span class="day">'+days[e.day]+'</span><span class="time">'+e.time+'</span></div>';
+                h += '<div class="calendar-event">'+escapeHtml(e.event)+'</div>';
+                h += '<div class="calendar-meta"><span class="currency">'+e.currency+'</span><span class="impact '+e.impact+'">'+e.impact.toUpperCase()+'</span></div>';
+                h += '</div>';
+            });
+            container.innerHTML = h || '<div class="empty-state">No upcoming events</div>';
         }
         
         // Interactions

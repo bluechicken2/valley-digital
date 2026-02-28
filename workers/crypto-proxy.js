@@ -51,10 +51,10 @@ async function handleRequest(request) {
         version: '4.2',
         fmp: FMP_API_KEY ? 'configured' : 'missing',
         alphaVantage: ALPHA_VANTAGE_KEY ? 'configured' : 'missing',
-        endpoints: ['/prices', '/stocks', '/quote', '/ohlc', '/sectors', '/news', '/health'],
+        endpoints: ['/prices', '/stocks', '/quote', '/ohlc', '/sectors', '/news', '/calendar', '/health'],
         timestamp: Date.now()
       }), { headers: corsHeaders });
-        } else if (path === '/news') {
+    } else if (path === '/news') {
         try {
             const newsUrl = 'https://cryptopanic.com/api/v1/posts/?auth_token=FREE&public=true&kind=news&filter=rising';
             const response = await fetch(newsUrl);
@@ -71,10 +71,13 @@ async function handleRequest(request) {
         } catch(e) {
             return new Response(JSON.stringify([]), { headers: corsHeaders });
         }
-} else {
+    } else if (path === '/calendar') {
+        const events = getWeeklyEconomicEvents();
+        return new Response(JSON.stringify(events), { headers: corsHeaders });
+    } else {
       return new Response(JSON.stringify({
         error: 'Not found',
-        endpoints: ['/prices', '/stocks', '/quote', '/ohlc', '/sectors', '/news', '/health']
+        endpoints: ['/prices', '/stocks', '/quote', '/ohlc', '/sectors', '/news', '/calendar', '/health']
       }), { headers: corsHeaders });
     }
   } catch (error) {
@@ -243,4 +246,18 @@ async function getSectors(corsHeaders) {
   ];
   
   return new Response(JSON.stringify(fallbackSectors), { headers: corsHeaders });
+}
+
+// ============ ECONOMIC CALENDAR ============
+function getWeeklyEconomicEvents() {
+    const now = new Date();
+    const day = now.getDay();
+    const events = [
+        { day: 1, time: '08:30', event: 'ISM Manufacturing PMI', impact: 'high', currency: 'USD' },
+        { day: 2, time: '10:00', event: 'JOLTS Job Openings', impact: 'medium', currency: 'USD' },
+        { day: 3, time: '14:00', event: 'FOMC Minutes', impact: 'high', currency: 'USD' },
+        { day: 4, time: '08:30', event: 'Jobless Claims', impact: 'medium', currency: 'USD' },
+        { day: 5, time: '08:30', event: 'Nonfarm Payrolls', impact: 'high', currency: 'USD' },
+    ];
+    return events.filter(e => e.day >= day);
 }
