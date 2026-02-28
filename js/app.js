@@ -398,7 +398,7 @@ function generateTimeLabels(count, tf) {
             checkAlerts();} catch(e) { $('status-dot').className='status-dot error';$('status-text').textContent='CACHED';$('data-badge').textContent='CACHED'; }
         }
         
-        function renderAll() { if(!sel || !data || data.length === 0) { console.log('renderAll: no data'); return; } try { renderAssets();renderPortfolio();renderTicker();renderInds();renderFG();renderSectors();renderActions();renderPreds();renderWeights();renderChart();renderAlloc();renderAnalytics();renderCorrelation();renderAssetDetails();renderNews();renderCalendar(); } catch(e) { console.error('renderAll error:', e); } }
+        function renderAll() { if(!sel || !data || data.length === 0) { return; } try { renderAssets();renderPortfolio();renderTicker();renderInds();renderFG();renderSectors();renderActions();renderPreds();renderWeights();renderChart();renderAlloc();renderAnalytics();renderCorrelation();renderAssetDetails();renderNews();renderCalendar(); } catch(e) { console.error('renderAll error:', e); } }
         
         function renderAssets() { if(!$('assets')) return; var h=''; for(var i=0;i<data.length;i++){var a=data[i];h+='<div data-symbol="'+a.sym+'" class="asset'+(a.sym===sel.sym?' active':'')+'" onclick="selAsset(\''+a.sym+'\')"><div style="display:flex;align-items:center"><div class="asset-icon" style="background:'+a.color+'22;color:'+a.color+'">'+a.sym.substr(0,2)+'</div><div><div class="asset-name">'+a.sym+'<span class="star'+(a.fav?' active':'')+'" onclick="event.stopPropagation();toggleFav(\''+a.sym+'\')">*</span></div><div class="asset-type">'+a.name+'</div></div></div><div style="display:flex;align-items:center;gap:6px"><div style="text-align:right"><div class="asset-price">$'+fmt(a.price)+'</div><div class="asset-chg '+(a.chg>=0?'up':'down')+'">'+(a.chg>=0?'+':'')+a.chg.toFixed(2)+'%</div></div></div></div>';} $('assets').innerHTML=h; }
         function renderPortfolio() { if(!$('port-val')) return; var tot=0,chg=0; for(var i=0;i<data.length;i++){tot+=data[i].price*data[i].hold;chg+=data[i].price*data[i].hold*data[i].chg/100;} var pct=chg/tot*100; $('port-val').textContent='$'+fmt(tot);$('port-chg').textContent=(chg>=0?'+':'')+'$'+fmt(Math.abs(chg))+' ('+(pct>=0?'+':'')+pct.toFixed(2)+'%)';$('port-chg').className='portfolio-change '+(chg>=0?'up':'down');$('intel').textContent=Math.round(50+pct*2); }
@@ -444,7 +444,7 @@ function generateTimeLabels(count, tf) {
 async function fetchSectors() {
     try {
         var res = await fetch(API_BASE+'/sectors');
-        if(!res.ok) { console.log('Sectors endpoint not available, using fallback'); return; }
+        if(!res.ok) { console.warn('Sectors endpoint not available'); return; }
         var json = await res.json();
         // Check if response is array (valid data) not error object
         if(json && Array.isArray(json) && json.length > 0) {
@@ -454,10 +454,10 @@ async function fetchSectors() {
             });
             renderSectors();
         } else {
-            console.log('Sectors response invalid, using fallback data');
+            console.warn('Sectors response invalid');
         }
     } catch(e) {
-        console.log('Sector fetch failed, using fallback data:', e);
+        console.error('Sector fetch failed:', e);
     }
 }
         function renderActions() {
