@@ -1320,3 +1320,407 @@ body.light-theme .panel {
 .modal-overlay.show {
     display: flex !important;
 }
+
+/* ==========================================
+   ENHANCED MODAL SYSTEM - Cyberpunk Terminal
+   TradingAI Neural Nexus Dashboard
+   ========================================== */
+
+/* Modal Overlay - Dark backdrop with blur */
+.modal-overlay {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background: rgba(3, 5, 8, 0.92) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    z-index: 1000 !important;
+    display: none !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 20px !important;
+    animation: modalFadeIn 0.25s ease !important;
+}
+
+.modal-overlay.show {
+    display: flex !important;
+}
+
+@keyframes modalFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Main Modal Container */
+.modal {
+    position: relative !important;
+    background: linear-gradient(180deg, var(--bg-panel) 0%, var(--bg-void) 100%) !important;
+    border: 1px solid rgba(0, 240, 255, 0.25) !important;
+    border-radius: 16px !important;
+    max-width: 520px !important;
+    width: 100% !important;
+    max-height: 85vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    box-shadow: 
+        0 0 0 1px rgba(0, 240, 255, 0.1),
+        0 25px 80px rgba(0, 0, 0, 0.7),
+        0 0 60px rgba(0, 240, 255, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+    animation: modalSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    overflow: hidden !important;
+}
+
+@keyframes modalSlideIn {
+    from { 
+        opacity: 0; 
+        transform: scale(0.95) translateY(-20px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: scale(1) translateY(0); 
+    }
+}
+
+/* Large Modal */
+.modal.modal-lg {
+    max-width: 680px !important;
+}
+
+/* Modal Header - Title Bar */
+.modal-header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 18px 20px !important;
+    background: linear-gradient(90deg, rgba(0, 240, 255, 0.08) 0%, rgba(168, 85, 247, 0.08) 100%) !important;
+    border-bottom: 1px solid rgba(0, 240, 255, 0.15) !important;
+    flex-shrink: 0 !important;
+}
+
+.modal-title {
+    font-family: 'Orbitron', sans-serif !important;
+    font-size: 0.95rem !important;
+    font-weight: 700 !important;
+    color: var(--cyan) !important;
+    letter-spacing: 2px !important;
+    text-transform: uppercase !important;
+    text-shadow: 0 0 20px rgba(0, 240, 255, 0.4) !important;
+}
+
+/* Close Button - Prominent and styled */
+.modal-close {
+    background: var(--bg-surface) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 8px !important;
+    padding: 8px 14px !important;
+    font-family: 'Orbitron', sans-serif !important;
+    font-size: 0.7rem !important;
+    font-weight: 600 !important;
+    color: var(--text-dim) !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    letter-spacing: 1px !important;
+}
+
+.modal-close:hover {
+    background: rgba(255, 51, 102, 0.15) !important;
+    border-color: var(--red) !important;
+    color: var(--red) !important;
+    transform: scale(1.02) !important;
+    box-shadow: 0 0 15px rgba(255, 51, 102, 0.2) !important;
+}
+
+/* Modal Body - Scrollable content area */
+.modal-body {
+    padding: 20px !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    max-height: calc(85vh - 140px) !important;
+    flex: 1 1 auto !important;
+    scrollbar-width: thin !important;
+    scrollbar-color: var(--cyan) var(--bg-surface) !important;
+}
+
+/* Custom Scrollbar for Modal */
+.modal-body::-webkit-scrollbar {
+    width: 8px !important;
+}
+
+.modal-body::-webkit-scrollbar-track {
+    background: var(--bg-surface) !important;
+    border-radius: 4px !important;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--cyan), var(--purple)) !important;
+    border-radius: 4px !important;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+    background: var(--cyan) !important;
+}
+
+/* Form Inputs within Modals */
+.modal-body .form-group {
+    margin-bottom: 16px !important;
+}
+
+.modal-body input,
+.modal-body select,
+.modal-body textarea {
+    width: 100% !important;
+    padding: 14px 16px !important;
+    background: var(--bg-surface) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 10px !important;
+    color: var(--text-bright) !important;
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 0.9rem !important;
+    transition: all 0.2s ease !important;
+}
+
+.modal-body input:focus,
+.modal-body select:focus,
+.modal-body textarea:focus {
+    outline: none !important;
+    border-color: var(--cyan) !important;
+    box-shadow: 
+        0 0 0 3px rgba(0, 240, 255, 0.1),
+        0 0 20px rgba(0, 240, 255, 0.1) !important;
+}
+
+.modal-body input::placeholder {
+    color: var(--text-dim) !important;
+}
+
+.modal-body label {
+    display: block !important;
+    font-family: 'Orbitron', sans-serif !important;
+    font-size: 0.7rem !important;
+    color: var(--text-dim) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    margin-bottom: 8px !important;
+}
+
+/* Primary Action Button */
+.btn-primary {
+    background: linear-gradient(135deg, var(--cyan) 0%, var(--purple) 100%) !important;
+    border: none !important;
+    border-radius: 10px !important;
+    padding: 14px 28px !important;
+    font-family: 'Orbitron', sans-serif !important;
+    font-size: 0.85rem !important;
+    font-weight: 700 !important;
+    color: var(--bg-void) !important;
+    cursor: pointer !important;
+    transition: all 0.25s ease !important;
+    letter-spacing: 1.5px !important;
+    text-transform: uppercase !important;
+    box-shadow: 0 4px 20px rgba(0, 240, 255, 0.25) !important;
+}
+
+.btn-primary:hover {
+    transform: translateY(-3px) !important;
+    box-shadow: 
+        0 8px 35px rgba(0, 240, 255, 0.35),
+        0 0 20px rgba(0, 240, 255, 0.2) !important;
+    filter: brightness(1.1) !important;
+}
+
+.btn-primary:active {
+    transform: translateY(-1px) !important;
+}
+
+/* Asset Search Input */
+.add-asset-search,
+#asset-search {
+    background: var(--bg-surface) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 10px !important;
+    padding: 14px 16px !important;
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 0.9rem !important;
+    color: var(--text-bright) !important;
+    width: 100% !important;
+    transition: all 0.2s ease !important;
+    box-sizing: border-box !important;
+}
+
+.add-asset-search:focus,
+#asset-search:focus {
+    border-color: var(--cyan) !important;
+    box-shadow: 0 0 0 3px rgba(0, 240, 255, 0.1) !important;
+    outline: none !important;
+}
+
+/* Asset Options List */
+#asset-options {
+    list-style: none !important;
+    padding: 0 !important;
+    margin: 12px 0 0 0 !important;
+    max-height: 280px !important;
+    overflow-y: auto !important;
+}
+
+#asset-options div {
+    padding: 14px 16px !important;
+    background: var(--bg-surface) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 10px !important;
+    margin-bottom: 8px !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+}
+
+#asset-options div:hover {
+    background: rgba(0, 240, 255, 0.08) !important;
+    border-color: rgba(0, 240, 255, 0.3) !important;
+    transform: translateX(6px) !important;
+    box-shadow: 0 4px 15px rgba(0, 240, 255, 0.1) !important;
+}
+
+/* Holdings List - Portfolio Edit */
+#holdings-list {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    padding: 4px 0 !important;
+}
+
+/* Holding Row */
+.holding-row {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 14px 16px !important;
+    background: var(--bg-surface) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 10px !important;
+    transition: all 0.2s ease !important;
+    gap: 12px !important;
+}
+
+.holding-row:hover {
+    border-color: rgba(0, 240, 255, 0.3) !important;
+    background: rgba(0, 240, 255, 0.05) !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+}
+
+.holding-row strong {
+    color: var(--cyan) !important;
+    font-family: 'Orbitron', sans-serif !important;
+}
+
+/* Holding Input */
+.holding-input {
+    width: 100px !important;
+    background: var(--bg-panel) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 8px !important;
+    padding: 10px 12px !important;
+    color: var(--text-bright) !important;
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 0.9rem !important;
+    text-align: right !important;
+    transition: all 0.2s ease !important;
+}
+
+.holding-input:focus {
+    outline: none !important;
+    border-color: var(--cyan) !important;
+    box-shadow: 0 0 0 3px rgba(0, 240, 255, 0.1), 0 0 15px rgba(0, 240, 255, 0.1) !important;
+}
+
+/* Delete Button */
+.del-btn {
+    background: transparent !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 8px !important;
+    padding: 8px 14px !important;
+    font-family: 'Orbitron', sans-serif !important;
+    font-size: 0.65rem !important;
+    font-weight: 600 !important;
+    color: var(--text-dim) !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    letter-spacing: 0.5px !important;
+}
+
+.del-btn:hover {
+    background: rgba(255, 51, 102, 0.15) !important;
+    border-color: var(--red) !important;
+    color: var(--red) !important;
+    box-shadow: 0 0 15px rgba(255, 51, 102, 0.2) !important;
+}
+
+/* Mobile Responsive - Modals */
+@media (max-width: 768px) {
+    .modal-overlay {
+        padding: 10px !important;
+        align-items: flex-end !important;
+    }
+    
+    .modal {
+        max-width: 100% !important;
+        max-height: 90vh !important;
+        border-radius: 16px 16px 0 0 !important;
+    }
+    
+    .modal-header {
+        padding: 16px !important;
+    }
+    
+    .modal-title {
+        font-size: 0.85rem !important;
+        letter-spacing: 1px !important;
+    }
+    
+    .modal-close {
+        padding: 6px 10px !important;
+        font-size: 0.65rem !important;
+    }
+    
+    .modal-body {
+        padding: 16px !important;
+        max-height: calc(90vh - 160px) !important;
+    }
+    
+    .btn-primary {
+        width: 100% !important;
+        padding: 14px !important;
+        font-size: 0.8rem !important;
+    }
+    
+    .holding-row {
+        flex-wrap: wrap !important;
+        padding: 12px !important;
+    }
+    
+    .holding-input {
+        width: 80px !important;
+        padding: 8px 10px !important;
+    }
+}
+
+@media (max-width: 380px) {
+    .modal-header {
+        padding: 12px !important;
+    }
+    
+    .modal-title {
+        font-size: 0.75rem !important;
+    }
+    
+    .modal-body {
+        padding: 12px !important;
+    }
+}
