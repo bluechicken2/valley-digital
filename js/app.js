@@ -1796,7 +1796,29 @@ window.deleteAlert = function(idx) { alerts.splice(idx,1); localStorage.setItem(
             sendAI();
         };
 
-        function generateAIResponse(q) {
+                async function generateAIResponse(query, context) {
+            var portfolioContext = data.filter(function(a){return a.hold>0;}).map(function(a){
+                return a.sym+': '+a.hold+' units @ $'+fmt(a.price)+' ('+a.chg.toFixed(2)+'%)';
+            }).join(', ');
+
+            var messages = [
+                { role: 'user', content: 'Portfolio: '+portfolioContext+'\n\nUser question: '+query }
+            ];
+
+            try {
+                var r = await fetch(API_BASE+'/ai', {
+                    method: 'POST',
+                    headers: {'Content-Type':'application/json'},
+                    body: JSON.stringify({ messages: messages })
+                });
+                var result = await r.json();
+                return result.response;
+            } catch(e) {
+                return generateLocalResponse(query); // fallback to local templates
+            }
+        }
+
+function generateLocalResponse(q) {
             q = q.toLowerCase();
             var histArr = history[sel.sym]; var rsi = histArr ? calcRSI(histArr) : null;
             var tot = 0, chg = 0;
@@ -1882,7 +1904,7 @@ window.deleteAlert = function(idx) { alerts.splice(idx,1); localStorage.setItem(
             }
         }
 
-        window.sendAI = function() {
+        window.sendAI = async function() {
             var q = sanitize($('ai-input').value.trim());
             if(!q) return;
             aiHistory.push({role:'user',text:q,time:Date.now()});
@@ -1890,13 +1912,19 @@ window.deleteAlert = function(idx) { alerts.splice(idx,1); localStorage.setItem(
             renderAIChat();
             saveChatHistory();
             showTyping();
-            setTimeout(function() {
+            try {
+                var resp = await generateAIResponse(q);
                 hideTyping();
-                var resp = generateAIResponse(q);
                 aiHistory.push({role:'ai',text:resp,time:Date.now()});
                 renderAIChat();
                 saveChatHistory();
-            }, 1000);
+            } catch(e) {
+                hideTyping();
+                var fallbackResp = generateLocalResponse(q);
+                aiHistory.push({role:'ai',text:fallbackResp,time:Date.now()});
+                renderAIChat();
+                saveChatHistory();
+            }
         };
 
         // Portfolio Management Functions

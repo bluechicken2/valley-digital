@@ -25,7 +25,7 @@ async function handleRequest(request) {
   
   const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, OPTIONS',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
     'Content-Type': 'application/json'
   };
@@ -51,7 +51,7 @@ async function handleRequest(request) {
         version: '4.2',
         fmp: FMP_API_KEY ? 'configured' : 'missing',
         alphaVantage: ALPHA_VANTAGE_KEY ? 'configured' : 'missing',
-        endpoints: ['/prices', '/stocks', '/quote', '/ohlc', '/sectors', '/news', '/calendar', '/health'],
+        endpoints: ['/prices', '/stocks', '/quote', '/ohlc', '/sectors', '/news', '/calendar', '/ai', '/health'],
         timestamp: Date.now()
       }), { headers: corsHeaders });
     } else if (path === '/news') {
@@ -74,10 +74,38 @@ async function handleRequest(request) {
     } else if (path === '/calendar') {
         const events = getWeeklyEconomicEvents();
         return new Response(JSON.stringify(events), { headers: corsHeaders });
-    } else {
+    }
+    // AI chat endpoint
+    if (path === '/ai' && request.method === 'POST') {
+        const body = await request.json();
+        const response = await fetch('https://api.venice.ai/api/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + env.VENICE_API_KEY
+            },
+            body: JSON.stringify({
+                model: 'llama-3.3-70b',
+                messages: [
+                    {
+                        role: 'system',
+                        content: 'You are a professional financial analyst and trading assistant. Provide concise, actionable insights. Never give specific buy/sell advice. Always include risk disclaimers.'
+                    },
+                    ...body.messages
+                ],
+                max_tokens: 500,
+                temperature: 0.7
+            })
+        });
+        const data = await response.json();
+        return new Response(JSON.stringify({
+            response: data.choices?.[0]?.message?.content || 'Unable to generate response'
+        }), { headers: corsHeaders });
+    }
+ else {
       return new Response(JSON.stringify({
         error: 'Not found',
-        endpoints: ['/prices', '/stocks', '/quote', '/ohlc', '/sectors', '/news', '/calendar', '/health']
+        endpoints: ['/prices', '/stocks', '/quote', '/ohlc', '/sectors', '/news', '/calendar', '/ai', '/health']
       }), { headers: corsHeaders });
     }
   } catch (error) {
