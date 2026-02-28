@@ -1964,7 +1964,39 @@ window.deleteAlert = function(idx) { alerts.splice(idx,1); localStorage.setItem(
             if(data.length > 0 && (!sel || data.indexOf(sel) < 0)) sel = data[0];
             } catch(e) { console.error('loadSavedHoldings error:', e); }
         }
-        function init() { 
+        // Setup mobile info tooltip handlers
+function setupInfoTooltips() {
+    // Mobile tap-to-show info tooltips
+    setTimeout(function() {
+        document.querySelectorAll('.info-tip').forEach(function(tip) {
+            tip.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                // Toggle active class for mobile
+                if(this.classList.contains('active')) {
+                    this.classList.remove('active');
+                } else {
+                    // Remove active from all others
+                    document.querySelectorAll('.info-tip.active').forEach(function(t) {
+                        t.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                }
+            });
+        });
+        
+        // Close tooltips when clicking elsewhere
+        document.addEventListener('click', function(e) {
+            if(!e.target.classList.contains('info-tip')) {
+                document.querySelectorAll('.info-tip.active').forEach(function(t) {
+                    t.classList.remove('active');
+                });
+            }
+        });
+    }, 100); // Small delay to ensure DOM is ready
+}
+
+function init() { 
             setTimeout(function(){
                 if(checkSession()){
                     showDashboard();
