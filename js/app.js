@@ -1883,12 +1883,20 @@ window.deleteAlert = function(idx) { alerts.splice(idx,1); localStorage.setItem(
             for(var i=0;i<data.length;i++) holdings[data[i].sym] = data[i].hold;
             localStorage.setItem('holdings', JSON.stringify(holdings));
 
-            // Try to save to Supabase (may fail)
-            try {
-                localStorage.setItem('assetList', JSON.stringify(data.map(function(a){return{sym:a.sym,name:a.name,type:a.type,color:a.color,hold:a.hold,fav:a.fav}})));
-            await savePortfolioToSupabase();
-            } catch(e) {
-                console.error('Supabase save failed:', e);
+            // Save asset list to localStorage
+            localStorage.setItem('assetList', JSON.stringify(data.map(function(a){return{sym:a.sym,name:a.name,type:a.type,color:a.color,hold:a.hold,fav:a.fav}})));
+
+            // Sync to Supabase via SDK if authenticated
+            if(typeof TradingAI !== 'undefined' && TradingAI.isAuthenticated()) {
+                try {
+                    for(var i=0; i<data.length; i++) {
+                        if(data[i].hold > 0 || data[i].fav) {
+                            await TradingAI.addToPortfolio(data[i].sym, data[i].hold, data[i].fav);
+                        }
+                    }
+                } catch(e) {
+                    console.error('Supabase sync failed:', e);
+                }
             }
 
             renderPortfolio();
@@ -2107,7 +2115,7 @@ window.deleteAlert = function(idx) { alerts.splice(idx,1); localStorage.setItem(
             }
         }
 
-        function loadSavedHoldings() {
+        async function loadSavedHoldings() {
             // Version check: clear old localStorage if version mismatch
             var savedVersion = localStorage.getItem('portfolio_version');
             if (savedVersion !== PORTFOLIO_DATA_VERSION) {
@@ -2152,6 +2160,24 @@ window.deleteAlert = function(idx) { alerts.splice(idx,1); localStorage.setItem(
             }
             // Make sure sel is valid after filtering
             if(data.length > 0 && (!sel || data.indexOf(sel) < 0)) sel = data[0];
+
+            // Sync from Supabase if authenticated
+            if(typeof TradingAI !== 'undefined' && TradingAI.isAuthenticated()) {
+                try {
+                    var portfolio = await TradingAI.loadPortfolio();
+                    if(portfolio.success && portfolio.data && portfolio.data.length > 0) {
+                        portfolio.data.forEach(function(item) {
+                            var asset = data.find(function(a){return a.sym === item.symbol;});
+                            if(asset) {
+                                asset.hold = item.quantity;
+                                asset.fav = item.favorite;
+                            }
+                        });
+                    }
+                } catch(e) {
+                    console.error('Supabase load failed:', e);
+                }
+            }
             } catch(e) { console.error('loadSavedHoldings error:', e); }
         }
         // Setup mobile info tooltip handlers
