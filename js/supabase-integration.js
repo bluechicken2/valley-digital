@@ -437,3 +437,18 @@
     };
 
 })();
+
+// Auto-initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof window.supabase !== 'undefined') {
+        TradingAI.init().then(function(success) {
+            if (success) {
+                console.log('TradingAI initialized successfully');
+            } else {
+                console.error('TradingAI initialization failed');
+            }
+        });
+    } else {
+        console.error('Supabase SDK not loaded - cannot initialize TradingAI');
+    }
+});
