@@ -947,7 +947,69 @@ async function fetchSectors() {
             } catch(e) { console.error('renderLine ERROR:', e); }
         }
 
-function renderAlloc() { if(allocCt) allocCt.destroy(); allocCt = new Chart($('allocCt'),{type:'doughnut',data:{labels:['BTC','ETH','NVDA','AAPL','MSFT','GOOGL','TSLA'],datasets:[{data:[28,18,16,14,12,8,4],backgroundColor:['#00f0ff','#a855f7','#00ff88','#ffd700','#00f0ff','#ff3366','#a855f7'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:{display:false}}}}); }
+function renderAlloc() {
+    if(allocCt) allocCt.destroy();
+
+    // Filter assets with actual holdings
+    var held = data.filter(function(a) { return a.hold > 0; });
+
+    // Handle empty holdings case
+    if(held.length === 0) {
+        $('allocCt').innerHTML = '<div class="empty-state" style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-muted);font-size:12px;">Add holdings to see allocation</div>';
+        return;
+    }
+
+    // Calculate total portfolio value
+    var total = held.reduce(function(sum, a) { return sum + (a.hold * a.price); }, 0);
+
+    // If total is 0, show empty state
+    if(total === 0) {
+        $('allocCt').innerHTML = '<div class="empty-state" style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-muted);font-size:12px;">Add holdings to see allocation</div>';
+        return;
+    }
+
+    // Calculate allocations sorted by value (descending)
+    var allocations = held.map(function(a) {
+        return {
+            sym: a.sym,
+            value: a.hold * a.price,
+            pct: ((a.hold * a.price) / total * 100),
+            color: a.color || '#00f0ff'
+        };
+    }).sort(function(a, b) { return b.value - a.value; });
+
+    // Build chart data
+    var labels = allocations.map(function(a) { return a.sym; });
+    var values = allocations.map(function(a) { return a.pct; });
+    var colors = allocations.map(function(a) { return a.color; });
+
+    allocCt = new Chart($('allocCt'), {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: values,
+                backgroundColor: colors,
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '70%',
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.label + ': ' + context.parsed.toFixed(1) + '%';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
         
         function renderAnalytics() {
             var tot=0,chg=0,sqSum=0; for(var i=0;i<data.length;i++){tot+=data[i].price*data[i].hold;chg+=data[i].price*data[i].hold*data[i].chg/100;}
