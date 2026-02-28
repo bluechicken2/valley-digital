@@ -692,6 +692,7 @@ async function fetchSectors() {
             
             // Calculate indicators
             var sma20 = showSMA20 ? Indicators.calcSMA(closes, 20) : [];
+            var sma200 = showSMA200 ? Indicators.calcSMA(closes, 200) : [];
             var ema9 = showEMA ? Indicators.calcEMA(closes, 9) : [];
             var ema21 = showEMA ? Indicators.calcEMA(closes, 21) : [];
             var bb = showBollinger ? calcBollingerBands(closes, 20, 2) : null;
@@ -729,7 +730,7 @@ async function fetchSectors() {
             }
             // SMA-200
             if(showSMA200 && sma200.length > 0) {
-                priceDatasets.push({
+                datasets.push({
                     type:'line', data:sma200, borderColor:'rgba(255,165,0,0.9)', borderWidth:2,
                     pointRadius:0, fill:false, order:0, label:'SMA-200'
                 });
