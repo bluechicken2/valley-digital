@@ -1011,21 +1011,8 @@ function renderAlloc() { if(allocCt) allocCt.destroy(); allocCt = new Chart($('a
             $('news-feed').innerHTML = '<div class="news-placeholder" style="padding:20px;text-align:center;color:var(--text-muted);"><p>News feed coming soon</p></div>';
         }
         function renderCalendar() {
-            var events = [
-                {date:'Feb 28',event:'Fed Chair Powell Testimony',impact:'high'},
-                {date:'Mar 1',event:'Manufacturing PMI',impact:'medium'},
-                {date:'Mar 5',event:'Non-Farm Payrolls',impact:'high'},
-                {date:'Mar 10',event:'CPI Data Release',impact:'high'},
-                {date:'Mar 12',event:'FOMC Meeting',impact:'high'},
-                {date:'Mar 15',event:'Retail Sales',impact:'medium'}
-            ];
-            var h = '';
-            for(var i=0;i<events.length;i++){
-                h += '<div class="calendar-item"><span class="calendar-date">'+events[i].date+'</span>';
-                h += '<span class="calendar-event">'+events[i].event+'</span>';
-                h += '<span class="calendar-impact impact-'+events[i].impact+'">'+events[i].impact.toUpperCase()+'</span></div>';
-            }
-            $('calendar').innerHTML = h;
+            // Economic calendar coming soon - no hardcoded events
+            $('calendar').innerHTML = '<div class="calendar-placeholder" style="padding:20px;text-align:center;color:var(--text-muted);"><p>Economic calendar coming soon</p></div>';
         }
         
         // Interactions
