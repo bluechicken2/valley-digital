@@ -334,6 +334,11 @@ function generateTimeLabels(count, tf) {
                 if(result.success) {
                     user = result.data.user;
                     userTier = 'pro';
+                    // Save session to localStorage for persistence
+                    if(result.data.session) {
+                        localStorage.setItem('sb_token', result.data.session.access_token);
+                        localStorage.setItem('sb_user', JSON.stringify(result.data.user));
+                    }
                     localStorage.removeItem('login_attempts');
                     localStorage.removeItem('last_login_attempt');
                     showDashboard();
@@ -418,7 +423,21 @@ function generateTimeLabels(count, tf) {
         };
         window.selectTier = function(t) { document.querySelectorAll('.tier-option').forEach(function(o){o.classList.remove('selected');});event.currentTarget.classList.add('selected'); };
         
-        function checkSession() { var t=localStorage.getItem('sb_token'),u=localStorage.getItem('sb_user'); if(t&&u){user=JSON.parse(u);userTier='pro';return true;} return false; }
+        async function checkSession() { 
+            // First check localStorage (fast)
+            var t=localStorage.getItem('sb_token'),u=localStorage.getItem('sb_user'); 
+            if(t&&u){user=JSON.parse(u);userTier='pro';return true;}
+            // Then check Supabase session (authoritative)
+            if(typeof TradingAI !== 'undefined' && TradingAI.isAuthenticated && TradingAI.isAuthenticated()) {
+                var currentUser = TradingAI.getCurrentUser();
+                if(currentUser) {
+                    user = currentUser;
+                    userTier = 'pro';
+                    return true;
+                }
+            }
+            return false; 
+        }
         async function showDashboard() { 
             $('loading').style.display='none';
             $('auth-login').style.display='none';
