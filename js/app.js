@@ -76,6 +76,9 @@ var CONFIG = {
             VOLUME_HEIGHT: 80             // Volume chart height (px)
         };
 
+        // Portfolio data version - increment to force localStorage reset
+        var PORTFOLIO_DATA_VERSION = '2.0';
+
         var user = null, userTier = 'free', sel = null, data = [], alerts = [], sectorData = [], watchlists = [{name:'Crypto',symbols:['BTC','ETH','SOL']},{name:'Tech',symbols:['AAPL','NVDA','MSFT','GOOGL']}];
         var priceCt = null, volCt = null, allocCt = null, chartType = 'line', timeframe = '1D', chartRendering = false;
         
@@ -1942,6 +1945,16 @@ window.deleteAlert = function(idx) { alerts.splice(idx,1); localStorage.setItem(
         }
 
         function loadSavedHoldings() {
+            // Version check: clear old localStorage if version mismatch
+            var savedVersion = localStorage.getItem('portfolio_version');
+            if (savedVersion !== PORTFOLIO_DATA_VERSION) {
+                console.log('Portfolio data version mismatch. Clearing old localStorage data...');
+                localStorage.removeItem('assetList');
+                localStorage.removeItem('holdings');
+                localStorage.setItem('portfolio_version', PORTFOLIO_DATA_VERSION);
+                // Continue with fresh defaults (hold:0 for all)
+                return;
+            }
             try {
             // Load saved asset list from localStorage
             var savedAssets = localStorage.getItem('assetList');
