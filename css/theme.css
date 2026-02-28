@@ -773,3 +773,8 @@
         visibility: visible;
     }
 }
+
+/* Bottom padding for disclaimer banner */
+body {
+    padding-bottom: 50px !important;
+}
