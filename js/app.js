@@ -311,7 +311,8 @@ function generateTimeLabels(count, tf) {
         window.showSignup = function() { $('auth-login').style.display='none'; $('auth-signup').style.display='flex'; $('auth-reset').style.display='none'; };
         window.showReset = function() { $('auth-login').style.display='none'; $('auth-signup').style.display='none'; $('auth-reset').style.display='flex'; };
         async function supabaseAuth(ep, body) { var r = await fetch(SUPABASE_URL+'/auth/v1'+ep, {method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY},body:JSON.stringify(body)}); return {ok:r.ok,data:await r.json()}; }
-        window.handleLogin = async function() { var email=$('login-email').value,pwd=$('login-password').value; if(!email||!pwd){$('login-error').textContent='Please fill in all fields';$('login-error').classList.add('show');return;} var r=await supabaseAuth('/token?grant_type=password',{email:email,password:pwd}); if(r.ok&&r.data.access_token){localStorage.setItem('sb_token',r.data.access_token);localStorage.setItem('sb_user',JSON.stringify(r.data.user));user=r.data.user;userTier='pro';showDashboard();}else{$('login-error').textContent=r.data.error_description||'Login failed';$('login-error').classList.add('show');} };
+        window.handleLogin = async function() { var email=$('login-email').value,pwd=$('login-password').value; if(!email||!pwd){$('login-error').textContent='Please fill in all fields';$('login-error').classList.add('show');return;} var r=await supabaseAuth('/token?grant_type=password',{email:email,password:pwd}); if(r.ok&&r.data.access_token){localStorage.setItem('sb_token',r.data.access_token);localStorage.setItem('sb_user',JSON.stringify(r.data.user));user=r.data.user;userTier='pro';showDashboard();
+                    setupInfoTooltips();}else{$('login-error').textContent=r.data.error_description||'Login failed';$('login-error').classList.add('show');} };
         window.handleSignup = async function() { var email=$('signup-email').value,pwd=$('signup-password').value; if(!email||!pwd){$('signup-error').textContent='Please fill in all fields';$('signup-error').classList.add('show');return;} var r=await supabaseAuth('/signup',{email:email,password:pwd}); if(r.ok){$('signup-success').textContent='Account created! Check your email.';$('signup-success').classList.add('show');setTimeout(showLogin,2000);}else{$('signup-error').textContent=r.data.error_description||'Signup failed';$('signup-error').classList.add('show');} };
         window.handleReset = async function() { var email=$('reset-email').value; if(!email){$('reset-error').textContent='Please enter your email';$('reset-error').classList.add('show');return;} var r=await fetch(SUPABASE_URL+'/auth/v1/recover',{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY},body:JSON.stringify({email:email})}); if(r.ok){$('reset-success').textContent='Check your email for reset link';$('reset-success').classList.add('show');} };
         window.handleLogout = function() { localStorage.removeItem('sb_token');localStorage.removeItem('sb_user');user=null;showLogin();$('user-dropdown').classList.remove('show'); };
@@ -2000,6 +2001,7 @@ function init() {
             setTimeout(function(){
                 if(checkSession()){
                     showDashboard();
+                    setupInfoTooltips();
                 }else{
                     showLogin();
                 }
