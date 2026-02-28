@@ -21,49 +21,6 @@ function escapeHtml(text) {
         return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];
     });
 }
-// Rate limiting helpers (Phase 10)
-function checkRateLimit(action, maxAttempts, lockoutMs) {
-    var attempts = parseInt(localStorage.getItem(action+'_attempts')||'0');
-    var lastAttempt = parseInt(localStorage.getItem('last_'+action+'_attempt')||'0');
-    if(attempts >= maxAttempts && Date.now() - lastAttempt < lockoutMs) {
-        var waitMins = Math.ceil((lockoutMs - (Date.now() - lastAttempt)) / 60000);
-        return { blocked: true, waitMinutes: waitMins };
-    }
-    return { blocked: false };
-}
-
-function recordAttempt(action) {
-    var attempts = parseInt(localStorage.getItem(action+'_attempts')||'0');
-    localStorage.setItem(action+'_attempts', (attempts + 1).toString());
-    localStorage.setItem('last_'+action+'_attempt', Date.now().toString());
-}
-
-function clearRateLimit(action) {
-    localStorage.removeItem(action+'_attempts');
-    localStorage.removeItem('last_'+action+'_attempt');
-}
-
-// Input validation helpers (Phase 10)
-function validateQuantity(value) {
-    var num = parseFloat(value);
-    if(isNaN(num) || num < 0) return { valid: false, error: 'Invalid quantity' };
-    if(num > 1000000000) return { valid: false, error: 'Quantity too large' };
-    return { valid: true, value: num };
-}
-
-function validatePrice(value) {
-    var num = parseFloat(value);
-    if(isNaN(num) || num <= 0) return { valid: false, error: 'Invalid price' };
-    if(num > 100000000) return { valid: false, error: 'Price too large' };
-    return { valid: true, value: num };
-}
-
-function validateSymbol(sym) {
-    if(!sym || typeof sym !== 'string') return { valid: false };
-    if(!/^[A-Z]{1,10}$/.test(sym.toUpperCase())) return { valid: false };
-    return { valid: true, value: sym.toUpperCase() };
-}
-
 
 var $ = function(id) { return document.getElementById(id); };
 
@@ -71,7 +28,6 @@ var $ = function(id) { return document.getElementById(id); };
             if(!str) return '';
             return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
         }
-
 
         // Supabase configuration - ANON KEY is safe for client-side (publishable key)
         // Row Level Security (RLS) policies protect all user data
@@ -124,7 +80,6 @@ var CONFIG = {
         var PORTFOLIO_DATA_VERSION = '2.0';
 
         var user = null, userTier = 'free', sel = null, data = [], alerts = [], sectorData = [], watchlists = [{name:'Crypto',symbols:['BTC','ETH','SOL']},{name:'Tech',symbols:['AAPL','NVDA','MSFT','GOOGL']}];
-        var portfolioHistory = JSON.parse(localStorage.getItem('portfolio_history')||'[]');
         var priceCt = null, volCt = null, allocCt = null, chartType = 'line', timeframe = '1D', chartRendering = false;
         
         // API Response Cache
@@ -360,42 +315,50 @@ function generateTimeLabels(count, tf) {
         window.showLogin = function() { $('loading').style.display='none'; $('dashboard').style.display='none'; $('auth-login').style.display='flex'; $('auth-signup').style.display='none'; $('auth-reset').style.display='none'; };
         window.showSignup = function() { $('auth-login').style.display='none'; $('auth-signup').style.display='flex'; $('auth-reset').style.display='none'; };
         window.showReset = function() { $('auth-login').style.display='none'; $('auth-signup').style.display='none'; $('auth-reset').style.display='flex'; };
-        // Auth handled by TradingAI SDK (supabase-integration.js)
+        async function supabaseAuth(ep, body) { var r = await fetch(SUPABASE_URL+'/auth/v1'+ep, {method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY},body:JSON.stringify(body)}); return {ok:r.ok,data:await r.json()}; }
         window.handleLogin = async function() {
-            // Rate limiting check
-            var rateCheck = checkRateLimit('login', 5, 900000);
-            if(rateCheck.blocked) {
-                $('login-error').textContent = 'Too many attempts. Wait '+rateCheck.waitMinutes+' min.';
+            var email=$('login-email').value, pwd=$('login-password').value;
+            if(!email||!pwd){$('login-error').textContent='Please fill in all fields';$('login-error').classList.add('show');return;}
+            // Rate limiting: max 5 attempts per 15 minutes
+            var attempts = parseInt(localStorage.getItem('login_attempts')||'0');
+            var lastAttempt = parseInt(localStorage.getItem('last_login_attempt')||'0');
+            if(Date.now() - lastAttempt > 900000) { attempts = 0; }
+            if(attempts >= 5) {
+                var wait = Math.ceil((900000-(Date.now()-lastAttempt))/60000);
+                $('login-error').textContent='Too many attempts. Wait '+wait+' min.';
                 $('login-error').classList.add('show'); return;
             }
-            var email = $('login-email').value.trim(), pwd = $('login-password').value;
-            if(!email||!pwd){$('login-error').textContent='Please fill in all fields';$('login-error').classList.add('show');return;}
             $('login-error').classList.remove('show');
             if(typeof TradingAI !== 'undefined') {
                 var result = await TradingAI.signIn(email, pwd);
                 if(result.success) {
                     user = result.data.user;
                     userTier = 'pro';
-                    clearRateLimit('login');
+                    localStorage.removeItem('login_attempts');
+                    localStorage.removeItem('last_login_attempt');
                     showDashboard();
                     setupInfoTooltips();
-                    // Load cloud portfolio after login
+                    // Load cloud portfolio
                     setTimeout(async function() {
                         try {
                             var port = await TradingAI.loadPortfolio();
                             if(port.success && port.data && port.data.length > 0) {
                                 var h = {};
-                                port.data.forEach(function(item){ if(item.quantity>0) h[item.symbol]=item.quantity; });
+                                port.data.forEach(function(item){
+                                    if(item.quantity > 0) h[item.symbol] = item.quantity;
+                                });
                                 localStorage.setItem('holdings', JSON.stringify(h));
-                                data.forEach(function(a){ if(h[a.sym]) a.hold=h[a.sym]; });
-                                renderAll(); showToast('Portfolio synced ☁️');
+                                data.forEach(function(a){ if(h[a.sym]) a.hold = h[a.sym]; });
+                                renderAll();
+                                showToast('Portfolio synced from cloud ☁️');
                             }
-                        } catch(e) {}
+                        } catch(e) { /* use local holdings */ }
                     }, 500);
                 } else {
-                    recordAttempt('login');
                     $('login-error').textContent = result.error?.message || 'Login failed';
                     $('login-error').classList.add('show');
+                    localStorage.setItem('login_attempts', (parseInt(localStorage.getItem('login_attempts')||'0')+1).toString());
+                    localStorage.setItem('last_login_attempt', Date.now().toString());
                 }
             } else {
                 $('login-error').textContent = 'Auth system not loaded';
@@ -403,24 +366,23 @@ function generateTimeLabels(count, tf) {
             }
         };
         window.handleSignup = async function() {
-            // Rate limiting check
-            var rateCheck = checkRateLimit('signup', 3, 3600000);
-            if(rateCheck.blocked) {
-                $('signup-error').textContent = 'Too many attempts. Wait '+rateCheck.waitMinutes+' min.';
+            var email=$('signup-email').value, pwd=$('signup-password').value;
+            if(!email||!pwd){$('signup-error').textContent='Please fill in all fields';$('signup-error').classList.add('show');return;}
+            // Rate limiting: max 3 signups per hour
+            var signupAttempts = parseInt(localStorage.getItem('signup_attempts')||'0');
+            var lastSignup = parseInt(localStorage.getItem('last_signup_attempt')||'0');
+            if(Date.now() - lastSignup > 3600000) { signupAttempts = 0; }
+            if(signupAttempts >= 3) {
+                $('signup-error').textContent='Too many signup attempts. Try again later.';
                 $('signup-error').classList.add('show'); return;
             }
-            var email = $('signup-email').value.trim(), pwd = $('signup-password').value;
-            var confirm = $('signup-confirm') ? $('signup-confirm').value : pwd;
-            if(!email||!pwd){$('signup-error').textContent='Please fill in all fields';$('signup-error').classList.add('show');return;}
-            if(pwd !== confirm){$('signup-error').textContent='Passwords do not match';$('signup-error').classList.add('show');return;}
-            if(pwd.length < 8){$('signup-error').textContent='Password must be 8+ characters';$('signup-error').classList.add('show');return;}
+            localStorage.setItem('signup_attempts', (signupAttempts+1).toString());
+            localStorage.setItem('last_signup_attempt', Date.now().toString());
             $('signup-error').classList.remove('show');
-            recordAttempt('signup');
             if(typeof TradingAI !== 'undefined') {
                 var result = await TradingAI.signUp(email, pwd);
                 if(result.success) {
-                    clearRateLimit('signup');
-                    $('signup-success').textContent = 'Account created! Check your email to verify.';
+                    $('signup-success').textContent='Account created! Check your email to verify.';
                     $('signup-success').classList.add('show');
                     setTimeout(showLogin, 2000);
                 } else {
@@ -437,14 +399,22 @@ function generateTimeLabels(count, tf) {
             if(!email){$('reset-error').textContent='Please enter your email';$('reset-error').classList.add('show');return;}
             if(typeof TradingAI !== 'undefined') {
                 var result = await TradingAI.resetPassword(email);
-                if(result.success){$('reset-success').textContent='Check your email for reset link';$('reset-success').classList.add('show');}
-                else{$('reset-error').textContent=result.error?.message||'Reset failed';$('reset-error').classList.add('show');}
+                if(result.success) {
+                    $('reset-success').textContent='Check your email for reset link';
+                    $('reset-success').classList.add('show');
+                } else {
+                    $('reset-error').textContent = result.error?.message || 'Reset failed';
+                    $('reset-error').classList.add('show');
+                }
             }
         };
         window.handleLogout = async function() {
             if(typeof TradingAI !== 'undefined') await TradingAI.signOut();
-            localStorage.removeItem('sb_token'); localStorage.removeItem('sb_user');
-            user=null; showLogin(); $('user-dropdown').classList.remove('show');
+            localStorage.removeItem('sb_token');
+            localStorage.removeItem('sb_user');
+            user=null;
+            showLogin();
+            $('user-dropdown').classList.remove('show');
         };
         window.selectTier = function(t) { document.querySelectorAll('.tier-option').forEach(function(o){o.classList.remove('selected');});event.currentTarget.classList.add('selected'); };
         
@@ -472,9 +442,6 @@ function generateTimeLabels(count, tf) {
                 }
             }
             renderAll();
-            loadUserAlerts();
-            loadWatchlist();
-            renderPortfolioChart();
             refreshPrices();
             setInterval(refreshPrices,CONFIG.REFRESH_INTERVAL);
             updateTime();
@@ -526,36 +493,13 @@ function generateTimeLabels(count, tf) {
                 hideLoading('price-spinner');
                 renderAll();
                 trackPriceChanges();
-                savePortfolioSnapshot();
             checkAlerts();} catch(e) { $('status-dot').className='status-dot error';$('status-text').textContent='CACHED';$('data-badge').textContent='CACHED'; }
         }
         
         function renderAll() { if(!sel || !data || data.length === 0) { return; } try { renderAssets();renderPortfolio();renderTicker();renderInds();renderFG();renderSectors();renderActions();renderPreds();renderWeights();renderChart();renderAlloc();renderAnalytics();renderCorrelation();renderAssetDetails();renderNews();renderCalendar(); } catch(e) { console.error('renderAll error:', e); } }
         
-        function renderAssets() { if(!$('assets')) return; var h=''; for(var i=0;i<data.length;i++){var a=data[i];h+='<div data-symbol="'+a.sym+'" class="asset'+(a.sym===sel.sym?' active':'')+'" onclick="selAsset(\''+a.sym+'\')"><div style="display:flex;align-items:center"><div class="asset-icon" style="background:'+a.color+'22;color:'+a.color+'">'+a.sym.substr(0,2)+'</div><div><div class="asset-name">'+a.sym+'<span class="star'+(a.fav?' active':'')+'" onclick="event.stopPropagation();toggleFav(\''+a.sym+'\')">*</span></div><div class="asset-type">'+a.name+'</div></div></div><div style="display:flex;align-items:center;gap:6px"><div style="text-align:right"><div class="asset-price">$'+fmt(a.price)+'</div><div class="asset-chg '+(a.chg>=0?'up':'down')+'">'+(a.chg>=0?'+':'')+a.chg.toFixed(2)+'%</div></div></div></div>';} $('assets').innerHTML=h; }
-        
-function savePortfolioSnapshot() {
-    var total = data.filter(function(a){return a.hold>0;}).reduce(function(sum,a){ return sum + (a.price * a.hold); }, 0);
-    var now = new Date(); var today = now.toISOString().split('T')[0];
-    var existing = portfolioHistory.find(function(h){return h.date===today;});
-    if(existing) { existing.value = total; }
-    else { portfolioHistory.push({ date: today, value: total }); if(portfolioHistory.length > 30) portfolioHistory.shift(); }
-    localStorage.setItem('portfolio_history', JSON.stringify(portfolioHistory));
-}
-function renderPortfolioChart() {
-    var canvas = $('portfolio-chart'); if(!canvas || portfolioHistory.length < 2) return;
-    var ctx = canvas.getContext('2d');
-    var values = portfolioHistory.map(function(h){return h.value;});
-    var labels = portfolioHistory.map(function(h){return h.date.slice(5);});
-    if(window.portfolioLineChart) window.portfolioLineChart.destroy();
-    window.portfolioLineChart = new Chart(ctx, {
-        type: 'line', data: { labels: labels, datasets: [{ data: values, borderColor: '#00f0ff',
-        backgroundColor: 'rgba(0,240,255,0.1)', fill: true, tension: 0.4, pointRadius: 0 }] },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
-        scales: { x: { display: false }, y: { display: false } } }
-    });
-}
-function renderPortfolio() { if(!$('port-val')) return; var tot=0,chg=0; for(var i=0;i<data.length;i++){tot+=data[i].price*data[i].hold;chg+=data[i].price*data[i].hold*data[i].chg/100;} var pct=chg/tot*100; $('port-val').textContent='$'+fmt(tot);$('port-chg').textContent=(chg>=0?'+':'')+'$'+fmt(Math.abs(chg))+' ('+(pct>=0?'+':'')+pct.toFixed(2)+'%)';$('port-chg').className='portfolio-change '+(chg>=0?'up':'down');$('intel').textContent=Math.round(50+pct*2); }
+        function renderAssets() { if(!$('assets')) return; var h=''; for(var i=0;i<data.length;i++){var a=data[i];var eSym=escapeHtml(a.sym);var eName=escapeHtml(a.name);h+='<div data-symbol="'+eSym+'" class="asset'+(a.sym===sel.sym?' active':'')+'" onclick="selAsset(\''+eSym+'\')"><div style="display:flex;align-items:center"><div class="asset-icon" style="background:'+a.color+'22;color:'+a.color+'">'+eSym.substr(0,2)+'</div><div><div class="asset-name">'+eSym+'<span class="star'+(a.fav?' active':'')+'" onclick="event.stopPropagation();toggleFav(\''+eSym+'\')">*</span></div><div class="asset-type">'+eName+'</div></div></div><div style="display:flex;align-items:center;gap:6px"><div style="text-align:right"><div class="asset-price">$'+fmt(a.price)+'</div><div class="asset-chg '+(a.chg>=0?'up':'down')+'">'+(a.chg>=0?'+':'')+a.chg.toFixed(2)+'%</div></div></div></div>';} $('assets').innerHTML=h; }
+        function renderPortfolio() { if(!$('port-val')) return; var tot=0,chg=0; for(var i=0;i<data.length;i++){tot+=data[i].price*data[i].hold;chg+=data[i].price*data[i].hold*data[i].chg/100;} var pct=chg/tot*100; $('port-val').textContent='$'+fmt(tot);$('port-chg').textContent=(chg>=0?'+':'')+'$'+fmt(Math.abs(chg))+' ('+(pct>=0?'+':'')+pct.toFixed(2)+'%)';$('port-chg').className='portfolio-change '+(chg>=0?'up':'down');$('intel').textContent=Math.round(50+pct*2); }
         function renderTicker() { if(!$('ticker')) return; var h=''; for(var i=0;i<data.length*2;i++){var a=data[i%data.length];h+='<span class="ticker-item" onclick="selAsset(\''+a.sym+'\')"><span class="ticker-sym">'+a.sym+'</span> $'+fmt(a.price)+' <span style="color:'+(a.chg>=0?'var(--green)':'var(--red)')+'">'+(a.chg>=0?'+':'')+a.chg.toFixed(1)+'%</span></span>';} $('ticker').innerHTML=h+h; }
         function renderFG() { var avg=0; for(var i=0;i<data.length;i++)avg+=data[i].chg; avg/=data.length; var v=Math.max(10,Math.min(90,50-avg*2)); var lbl=v>=75?'GREED':v>=55?'OPTIMISM':v>=45?'NEUTRAL':v>=25?'FEAR':'EXTREME FEAR'; var col=v>=55?'var(--green)':v>=45?'var(--cyan)':v>=25?'var(--gold)':'var(--red)'; $('fg-val').textContent=Math.round(v);$('fg-val').style.color=col;$('fg-lbl').textContent=lbl;$('fg-lbl').style.color=col;$('fg-dot').style.left=v+'%'; }
         function renderInds() { 
@@ -1350,51 +1294,31 @@ function renderAlloc() {
             h += '<div class="analytics-card"><div class="analytics-label">Total Return</div><div class="analytics-value" style="color:'+(ret>=0?'var(--green)':'var(--red)')+'">'+(ret*100).toFixed(2)+'%</div><div class="analytics-sub">Current</div></div>';
             $('analytics-grid').innerHTML = h;
         }
-        function calcCorrelation(x, y) {
-    var n = Math.min(x.length, y.length);
-    if(n < 10) return 0;
-    var sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0, sumY2 = 0;
-    for(var i = 0; i < n; i++) {
-        sumX += x[i]; sumY += y[i]; sumXY += x[i] * y[i];
-        sumX2 += x[i] * x[i]; sumY2 += y[i] * y[i];
-    }
-    var num = n * sumXY - sumX * sumY;
-    var den = Math.sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY));
-    return den === 0 ? 0 : num / den;
-}
-
-function renderCorrelation() {
-    var container = $('corr-matrix');
-    if(!container) return;
-    var holdings = data.filter(function(a){return a.hold > 0 && a.history && a.history.length > 10;});
-    if(holdings.length < 2) {
-        container.innerHTML = '<div class="empty-state">Add 2+ assets with price history</div>';
-        return;
-    }
-    var returns = {};
-    holdings.forEach(function(a) {
-        var changes = [];
-        for(var i = 1; i < a.history.length; i++) {
-            changes.push((a.history[i] - a.history[i-1]) / a.history[i-1]);
+        function renderCorrelation() {
+            var syms = ['BTC','ETH','AAPL','NVDA','TSLA'];
+            var h = '<div class="corr-grid"><div class="corr-cell corr-header"></div>';
+            for(var i=0;i<syms.length;i++) h += '<div class="corr-cell corr-header">'+syms[i]+'</div>';
+            for(var i=0;i<syms.length;i++){
+                h += '<div class="corr-cell corr-header">'+syms[i]+'</div>';
+                for(var j=0;j<syms.length;j++){
+                    var c;
+                    if(i===j) c = 1;
+                    else {
+                        // Calculate correlation between assets - find by symbol, not index
+                        var a1 = data.find(function(a){return a.sym===syms[i];});
+                        var a2 = data.find(function(a){return a.sym===syms[j];});
+                        if(!a1 || !a2) { c = 0; }
+                        else {
+                            c = ((a1.chg * a2.chg) / (Math.abs(a1.chg) * Math.abs(a2.chg) || 1) * 0.5 + 0.5 * (a1.chg > 0 === a2.chg > 0 ? 0.3 : -0.3)).toFixed(2);
+                        }
+                    }
+                    var col = c>0.5?'rgba(0,255,136,'+(c/2)+')':c<-0.5?'rgba(255,51,102,'+(Math.abs(c)/2)+')':'rgba(100,100,100,0.3)';
+                    h += '<div class="corr-cell" style="background:'+col+')">'+c+'</div>';
+                }
+            }
+            h += '</div>';
+            $('corr-matrix').innerHTML = h;
         }
-        returns[a.sym] = changes;
-    });
-    var html = '<table class="corr-table"><thead><tr><th></th>';
-    holdings.forEach(function(a){html+='<th>'+a.sym+'</th>';});
-    html += '</tr></thead><tbody>';
-    holdings.forEach(function(a1) {
-        html += '<tr><th>'+a1.sym+'</th>';
-        holdings.forEach(function(a2) {
-            var corr = calcCorrelation(returns[a1.sym]||[], returns[a2.sym]||[]);
-            var color = corr > 0.5 ? 'rgba(0,255,136,0.3)' : corr < -0.5 ? 'rgba(255,51,102,0.3)' : 'transparent';
-            html += '<td style="background:'+color+'">'+corr.toFixed(2)+'</td>';
-        });
-        html += '</tr>';
-    });
-    html += '</tbody></table>';
-    container.innerHTML = html;
-}
-
         function renderAssetDetails() {
             var h = '<div class="detail-row"><span class="detail-label">Symbol</span><span class="detail-value">'+sel.sym+'</span></div>';
             h += '<div class="detail-row"><span class="detail-label">Name</span><span class="detail-value">'+sel.name+'</span></div>';
@@ -1407,56 +1331,73 @@ function renderCorrelation() {
             $('asset-details').innerHTML = h;
         }
         async function renderNews() {
-            if(!$('news-list')) return;
+            var el = $('news-feed');
+            if(!el) return;
+            el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--cyan);">Loading news...</div>';
             try {
-                var cached = getCached('news', 300000); // 5 min cache
-                var articles = cached || await fetch(API_BASE+'/news').then(r=>r.json());
-                if(!cached) setCache('news', articles);
-                var h = '';
-                articles.forEach(function(a) {
-                    h += '<div class="news-item"><a href="'+escapeHtml(a.url)+'" target="_blank" rel="noopener"><div class="news-title">'+escapeHtml(a.title)+'</div><div class="news-meta"><span>'+escapeHtml(a.source)+'</span><span class="news-sentiment '+(a.sentiment||'neutral')+'">'+((a.sentiment||'neutral').toUpperCase())+'</span></div></a></div>';
-                });
-                $('news-list').innerHTML = h || '<div class="empty-state">No news available</div>';
-            } catch(e) {
-                $('news-list').innerHTML = '<div class="empty-state">News unavailable</div>';
-            }
-        }
-        function renderCalendar() {
-            if(!$('calendar-list') && !$('calendar')) return;
-            var container = $('calendar-list') || $('calendar');
-            try {
-                var cached = getCached('calendar', 3600000); // 1 hour cache
-                var events = cached;
-                if (!events) {
-                    fetch(API_BASE+'/calendar').then(r=>r.json()).then(data => {
-                        if (Array.isArray(data)) {
-                            setCache('calendar', data);
-                            renderCalendarItems(data, container);
-                        } else {
-                            container.innerHTML = '<div class="empty-state">No upcoming events</div>';
-                        }
-                    }).catch(e => {
-                        container.innerHTML = '<div class="empty-state">Calendar unavailable</div>';
-                    });
-                } else {
-                    renderCalendarItems(events, container);
+                var cached = getCached('news', 300000);
+                var articles = cached;
+                if(!articles) {
+                    var r = await fetch(API_BASE+'/news');
+                    if(!r.ok) throw new Error('News unavailable');
+                    articles = await r.json();
+                    setCache('news', articles);
                 }
+                if(!articles || articles.length === 0) {
+                    el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);">No news available</div>';
+                    return;
+                }
+                var h = '';
+                for(var i=0;i<articles.length;i++) {
+                    var a = articles[i];
+                    var sentClass = a.sentiment === 'positive' ? 'up' : a.sentiment === 'negative' ? 'down' : 'neut';
+                    var sentIcon = a.sentiment === 'positive' ? '▲' : a.sentiment === 'negative' ? '▼' : '●';
+                    var tags = (a.currencies||[]).map(function(c){return '<span class="news-tag">'+escapeHtml(c)+'</span>';}).join('');
+                    h += '<div class="news-item">'+
+                        '<a href="'+escapeHtml(a.url)+'" target="_blank" rel="noopener noreferrer" class="news-title">'+escapeHtml(a.title)+'</a>'+
+                        '<div class="news-meta">'+
+                            '<span class="news-source">'+escapeHtml(a.source||'')+'</span>'+
+                            '<span class="news-sentiment '+sentClass+'">'+sentIcon+' '+escapeHtml(a.sentiment||'neutral').toUpperCase()+'</span>'+
+                            tags+
+                        '</div>'+
+                    '</div>';
+                }
+                el.innerHTML = h;
             } catch(e) {
-                container.innerHTML = '<div class="empty-state">Calendar unavailable</div>';
+                el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);">News temporarily unavailable</div>';
             }
         }
-        
-        function renderCalendarItems(events, container) {
-            var h = '';
-            var days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-            events.forEach(function(e) {
-                h += '<div class="calendar-item">';
-                h += '<div class="calendar-date"><span class="day">'+days[e.day]+'</span><span class="time">'+e.time+'</span></div>';
-                h += '<div class="calendar-event">'+escapeHtml(e.event)+'</div>';
-                h += '<div class="calendar-meta"><span class="currency">'+e.currency+'</span><span class="impact '+e.impact+'">'+e.impact.toUpperCase()+'</span></div>';
+        async function renderCalendar() {
+            var el = $('calendar');
+            if(!el) return;
+            el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--cyan);">Loading calendar...</div>';
+            try {
+                var r = await fetch(API_BASE+'/calendar');
+                if(!r.ok) throw new Error('Calendar unavailable');
+                var events = await r.json();
+                if(!events || events.length === 0) {
+                    el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);">No upcoming events this week</div>';
+                    return;
+                }
+                var h = '<div class="calendar-grid">';
+                for(var i=0;i<events.length;i++) {
+                    var ev = events[i];
+                    var impactClass = ev.impact === 'high' ? 'down' : ev.impact === 'medium' ? 'bull' : 'neut';
+                    var impactLabel = ev.impact === 'high' ? '🔴' : ev.impact === 'medium' ? '🟡' : '🟢';
+                    h += '<div class="cal-event'+(ev.isToday?' cal-today':'')+'">'+
+                        '<div class="cal-time"><span class="cal-day">'+escapeHtml(ev.dayName||'')+'</span><span class="cal-hour">'+escapeHtml(ev.time||'')+'</span></div>'+
+                        '<div class="cal-info">'+
+                            '<div class="cal-name">'+impactLabel+' '+escapeHtml(ev.event||'')+'</div>'+
+                            '<div class="cal-desc" style="font-size:10px;color:var(--text-muted);">'+escapeHtml(ev.description||'')+'</div>'+
+                        '</div>'+
+                        '<div class="cal-impact '+impactClass+'">'+escapeHtml((ev.impact||'').toUpperCase())+'</div>'+
+                    '</div>';
+                }
                 h += '</div>';
-            });
-            container.innerHTML = h || '<div class="empty-state">No upcoming events</div>';
+                el.innerHTML = h;
+            } catch(e) {
+                el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);">Calendar temporarily unavailable</div>';
+            }
         }
         
         // Interactions
@@ -1735,32 +1676,7 @@ function renderCorrelation() {
 
 window.selAsset = function(s) { for(var i=0;i<data.length;i++) if(data[i].sym===s){sel=data[i];break;} $('chart-sym').textContent=s; 
 if(!history[s])history[s]=null; renderAssets();renderInds();renderActions();renderAssetDetails();renderChart(); fetchOHLC(s).then(function(d){ if(d && d.length>0){ history[s]=d.map(function(c){return c[4];}); renderInds();renderActions(); } }); };
-        window.toggleFav = async function(sym) {
-    var asset = data.find(function(a){return a.sym===sym;});
-    if(!asset) return;
-    asset.fav = !asset.fav;
-    if(typeof TradingAI !== 'undefined' && TradingAI.isAuthenticated()) {
-        try {
-            if(asset.fav) { await TradingAI.addToWatchlist(sym); }
-            else { await TradingAI.removeFromWatchlist(sym); }
-        } catch(e) { console.error('Watchlist sync error:', e); }
-    }
-    renderAssets(); renderPortfolio(); saveHoldings();
-    showToast(asset.fav ? sym+' added to watchlist' : sym+' removed from watchlist');
-};
-window.loadWatchlist = async function() {
-    if(typeof TradingAI !== 'undefined' && TradingAI.isAuthenticated()) {
-        try {
-            var result = await TradingAI.loadWatchlist();
-            if(result.success && result.data) {
-                result.data.forEach(function(item) {
-                    var asset = data.find(function(a){return a.sym===item.symbol;});
-                    if(asset) asset.fav = true;
-                });
-            }
-        } catch(e) { console.error('Load watchlist error:', e); }
-    }
-};
+        window.toggleFav = function(s) { for(var i=0;i<data.length;i++) if(data[i].sym===s){data[i].fav=!data[i].fav;renderAssets();showToast(s+(data[i].fav?' added to':' removed from')+' favorites');break;} };
         window.setTf = function(tf) { 
             // Destroy existing charts immediately
             if(priceCt) { priceCt.destroy(); priceCt = null; }
@@ -1805,44 +1721,7 @@ window.loadWatchlist = async function() {
         window.hideAlerts = function() { $('alerts-modal').classList.remove('show'); };
         window.showAddAlert = function() { hideAlerts(); var opts=''; for(var i=0;i<data.length;i++) opts+='<option value="'+data[i].sym+'">'+data[i].sym+'</option>'; $('alert-asset').innerHTML=opts; $('alert-asset').value=sel.sym; $('alert-price').value=''; $('add-alert-modal').classList.add('show'); };
         window.hideAddAlert = function() { $('add-alert-modal').classList.remove('show'); };
-        window.createAlert = async function() {
-            var sym = $('alert-asset').value;
-            var cond = $('alert-cond').value;
-            var priceVal = $('alert-price').value;
-
-            // Validate inputs (Phase 10)
-            var symCheck = validateSymbol(sym);
-            var priceCheck = validatePrice(priceVal);
-
-            if(!symCheck.valid) {
-                showToast('Invalid symbol selected');
-                return;
-            }
-            if(!priceCheck.valid) {
-                showToast(priceCheck.error || 'Invalid price');
-                return;
-            }
-
-            var price = priceCheck.value;
-
-            if(typeof TradingAI !== 'undefined' && TradingAI.isAuthenticated()) {
-                var result = await TradingAI.createAlert(sym, cond, price);
-                if(result.success) {
-                    showToast('Alert created: ' + sym + ' ' + cond + ' $' + fmt(price));
-                    hideAddAlert();
-                    await loadUserAlerts();
-                } else {
-                    showToast('Failed to create alert: ' + (result.error || 'Unknown error'));
-                }
-            } else {
-                // Save locally if not authenticated
-                alerts.push({sym: sym, cond: cond, price: price, active: true});
-                localStorage.setItem('tradingai_alerts', JSON.stringify(alerts));
-                $('alert-count').textContent = alerts.length;
-                hideAddAlert();
-                showToast('Alert saved locally: ' + sym + ' ' + cond + ' $' + fmt(price));
-            }
-        };
+        window.createAlert = function() { var sym=$('alert-asset').value,cond=$('alert-cond').value,price=parseFloat($('alert-price').value); if(!price||price<=0){showToast('Please enter a valid price');return;} alerts.push({sym:sym,cond:cond,price:price,active:true}); localStorage.setItem('tradingai_alerts', JSON.stringify(alerts)); $('alert-count').textContent=alerts.length; hideAddAlert(); showToast('Alert created: '+sym+' '+cond+' $'+fmt(price)); };
         
         function checkAlerts() {
             if(alerts.length === 0) return;
@@ -1872,53 +1751,8 @@ window.loadWatchlist = async function() {
             }
         }
         
-window.deleteAlert = async function(idx, alertId) {
-            if(typeof TradingAI !== 'undefined' && TradingAI.isAuthenticated() && alertId) {
-                await TradingAI.deleteAlert(alertId);
-                await loadUserAlerts();
-            } else {
-                alerts.splice(idx, 1);
-                localStorage.setItem('tradingai_alerts', JSON.stringify(alerts));
-                $('alert-count').textContent = alerts.length;
-                renderAlertsList();
-            }
-            showToast('Alert deleted');
-        };
-        function renderAlertsList() {
-            var h = '';
-            var alertData = window.userAlerts || alerts;
-            if(alertData.length === 0) {
-                h = '<div style="text-align:center;padding:20px;color:var(--text-dim)">No alerts</div>';
-            } else {
-                for(var i = 0; i < alertData.length; i++) {
-                    var a = alertData[i];
-                    var cond = a.cond || a.condition;
-                    var price = a.price || a.target_price;
-                    var id = a.id || '';
-                    h += '<div class="alert-item"><span class="sym">' + a.sym + '</span><span>' + (cond === 'above' ? '>' : '<') + '</span><span class="price">$' + fmt(price) + '</span><span style="color:var(--red);cursor:pointer" onclick="deleteAlert(' + i + ',' + id + ')">X</span></div>';
-                }
-            }
-            $('alerts-list').innerHTML = h;
-        }
-
-        // Load user alerts (from Supabase or localStorage)
-        window.loadUserAlerts = async function() {
-            if(typeof TradingAI !== 'undefined' && TradingAI.isAuthenticated()) {
-                var result = await TradingAI.loadAlerts();
-                if(result.success) {
-                    window.userAlerts = result.data || [];
-                    alerts = window.userAlerts;
-                }
-            } else {
-                var savedAlerts = localStorage.getItem('tradingai_alerts');
-                if(savedAlerts) {
-                    alerts = JSON.parse(savedAlerts);
-                }
-                window.userAlerts = alerts;
-            }
-            $('alert-count').textContent = alerts.length;
-            renderAlertsList();
-        };
+window.deleteAlert = function(idx) { alerts.splice(idx,1); localStorage.setItem('tradingai_alerts', JSON.stringify(alerts)); $('alert-count').textContent=alerts.length; renderAlertsList(); showToast('Alert deleted'); };
+        function renderAlertsList() { var h=''; if(alerts.length===0){h='<div style="text-align:center;padding:20px;color:var(--text-dim)">No alerts</div>';} else{for(var i=0;i<alerts.length;i++){h+='<div class="alert-item"><span class="sym">'+alerts[i].sym+'</span><span>'+(alerts[i].cond==='above'?'>':'<')+'</span><span class="price">$'+fmt(alerts[i].price)+'</span><span style="color:var(--red);cursor:pointer" onclick="deleteAlert('+i+')">X</span></div>';}} $('alerts-list').innerHTML=h; }
         window.showWatchlists = function() { $('user-dropdown').classList.remove('show'); renderWatchlists(); $('watchlists-modal').classList.add('show'); };
         window.hideWatchlists = function() { $('watchlists-modal').classList.remove('show'); };
         function renderWatchlists() { var h=''; for(var i=0;i<watchlists.length;i++){h+='<div class="watchlist-item"><span class="watchlist-name">'+watchlists[i].name+'</span><span class="watchlist-count">'+watchlists[i].symbols.length+' assets</span></div>';} $('watchlists-list').innerHTML=h; }
@@ -2074,29 +1908,35 @@ window.deleteAlert = async function(idx, alertId) {
             sendAI();
         };
 
-                async function generateAIResponse(query, context) {
-            var portfolioContext = data.filter(function(a){return a.hold>0;}).map(function(a){
-                return a.sym+': '+a.hold+' units @ $'+fmt(a.price)+' ('+a.chg.toFixed(2)+'%)';
-            }).join(', ');
-
-            var messages = [
-                { role: 'user', content: 'Portfolio: '+portfolioContext+'\n\nUser question: '+query }
-            ];
-
+        async function generateAIResponse(q) {
+            // Try Venice AI backend first
             try {
-                var r = await fetch(API_BASE+'/ai', {
-                    method: 'POST',
-                    headers: {'Content-Type':'application/json'},
-                    body: JSON.stringify({ messages: messages })
+                var portfolioCtx = data.filter(function(a){return a.hold>0;}).map(function(a){
+                    return {symbol:a.sym, quantity:a.hold, price:a.price, change24h:a.chg};
                 });
-                var result = await r.json();
-                return result.response;
-            } catch(e) {
-                return generateLocalResponse(query); // fallback to local templates
-            }
-        }
-
-function generateLocalResponse(q) {
+                var aiRes = await fetch(API_BASE+'/ai', {
+                    method:'POST', headers:{'Content-Type':'application/json'},
+                    body:JSON.stringify({messages:[{role:'user',content:q}], portfolio:portfolioCtx})
+                });
+                if(aiRes.ok) {
+                    var aiData = await aiRes.json();
+                    if(aiData.response && !aiData.fallback) return aiData.response;
+                }
+            } catch(e) { /* fallback to local */ }
+            // Try real Venice AI backend first
+            try {
+                var portfolioCtx = data.filter(function(a){return a.hold>0;}).map(function(a){
+                    return {symbol:a.sym, quantity:a.hold, price:a.price, change24h:a.chg};
+                });
+                var aiRes = await fetch(API_BASE+'/ai', {
+                    method:'POST', headers:{'Content-Type':'application/json'},
+                    body:JSON.stringify({messages:[{role:'user',content:q}], portfolio:portfolioCtx})
+                });
+                if(aiRes.ok) {
+                    var aiData = await aiRes.json();
+                    if(aiData.response && !aiData.fallback) return aiData.response;
+                }
+            } catch(e) { /* fall through to local response */ }
             q = q.toLowerCase();
             var histArr = history[sel.sym]; var rsi = histArr ? calcRSI(histArr) : null;
             var tot = 0, chg = 0;
@@ -2190,19 +2030,13 @@ function generateLocalResponse(q) {
             renderAIChat();
             saveChatHistory();
             showTyping();
-            try {
-                var resp = await generateAIResponse(q);
+            setTimeout(async function() {
                 hideTyping();
+                var resp = await generateAIResponse(q);
                 aiHistory.push({role:'ai',text:resp,time:Date.now()});
                 renderAIChat();
                 saveChatHistory();
-            } catch(e) {
-                hideTyping();
-                var fallbackResp = generateLocalResponse(q);
-                aiHistory.push({role:'ai',text:fallbackResp,time:Date.now()});
-                renderAIChat();
-                saveChatHistory();
-            }
+            }, 1000);
         };
 
         // Portfolio Management Functions
@@ -2226,35 +2060,26 @@ function generateLocalResponse(q) {
         window.saveHoldings = async function() {
             for(var i=0;i<data.length;i++) {
                 var input = $('hold-'+data[i].sym);
-                if(input) {
-                    // Validate quantity input (Phase 10)
-                    var holdCheck = validateQuantity(input.value);
-                    if(!holdCheck.valid) {
-                        data[i].hold = 0;
-                    } else {
-                        data[i].hold = holdCheck.value;
-                    }
-                }
+                if(input) data[i].hold = parseFloat(input.value)||0;
             }
             // Save to localStorage (always works)
             var holdings = {};
             for(var i=0;i<data.length;i++) holdings[data[i].sym] = data[i].hold;
             localStorage.setItem('holdings', JSON.stringify(holdings));
 
-            // Save asset list to localStorage
-            localStorage.setItem('assetList', JSON.stringify(data.map(function(a){return{sym:a.sym,name:a.name,type:a.type,color:a.color,hold:a.hold,fav:a.fav}})));
-
-            // Sync to Supabase via SDK if authenticated
-            if(typeof TradingAI !== 'undefined' && TradingAI.isAuthenticated()) {
-                try {
-                    for(var i=0; i<data.length; i++) {
-                        if(data[i].hold > 0 || data[i].fav) {
-                            await TradingAI.addToPortfolio(data[i].sym, data[i].hold, data[i].fav);
+            // Sync to Supabase cloud via SDK
+            try {
+                localStorage.setItem('assetList', JSON.stringify(data.map(function(a){return{sym:a.sym,name:a.name,type:a.type,color:a.color,hold:a.hold,fav:a.fav}})));
+                if(typeof TradingAI !== 'undefined' && user) {
+                    for(var si=0;si<data.length;si++) {
+                        if(data[si].hold >= 0) {
+                            await TradingAI.addToPortfolio(data[si].sym, data[si].hold, data[si].fav||false);
                         }
                     }
-                } catch(e) {
-                    console.error('Supabase sync failed:', e);
+                    showToast('Portfolio synced to cloud ☁️');
                 }
+            } catch(e) {
+                console.error('Supabase sync failed, using local:', e);
             }
 
             renderPortfolio();
@@ -2489,7 +2314,7 @@ function generateLocalResponse(q) {
             }
         }
 
-        async function loadSavedHoldings() {
+        function loadSavedHoldings() {
             // Version check: clear old localStorage if version mismatch
             var savedVersion = localStorage.getItem('portfolio_version');
             if (savedVersion !== PORTFOLIO_DATA_VERSION) {
@@ -2534,24 +2359,6 @@ function generateLocalResponse(q) {
             }
             // Make sure sel is valid after filtering
             if(data.length > 0 && (!sel || data.indexOf(sel) < 0)) sel = data[0];
-
-            // Sync from Supabase if authenticated
-            if(typeof TradingAI !== 'undefined' && TradingAI.isAuthenticated()) {
-                try {
-                    var portfolio = await TradingAI.loadPortfolio();
-                    if(portfolio.success && portfolio.data && portfolio.data.length > 0) {
-                        portfolio.data.forEach(function(item) {
-                            var asset = data.find(function(a){return a.sym === item.symbol;});
-                            if(asset) {
-                                asset.hold = item.quantity;
-                                asset.fav = item.favorite;
-                            }
-                        });
-                    }
-                } catch(e) {
-                    console.error('Supabase load failed:', e);
-                }
-            }
             } catch(e) { console.error('loadSavedHoldings error:', e); }
         }
         // Setup mobile info tooltip handlers
@@ -2597,456 +2404,4 @@ function init() {
             },CONFIG.INIT_DELAY); 
         }
         if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
-    
-// ============================================================
-// PORTFOLIO EVALUATOR MODULE
-// ============================================================
-
-var PortfolioEvaluator = (function() {
-    'use strict';
-    
-    // State
-    var lastEvaluation = null;
-    var isEvaluating = false;
-    var evaluationCache = null;
-    var CACHE_TTL = 60000; // 1 minute cache
-    
-    // Calculate portfolio metrics
-    function calculateMetrics() {
-        var holdings = data.filter(function(a) { return a.hold > 0; });
-        
-        if (holdings.length === 0) {
-            return { empty: true };
-        }
-        
-        var totalValue = 0;
-        var totalChange = 0;
-        var weights = [];
-        var changes = [];
-        
-        for (var i = 0; i < holdings.length; i++) {
-            var a = holdings[i];
-            var value = a.price * a.hold;
-            totalValue += value;
-            totalChange += value * (a.chg / 100);
-            weights.push(value);
-            changes.push(a.chg);
-        }
-        
-        // Calculate weights as percentages
-        var weightPcts = weights.map(function(w) { return (w / totalValue) * 100; });
-        
-        // Concentration (Herfindahl index)
-        var hhi = 0;
-        for (var i = 0; i < weightPcts.length; i++) {
-            hhi += weightPcts[i] * weightPcts[i];
-        }
-        
-        // Max concentration
-        var maxWeight = Math.max.apply(null, weightPcts);
-        
-        // Volatility (std dev of changes)
-        var avgChange = changes.reduce(function(a,b){return a+b;}, 0) / changes.length;
-        var variance = changes.reduce(function(sum, c) {
-            return sum + Math.pow(c - avgChange, 2);
-        }, 0) / changes.length;
-        var volatility = Math.sqrt(variance);
-        
-        // Performance
-        var perfPct = totalValue > 0 ? (totalChange / totalValue) * 100 : 0;
-        
-        // Asset types breakdown
-        var cryptoValue = 0, stockValue = 0;
-        for (var i = 0; i < holdings.length; i++) {
-            if (holdings[i].type === 'crypto') cryptoValue += holdings[i].price * holdings[i].hold;
-            else stockValue += holdings[i].price * holdings[i].hold;
-        }
-        
-        return {
-            empty: false,
-            holdings: holdings,
-            totalValue: totalValue,
-            totalChange: totalChange,
-            perfPct: perfPct,
-            hhi: hhi,
-            maxWeight: maxWeight,
-            volatility: volatility,
-            cryptoPct: totalValue > 0 ? (cryptoValue / totalValue) * 100 : 0,
-            stockPct: totalValue > 0 ? (stockValue / totalValue) * 100 : 0,
-            assetCount: holdings.length,
-            topAsset: holdings.reduce(function(max, a) {
-                var v = a.price * a.hold;
-                return v > max.v ? { sym: a.sym, v: v, pct: (v/totalValue)*100 } : max;
-            }, { sym: '', v: 0, pct: 0 })
-        };
-    }
-    
-    // Calculate health score (0-100)
-    function calculateScore(metrics) {
-        if (metrics.empty) return { score: 0, label: 'No Holdings' };
-        
-        var score = 50; // Base score
-        
-        // Diversification bonus (up to +20)
-        if (metrics.assetCount >= 5) score += 10;
-        if (metrics.assetCount >= 8) score += 5;
-        if (metrics.maxWeight < 40) score += 5;
-        
-        // Concentration penalty (up to -15)
-        if (metrics.maxWeight > 50) score -= 10;
-        if (metrics.maxWeight > 70) score -= 5;
-        
-        // Volatility adjustment (up to -10)
-        if (metrics.volatility > 5) score -= 5;
-        if (metrics.volatility > 10) score -= 5;
-        
-        // Performance bonus/penalty (up to ±15)
-        if (metrics.perfPct > 2) score += 10;
-        if (metrics.perfPct > 5) score += 5;
-        if (metrics.perfPct < -2) score -= 5;
-        if (metrics.perfPct < -5) score -= 10;
-        
-        // Type balance bonus (+5 for mixed portfolio)
-        if (metrics.cryptoPct > 20 && metrics.cryptoPct < 80) score += 5;
-        
-        // Clamp score
-        score = Math.max(0, Math.min(100, Math.round(score)));
-        
-        var label = score >= 80 ? 'Excellent' :
-                    score >= 60 ? 'Good' :
-                    score >= 40 ? 'Fair' :
-                    score >= 20 ? 'Needs Attention' : 'Critical';
-        
-        return { score: score, label: label };
-    }
-    
-    // Get risk level
-    function getRiskLevel(metrics) {
-        if (metrics.empty) return { level: '--', detail: 'Add holdings to assess risk' };
-        
-        var risk = 'Low';
-        var factors = [];
-        
-        if (metrics.maxWeight > 50) {
-            risk = 'Medium';
-            factors.push('High concentration in ' + metrics.topAsset.sym);
-        }
-        if (metrics.cryptoPct > 70) {
-            risk = risk === 'Medium' ? 'High' : 'Medium';
-            factors.push('Heavy crypto exposure');
-        }
-        if (metrics.volatility > 8) {
-            risk = risk === 'Low' ? 'Medium' : 'High';
-            factors.push('High volatility');
-        }
-        if (metrics.assetCount < 3) {
-            risk = risk === 'Low' ? 'Medium' : 'High';
-            factors.push('Limited diversification');
-        }
-        
-        var detail = factors.length > 0 ? factors.join(', ') : 'Well diversified';
-        return { level: risk, detail: detail };
-    }
-    
-    // Get concentration info
-    function getConcentration(metrics) {
-        if (metrics.empty) return { value: '--', detail: 'No holdings' };
-        
-        var detail = 'Top: ' + metrics.topAsset.sym + ' (' + metrics.topAsset.pct.toFixed(1) + '%)';
-        return { value: metrics.maxWeight.toFixed(0) + '%', detail: detail };
-    }
-    
-    // Get performance info
-    function getPerformance(metrics) {
-        if (metrics.empty) return { value: '--', detail: 'No holdings', cls: '' };
-        
-        var value = (metrics.perfPct >= 0 ? '+' : '') + metrics.perfPct.toFixed(2) + '%';
-        var detail = '$' + fmt(Math.abs(metrics.totalChange)) + ' ' + (metrics.totalChange >= 0 ? 'gain' : 'loss');
-        var cls = metrics.perfPct >= 0 ? 'positive' : 'negative';
-        
-        return { value: value, detail: detail, cls: cls };
-    }
-    
-    // Get correlation summary
-    function getCorrelationSummary(metrics) {
-        if (metrics.empty || metrics.assetCount < 2) {
-            return { value: '--', detail: 'Need 2+ assets' };
-        }
-        
-        // Simple correlation proxy based on asset types
-        var sameType = metrics.cryptoPct > 90 || metrics.stockPct > 90;
-        
-        if (sameType) {
-            return { value: 'High', detail: 'Mostly ' + (metrics.cryptoPct > 90 ? 'crypto' : 'stocks') };
-        }
-        return { value: 'Mixed', detail: 'Good type diversity' };
-    }
-    
-    // Generate AI recommendations via /ai endpoint
-    async function fetchAIRecommendations(metrics) {
-        if (metrics.empty) return '<div class="rec-item">Add holdings to your portfolio to receive personalized AI recommendations.</div>';
-        
-        // Build context for AI
-        var context = buildAIContext(metrics);
-        
-        try {
-            var r = await fetch(API_BASE + '/ai', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    messages: [{
-                        role: 'user',
-                        content: 'Analyze this portfolio and provide 3-4 concise, actionable recommendations. Be specific about risk management and opportunities.\n\n' + context
-                    }]
-                })
-            });
-            
-            if (!r.ok) throw new Error('AI request failed');
-            var result = await r.json();
-            return result.response || generateLocalRecommendations(metrics);
-        } catch (e) {
-            console.warn('AI recommendations unavailable, using local fallback');
-            return generateLocalRecommendations(metrics);
-        }
-    }
-    
-    // Build context string for AI
-    function buildAIContext(metrics) {
-        var holdings = metrics.holdings.map(function(a) {
-            return a.sym + ': ' + a.hold + ' units @ $' + fmt(a.price) + ' (' + (a.chg >= 0 ? '+' : '') + a.chg.toFixed(2) + '%)';
-        }).join('\n');
-        
-        return 'PORTFOLIO ANALYSIS:\n' +
-            'Total Value: $' + fmt(metrics.totalValue) + '\n' +
-            '24h Change: ' + (metrics.perfPct >= 0 ? '+' : '') + metrics.perfPct.toFixed(2) + '%\n' +
-            'Assets: ' + metrics.assetCount + '\n' +
-            'Crypto/Stock Split: ' + metrics.cryptoPct.toFixed(0) + '% / ' + metrics.stockPct.toFixed(0) + '%\n' +
-            'Top Holding: ' + metrics.topAsset.sym + ' (' + metrics.topAsset.pct.toFixed(1) + '%)\n' +
-            'Concentration Risk: ' + (metrics.maxWeight > 50 ? 'HIGH' : metrics.maxWeight > 30 ? 'MEDIUM' : 'LOW') + '\n' +
-            'Volatility: ' + metrics.volatility.toFixed(2) + '%\n\n' +
-            'HOLDINGS:\n' + holdings;
-    }
-    
-    // Local fallback recommendations
-    function generateLocalRecommendations(metrics) {
-        var recs = [];
-        
-        // Concentration warning
-        if (metrics.maxWeight > 50) {
-            recs.push('<strong>Reduce Concentration:</strong> ' + metrics.topAsset.sym + ' is ' + metrics.maxWeight.toFixed(0) + '% of your portfolio. Consider diversifying.');
-        }
-        
-        // Type balance
-        if (metrics.cryptoPct > 80) {
-            recs.push('<strong>Crypto Heavy:</strong> Consider adding traditional stocks to reduce overall portfolio volatility.');
-        } else if (metrics.stockPct > 80) {
-            recs.push('<strong>Add Crypto:</strong> Small crypto allocation (5-15%) can improve risk-adjusted returns.');
-        }
-        
-        // Diversification
-        if (metrics.assetCount < 5) {
-            recs.push('<strong>Diversify:</strong> Add more assets to reduce unsystematic risk. Target 8-12 assets minimum.');
-        }
-        
-        // Performance-based
-        if (metrics.perfPct < -3) {
-            recs.push('<strong>Review Losses:</strong> Portfolio is down significantly. Consider if positions are still fundamentally sound or if rebalancing is needed.');
-        } else if (metrics.perfPct > 5) {
-            recs.push('<strong>Take Profits:</strong> Strong gains today. Consider taking partial profits on winners and rebalancing.');
-        }
-        
-        // Volatility
-        if (metrics.volatility > 8) {
-            recs.push('<strong>High Volatility:</strong> Your portfolio is experiencing significant price swings. Ensure position sizes match your risk tolerance.');
-        }
-        
-        if (recs.length === 0) {
-            recs.push('<strong>Looking Good:</strong> Your portfolio appears well-balanced. Continue monitoring and rebalancing periodically.');
-        }
-        
-        return recs.map(function(r) { return '<div class="rec-item">' + r + '</div>'; }).join('');
-    }
-    
-    // Update UI
-    function updateUI(score, metrics) {
-        // Update score ring
-        var scoreEl = $('evaluator-score');
-        var ringPath = $('score-ring-path');
-        var scoreLabel = $('evaluator-score-label');
-        
-        if (scoreEl) scoreEl.textContent = score.score;
-        if (scoreLabel) scoreLabel.textContent = score.label;
-        
-        if (ringPath) {
-            ringPath.setAttribute('stroke-dasharray', score.score + ', 100');
-            ringPath.classList.remove('low', 'medium', 'high');
-            if (score.score >= 60) ringPath.classList.add('high');
-            else if (score.score >= 40) ringPath.classList.add('medium');
-            else ringPath.classList.add('low');
-        }
-        
-        // Update risk
-        var risk = getRiskLevel(metrics);
-        var riskValue = $('eval-risk-value');
-        var riskDetail = $('eval-risk-detail');
-        if (riskValue) {
-            riskValue.textContent = risk.level;
-            riskValue.className = 'metric-value ' + (risk.level === 'High' ? 'negative' : risk.level === 'Low' ? 'positive' : 'neutral');
-        }
-        if (riskDetail) riskDetail.textContent = risk.detail;
-        
-        // Update performance
-        var perf = getPerformance(metrics);
-        var perfValue = $('eval-perf-value');
-        var perfDetail = $('eval-perf-detail');
-        if (perfValue) {
-            perfValue.textContent = perf.value;
-            perfValue.className = 'metric-value ' + perf.cls;
-        }
-        if (perfDetail) perfDetail.textContent = perf.detail;
-        
-        // Update concentration
-        var conc = getConcentration(metrics);
-        var concValue = $('eval-conc-value');
-        var concDetail = $('eval-conc-detail');
-        if (concValue) {
-            concValue.textContent = conc.value;
-            concValue.className = 'metric-value ' + (metrics.maxWeight > 50 ? 'negative' : metrics.maxWeight > 30 ? 'neutral' : 'positive');
-        }
-        if (concDetail) concDetail.textContent = conc.detail;
-        
-        // Update correlation
-        var corr = getCorrelationSummary(metrics);
-        var corrValue = $('eval-corr-value');
-        var corrDetail = $('eval-corr-detail');
-        if (corrValue) {
-            corrValue.textContent = corr.value;
-            corrValue.className = 'metric-value ' + (corr.value === 'High' ? 'negative' : 'positive');
-        }
-        if (corrDetail) corrDetail.textContent = corr.detail;
-        
-        // Update sectors context
-        updateSectorContext();
-    }
-    
-    // Update sector performance display
-    function updateSectorContext() {
-        var container = $('eval-sectors');
-        if (!container) return;
-        
-        if (typeof sectorData !== 'undefined' && sectorData && sectorData.length > 0) {
-            var html = '';
-            for (var i = 0; i < sectorData.length; i++) {
-                var s = sectorData[i];
-                html += '<span class="sector-tag ' + (s.change >= 0 ? 'up' : 'down') + '">' +
-                    s.name + ' ' + (s.change >= 0 ? '+' : '') + s.change.toFixed(1) + '%</span>';
-            }
-            container.innerHTML = html;
-        } else {
-            container.innerHTML = '<span class="sector-tag">Loading sector data...</span>';
-        }
-    }
-    
-    // Main evaluation function
-    async function evaluate() {
-        if (isEvaluating) return;
-        
-        // Check cache
-        var now = Date.now();
-        if (evaluationCache && (now - evaluationCache.time) < CACHE_TTL) {
-            updateUI(evaluationCache.score, evaluationCache.metrics);
-            $('eval-rec-content').innerHTML = evaluationCache.recommendations;
-            return;
-        }
-        
-        isEvaluating = true;
-        var status = $('evaluator-status');
-        if (status) {
-            status.textContent = 'Evaluating...';
-            status.className = 'evaluator-status loading';
-        }
-        
-        try {
-            var metrics = calculateMetrics();
-            var score = calculateScore(metrics);
-            
-            // Update metrics UI immediately
-            updateUI(score, metrics);
-            
-            // Fetch AI recommendations
-            var recommendations = await fetchAIRecommendations(metrics);
-            var recContent = $('eval-rec-content');
-            if (recContent) {
-                recContent.innerHTML = recommendations;
-            }
-            
-            // Cache results
-            evaluationCache = {
-                time: now,
-                score: score,
-                metrics: metrics,
-                recommendations: recommendations
-            };
-            
-            if (status) {
-                status.textContent = 'Updated';
-                status.className = 'evaluator-status success';
-            }
-        } catch (e) {
-            console.error('Evaluator error:', e);
-            if (status) {
-                status.textContent = 'Error';
-                status.className = 'evaluator-status error';
-            }
-        }
-        
-        isEvaluating = false;
-        lastEvaluation = Date.now();
-    }
-    
-    // Force refresh
-    function refresh() {
-        evaluationCache = null;
-        evaluate();
-    }
-    
-    // Initialize and hook into refreshPrices
-    function init() {
-        // Initial evaluation after a short delay
-        setTimeout(evaluate, 1000);
-        
-        // Hook into existing price refresh cycle
-        var originalRefreshPrices = window.refreshPrices;
-        if (typeof originalRefreshPrices === 'function') {
-            window.refreshPrices = async function() {
-                await originalRefreshPrices.apply(this, arguments);
-                // Refresh evaluator after prices update
-                if ($('tab-ai').style.display !== 'none') {
-                    evaluate();
-                }
-            };
-        }
-    }
-    
-    // Public API
-    return {
-        init: init,
-        evaluate: evaluate,
-        refresh: refresh
-    };
-})();
-
-// Global refresh function for button
-window.refreshEvaluator = function() {
-    PortfolioEvaluator.refresh();
-};
-
-// Initialize when DOM is ready
-document.addEventListener('DOMContentLoaded', function() {
-    setTimeout(function() {
-        PortfolioEvaluator.init();
-    }, 2000);
-});
-
-
-})();
+    })();
