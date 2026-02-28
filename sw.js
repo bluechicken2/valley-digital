@@ -1,18 +1,14 @@
-// TradingAI Service Worker v1.0.0
+// TradingAI Service Worker v2.0.0 - Phase 10 Security & Performance
 
 const CACHE_NAME = 'tradingai-v1';
 const STATIC_ASSETS = [
     '/',
     '/index.html',
-    '/js/app.js',
-    '/js/modules/config.js',
-    '/js/modules/utils.js',
-    '/js/modules/api.js',
-    '/js/modules/indicators.js',
     '/css/theme.css',
-    'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js',
-    'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap'
+    '/js/app.js',
+    'https://cdn.jsdelivr.net/npm/chart.js'
 ];
+const API_CACHE_TTL = 30000; // 30 seconds for API
 
 // Install event - cache static assets
 self.addEventListener('install', (event) => {
@@ -33,7 +29,7 @@ self.addEventListener('activate', (event) => {
             .then((cacheNames) => {
                 return Promise.all(
                     cacheNames
-                        .filter((name) => name !== CACHE_NAME)
+                        .filter((name) => name !== CACHE_NAME && name !== 'api-cache')
                         .map((name) => caches.delete(name))
                 );
             })
@@ -41,55 +37,46 @@ self.addEventListener('activate', (event) => {
     );
 });
 
-// Fetch event - serve from cache, fallback to network
+// Fetch event - stale-while-revalidate for API, cache-first for static
 self.addEventListener('fetch', (event) => {
-    const { request } = event;
-    const url = new URL(request.url);
-    
+    var url = new URL(event.request.url);
+
     // Skip non-GET requests
-    if (request.method !== 'GET') {
+    if (event.request.method !== 'GET') {
         return;
     }
-    
-    // API requests - network first, cache fallback
-    if (url.origin === 'https://tradingapi-proxy.cloudflare-5m9f2.workers.dev') {
+
+    // API requests - stale-while-revalidate (Phase 10)
+    if (url.pathname.startsWith('/api/') || url.hostname.includes('workers.dev')) {
         event.respondWith(
-            fetch(request)
-                .then((response) => {
-                    const responseClone = response.clone();
-                    caches.open(CACHE_NAME).then((cache) => {
-                        cache.put(request, responseClone);
-                    });
-                    return response;
-                })
-                .catch(() => caches.match(request))
+            caches.open('api-cache').then((cache) => {
+                return cache.match(event.request).then((cached) => {
+                    var fetchPromise = fetch(event.request).then((response) => {
+                        if (response.ok) {
+                            cache.put(event.request, response.clone());
+                        }
+                        return response;
+                    }).catch(() => cached);
+
+                    return cached || fetchPromise;
+                });
+            })
         );
         return;
     }
-    
+
     // Static assets - cache first, network fallback
     event.respondWith(
-        caches.match(request)
-            .then((cachedResponse) => {
-                if (cachedResponse) {
-                    return cachedResponse;
-                }
-                
-                return fetch(request)
-                    .then((response) => {
-                        // Don't cache non-successful responses
-                        if (!response || response.status !== 200 || response.type !== 'basic') {
-                            return response;
-                        }
-                        
-                        const responseClone = response.clone();
-                        caches.open(CACHE_NAME).then((cache) => {
-                            cache.put(request, responseClone);
-                        });
-                        
-                        return response;
+        caches.match(event.request).then((cached) => {
+            return cached || fetch(event.request).then((response) => {
+                if (response.ok && event.request.method === 'GET') {
+                    caches.open(CACHE_NAME).then((cache) => {
+                        cache.put(event.request, response.clone());
                     });
-            })
+                }
+                return response;
+            });
+        })
     );
 });
 
@@ -104,7 +91,7 @@ async function syncPrices() {
     try {
         const response = await fetch('https://tradingapi-proxy.cloudflare-5m9f2.workers.dev/prices');
         const data = await response.json();
-        
+
         // Notify all clients
         const clients = await self.clients.matchAll();
         clients.forEach((client) => {
@@ -130,7 +117,7 @@ self.addEventListener('push', (event) => {
             primaryKey: 1
         }
     };
-    
+
     event.waitUntil(
         self.registration.showNotification('TradingAI', options)
     );

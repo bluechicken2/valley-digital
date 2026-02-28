@@ -18,7 +18,51 @@
 function escapeHtml(text) {
     if (typeof text !== 'string') return text;
     return text.replace(/[&<>"']/g, function(m) {
-        return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];
+        return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}
+// Rate limiting helpers (Phase 10)
+function checkRateLimit(action, maxAttempts, lockoutMs) {
+    var attempts = parseInt(localStorage.getItem(action+'_attempts')||'0');
+    var lastAttempt = parseInt(localStorage.getItem('last_'+action+'_attempt')||'0');
+    if(attempts >= maxAttempts && Date.now() - lastAttempt < lockoutMs) {
+        var waitMins = Math.ceil((lockoutMs - (Date.now() - lastAttempt)) / 60000);
+        return { blocked: true, waitMinutes: waitMins };
+    }
+    return { blocked: false };
+}
+
+function recordAttempt(action) {
+    var attempts = parseInt(localStorage.getItem(action+'_attempts')||'0');
+    localStorage.setItem(action+'_attempts', (attempts + 1).toString());
+    localStorage.setItem('last_'+action+'_attempt', Date.now().toString());
+}
+
+function clearRateLimit(action) {
+    localStorage.removeItem(action+'_attempts');
+    localStorage.removeItem('last_'+action+'_attempt');
+}
+
+// Input validation helpers (Phase 10)
+function validateQuantity(value) {
+    var num = parseFloat(value);
+    if(isNaN(num) || num < 0) return { valid: false, error: 'Invalid quantity' };
+    if(num > 1000000000) return { valid: false, error: 'Quantity too large' };
+    return { valid: true, value: num };
+}
+
+function validatePrice(value) {
+    var num = parseFloat(value);
+    if(isNaN(num) || num <= 0) return { valid: false, error: 'Invalid price' };
+    if(num > 100000000) return { valid: false, error: 'Price too large' };
+    return { valid: true, value: num };
+}
+
+function validateSymbol(sym) {
+    if(!sym || typeof sym !== 'string') return { valid: false };
+    if(!/^[A-Z]{1,10}$/.test(sym.toUpperCase())) return { valid: false };
+    return { valid: true, value: sym.toUpperCase() };
+}
+
+[m];
     });
 }
 
@@ -328,9 +372,80 @@ function generateTimeLabels(count, tf) {
         window.showSignup = function() { $('auth-login').style.display='none'; $('auth-signup').style.display='flex'; $('auth-reset').style.display='none'; };
         window.showReset = function() { $('auth-login').style.display='none'; $('auth-signup').style.display='none'; $('auth-reset').style.display='flex'; };
         async function supabaseAuth(ep, body) { var r = await fetch(SUPABASE_URL+'/auth/v1'+ep, {method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY},body:JSON.stringify(body)}); return {ok:r.ok,data:await r.json()}; }
-        window.handleLogin = async function() { var email=$('login-email').value,pwd=$('login-password').value; if(!email||!pwd){$('login-error').textContent='Please fill in all fields';$('login-error').classList.add('show');return;} var r=await supabaseAuth('/token?grant_type=password',{email:email,password:pwd}); if(r.ok&&r.data.access_token){localStorage.setItem('sb_token',r.data.access_token);localStorage.setItem('sb_user',JSON.stringify(r.data.user));user=r.data.user;userTier='pro';showDashboard();
-                    setupInfoTooltips();}else{$('login-error').textContent=r.data.error_description||'Login failed';$('login-error').classList.add('show');} };
-        window.handleSignup = async function() { var email=$('signup-email').value,pwd=$('signup-password').value; if(!email||!pwd){$('signup-error').textContent='Please fill in all fields';$('signup-error').classList.add('show');return;} var r=await supabaseAuth('/signup',{email:email,password:pwd}); if(r.ok){$('signup-success').textContent='Account created! Check your email.';$('signup-success').classList.add('show');setTimeout(showLogin,2000);}else{$('signup-error').textContent=r.data.error_description||'Signup failed';$('signup-error').classList.add('show');} };
+        window.handleLogin = async function() {
+    // Rate limiting check (Phase 10)
+    var rateCheck = checkRateLimit('login', 5, 900000); // 5 attempts, 15 min lockout
+    if(rateCheck.blocked) {
+        $('login-error').textContent = 'Too many attempts. Wait '+rateCheck.waitMinutes+' minutes.';
+        $('login-error').classList.add('show');
+        return;
+    }
+
+    var email = $('login-email').value.trim();
+    var pwd = $('login-password').value;
+
+    if(!email || !pwd) {
+        $('login-error').textContent = 'Please fill in all fields';
+        $('login-error').classList.add('show');
+        return;
+    }
+
+    var r = await supabaseAuth('/token?grant_type=password', {email: email, password: pwd});
+    if(r.ok && r.data.access_token) {
+        clearRateLimit('login');
+        localStorage.setItem('sb_token', r.data.access_token);
+        localStorage.setItem('sb_user', JSON.stringify(r.data.user));
+        user = r.data.user;
+        userTier = 'pro';
+        showDashboard();
+        setupInfoTooltips();
+    } else {
+        recordAttempt('login');
+        $('login-error').textContent = r.data.error_description || 'Login failed';
+        $('login-error').classList.add('show');
+    }
+};
+        window.handleSignup = async function() {
+    // Rate limiting check (Phase 10)
+    var rateCheck = checkRateLimit('signup', 3, 3600000); // 3 attempts, 1 hour lockout
+    if(rateCheck.blocked) {
+        $('signup-error').textContent = 'Too many attempts. Wait '+rateCheck.waitMinutes+' minutes.';
+        $('signup-error').classList.add('show');
+        return;
+    }
+
+    var email = $('signup-email').value.trim();
+    var pwd = $('signup-password').value;
+    var confirm = $('signup-confirm') ? $('signup-confirm').value : pwd;
+
+    if(!email || !pwd) {
+        $('signup-error').textContent = 'Please fill in all fields';
+        $('signup-error').classList.add('show');
+        return;
+    }
+    if(pwd !== confirm) {
+        $('signup-error').textContent = 'Passwords do not match';
+        $('signup-error').classList.add('show');
+        return;
+    }
+    if(pwd.length < 8) {
+        $('signup-error').textContent = 'Password must be 8+ characters';
+        $('signup-error').classList.add('show');
+        return;
+    }
+
+    var r = await supabaseAuth('/signup', {email: email, password: pwd});
+    if(r.ok) {
+        clearRateLimit('signup');
+        $('signup-success').textContent = 'Account created! Check your email.';
+        $('signup-success').classList.add('show');
+        setTimeout(showLogin, 2000);
+    } else {
+        recordAttempt('signup');
+        $('signup-error').textContent = r.data.error_description || 'Signup failed';
+        $('signup-error').classList.add('show');
+    }
+};
         window.handleReset = async function() { var email=$('reset-email').value; if(!email){$('reset-error').textContent='Please enter your email';$('reset-error').classList.add('show');return;} var r=await fetch(SUPABASE_URL+'/auth/v1/recover',{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY},body:JSON.stringify({email:email})}); if(r.ok){$('reset-success').textContent='Check your email for reset link';$('reset-success').classList.add('show');} };
         window.handleLogout = function() { localStorage.removeItem('sb_token');localStorage.removeItem('sb_user');user=null;showLogin();$('user-dropdown').classList.remove('show'); };
         window.selectTier = function(t) { document.querySelectorAll('.tier-option').forEach(function(o){o.classList.remove('selected');});event.currentTarget.classList.add('selected'); };
@@ -1695,11 +1810,22 @@ window.loadWatchlist = async function() {
         window.createAlert = async function() {
             var sym = $('alert-asset').value;
             var cond = $('alert-cond').value;
-            var price = parseFloat($('alert-price').value);
-            if(!price || price <= 0) {
-                showToast('Please enter a valid price');
+            var priceVal = $('alert-price').value;
+
+            // Validate inputs (Phase 10)
+            var symCheck = validateSymbol(sym);
+            var priceCheck = validatePrice(priceVal);
+
+            if(!symCheck.valid) {
+                showToast('Invalid symbol selected');
                 return;
             }
+            if(!priceCheck.valid) {
+                showToast(priceCheck.error || 'Invalid price');
+                return;
+            }
+
+            var price = priceCheck.value;
 
             if(typeof TradingAI !== 'undefined' && TradingAI.isAuthenticated()) {
                 var result = await TradingAI.createAlert(sym, cond, price);
@@ -2102,7 +2228,15 @@ function generateLocalResponse(q) {
         window.saveHoldings = async function() {
             for(var i=0;i<data.length;i++) {
                 var input = $('hold-'+data[i].sym);
-                if(input) data[i].hold = parseFloat(input.value)||0;
+                if(input) {
+                    // Validate quantity input (Phase 10)
+                    var holdCheck = validateQuantity(input.value);
+                    if(!holdCheck.valid) {
+                        data[i].hold = 0;
+                    } else {
+                        data[i].hold = holdCheck.value;
+                    }
+                }
             }
             // Save to localStorage (always works)
             var holdings = {};
