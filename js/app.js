@@ -108,10 +108,10 @@ var CONFIG = {
         var dataQuality = { source: 'none', real: 0, lastUpdate: null };
         
         data = [
-            {sym:'BTC',name:'Bitcoin',type:'crypto',price:0,chg:0,color:'var(--cyan)',hold:0,fav:true,mktCap:0,vol24h:0,supply:19.5e6},
-            {sym:'ETH',name:'Ethereum',type:'crypto',price:0,chg:0,color:'var(--purple)',hold:0,fav:true,mktCap:0,vol24h:0,supply:120e6},
-            {sym:'SOL',name:'Solana',type:'crypto',price:0,chg:0,color:'var(--green)',hold:0,fav:false,mktCap:0,vol24h:0,supply:433e6},
-            {sym:'AAPL',name:'Apple',type:'stock',price:0,chg:0,color:'var(--gold)',hold:0,fav:false,mktCap:0,vol24h:0,supply:15.5e9,pe:28,div:0.52},
+            {sym:'BTC',name:'Bitcoin',type:'crypto',price:0,chg:0,color:'#00f0ff',hold:0,fav:true,mktCap:0,vol24h:0,supply:19.5e6},
+            {sym:'ETH',name:'Ethereum',type:'crypto',price:0,chg:0,color:'#a855f7',hold:0,fav:true,mktCap:0,vol24h:0,supply:120e6},
+            {sym:'SOL',name:'Solana',type:'crypto',price:0,chg:0,color:'#00ff88',hold:0,fav:false,mktCap:0,vol24h:0,supply:433e6},
+            {sym:'AAPL',name:'Apple',type:'stock',price:0,chg:0,color:'#ffd700',hold:0,fav:false,mktCap:0,vol24h:0,supply:15.5e9,pe:28,div:0.52},
             {sym:'NVDA',name:'NVIDIA',type:'stock',price:0,chg:0,color:'#76b900',hold:0,fav:true,mktCap:0,vol24h:0,supply:2.47e9,pe:65,div:0.04},
             {sym:'TSLA',name:'Tesla',type:'stock',price:0,chg:0,color:'#c00',hold:0,fav:false,mktCap:0,vol24h:0,supply:3.2e9,pe:45,div:0},
             {sym:'GOOGL',name:'Alphabet',type:'stock',price:0,chg:0,color:'#4285f4',hold:0,fav:false,mktCap:0,vol24h:0,supply:12.5e9,pe:22,div:0},
