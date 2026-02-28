@@ -131,7 +131,7 @@
             <div class="grid grid-2">
                 <div>
                     <div class="panel">
-                        <div class="panel-header"><span class="panel-title">Portfolio Value</span><button aria-label="Edit portfolio" class="port-edit-btn" onclick="showPortfolioEdit()">EDIT</button><button aria-label="Add asset" class="port-edit-btn" onclick="showAddAsset()">ADD</button><span class="panel-badge live" id="data-badge">LIVE</span></div>
+                        <div class="panel-header"><span class="panel-title">Portfolio Value</span><span class="info-tip" data-tooltip="Total value of holdings. Intel Score = 50 + (% Change × 2). 50 = neutral, 60+ = gains, below 50 = losses.">ℹ️</span><button aria-label="Edit portfolio" class="port-edit-btn" onclick="showPortfolioEdit()">EDIT</button><button aria-label="Add asset" class="port-edit-btn" onclick="showAddAsset()">ADD</button><span class="panel-badge live" id="data-badge">LIVE</span></div>
                         <div class="panel-body">
                             <div class="portfolio-value" id="port-val">$0.00</div>
                             <div class="portfolio-change up" id="port-chg">+$0.00 (0.00%)</div>
@@ -246,7 +246,7 @@
                     <div class="panel-body" id="preds"></div>
                 </div>
                 <div class="panel">
-                    <div class="panel-header"><span class="panel-title">Risk Parity</span></div>
+                    <div class="panel-header"><span class="panel-title">Risk Parity</span><span class="info-tip" data-tooltip="Weights calculated using inverse volatility. Lower volatility assets get higher weights to equalize risk contribution.">ℹ️</span></div>
                     <div class="panel-body" id="weights"></div>
                 </div>
                 <div class="panel">
