@@ -667,32 +667,31 @@
 
 
 /* Financial Disclaimer */
-.financial-disclaimer {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: rgba(20, 25, 35, 0.95);
-    border-top: 1px solid rgba(255, 51, 102, 0.3);
-    padding: 8px 16px;
-    z-index: 1000;
-    backdrop-filter: blur(10px);
+.disclaimer-card {
+    grid-column: 1 / -1;
+    margin-top: 16px;
+    background: rgba(255, 51, 102, 0.08);
+    border: 1px solid rgba(255, 51, 102, 0.2);
 }
 
-.disclaimer-content {
+.disclaimer-card .panel-header {
+    background: rgba(255, 51, 102, 0.1);
+}
+
+.disclaimer-card-content {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 8px;
-    font-size: 11px;
+    gap: 10px;
+    font-size: 12px;
     color: #8892a0;
+    padding: 8px 0;
 }
 
-.disclaimer-icon {
-    font-size: 14px;
+.disclaimer-card-content .disclaimer-icon {
+    font-size: 18px;
 }
 
-.disclaimer-text strong {
+.disclaimer-card-content .disclaimer-text strong {
     color: #ff3366;
 }
 
@@ -774,7 +773,3 @@
     }
 }
 
-/* Bottom padding for disclaimer banner */
-body {
-    padding-bottom: 50px !important;
-}
