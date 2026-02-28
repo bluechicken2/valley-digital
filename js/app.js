@@ -2382,7 +2382,15 @@ function generateLocalResponse(q) {
         // Save portfolio to Supabase
         async function savePortfolioToSupabase() {
             showLoading('sync-spinner');
-            var token = localStorage.getItem('sb_token');
+            // Use SDK session token (preferred) with localStorage fallback
+            var token = null;
+            try {
+                if(window.supabaseClient) {
+                    var sess = await window.supabaseClient.auth.getSession();
+                    token = sess && sess.data && sess.data.session ? sess.data.session.access_token : null;
+                }
+            } catch(e) {}
+            if(!token) token = localStorage.getItem('sb_token');
 
             var entries = [];
             for(var i=0;i<data.length;i++) {
@@ -2443,7 +2451,15 @@ function generateLocalResponse(q) {
         // Load portfolio from Supabase
         async function loadPortfolioFromSupabase() {
             showLoading('sync-spinner');
-            var token = localStorage.getItem('sb_token');
+            // Use SDK session token (preferred) with localStorage fallback
+            var token = null;
+            try {
+                if(window.supabaseClient) {
+                    var sess = await window.supabaseClient.auth.getSession();
+                    token = sess && sess.data && sess.data.session ? sess.data.session.access_token : null;
+                }
+            } catch(e) {}
+            if(!token) token = localStorage.getItem('sb_token');
 
             try {
                 var url = SUPABASE_URL+'/rest/v1/portfolios?user_id=eq.'+user.id;
@@ -2479,7 +2495,7 @@ function generateLocalResponse(q) {
             // Version check: clear old localStorage if version mismatch
             var savedVersion = localStorage.getItem('portfolio_version');
             if (savedVersion !== PORTFOLIO_DATA_VERSION) {
-                console.log('Portfolio data version mismatch. Clearing old localStorage data...');
+                // Portfolio data version mismatch. Clearing old localStorage data...');
                 localStorage.removeItem('assetList');
                 localStorage.removeItem('holdings');
                 localStorage.setItem('portfolio_version', PORTFOLIO_DATA_VERSION);
