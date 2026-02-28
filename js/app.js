@@ -469,23 +469,186 @@ async function fetchSectors() {
                 $('actions').innerHTML = '<div class="action">Loading actions...</div>';
                 return;
             } var rsi=calcRSI(arr),stoch=calcStochastic(arr); var acts=[]; if(rsi===null||stoch===null){acts.push({t:'HOLD',txt:sel.sym+' data loading'});}else if(rsi<30||stoch.k<20)acts.push({t:'BUY',txt:sel.sym+' oversold'}); else if(rsi>70||stoch.k>80)acts.push({t:'SELL',txt:sel.sym+' overbought'}); else acts.push({t:'HOLD',txt:sel.sym+' neutral'}); acts.push({t:'HOLD',txt:'Review risk'}); var h=''; for(var i=0;i<acts.length;i++){h+='<div class="action"><span class="action-badge '+acts[i].t.toLowerCase()+'-badge">'+acts[i].t+'</span><span class="action-text">'+acts[i].txt+'</span></div>';} $('actions').innerHTML=h; }
+        // ===== PREDICTION HELPER FUNCTIONS =====
+        
+        // Simple Moving Average
+        function calcSMA(arr, period) {
+            if (!arr || arr.length < period) return null;
+            var slice = arr.slice(-period);
+            return slice.reduce(function(a,b){return a+b;},0) / period;
+        }
+        
+        // Linear Regression Trend Analysis
+        function calcTrend(arr) {
+            if (!arr || arr.length < 5) return { slope: 0, intercept: arr ? arr[arr.length-1] : 0, direction: 'neutral', r2: 0 };
+            var n = arr.length;
+            var sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+            for(var i = 0; i < n; i++) { sumX += i; sumY += arr[i]; sumXY += i * arr[i]; sumX2 += i * i; }
+            var slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX || 1);
+            var intercept = (sumY - slope * sumX) / n;
+            var yMean = sumY / n, ssTotal = 0, ssResidual = 0;
+            for(var i = 0; i < n; i++) { var predicted = intercept + slope * i; ssTotal += Math.pow(arr[i] - yMean, 2); ssResidual += Math.pow(arr[i] - predicted, 2); }
+            var r2 = ssTotal > 0 ? 1 - (ssResidual / ssTotal) : 0;
+            return { slope: slope, intercept: intercept, direction: slope > 0.001 ? 'bullish' : slope < -0.001 ? 'bearish' : 'neutral', r2: Math.max(0, Math.min(1, r2)) };
+        }
+        
+        // Mean Reversion Signal
+        function calcMeanReversion(price, sma, atr) {
+            if (!sma || !atr || atr === 0) return { distance: 0, signal: 'neutral', strength: 0 };
+            var distance = (price - sma) / atr;
+            var signal = 'neutral';
+            if(distance > 2) signal = 'overbought'; else if(distance > 1) signal = 'extended'; else if(distance < -2) signal = 'oversold'; else if(distance < -1) signal = 'depressed';
+            return { distance: distance, signal: signal, strength: Math.abs(distance) };
+        }
+        
+        // Volatility-Based Price Ranges (Square root of time rule)
+        function calcVolatilityRange(price, atr, periods, confidenceLevel) {
+            if (!atr || atr <= 0) atr = price * 0.02;
+            var scaledATR = atr * Math.sqrt(periods);
+            var multiplier = confidenceLevel === 0.95 ? 1.96 : confidenceLevel === 0.90 ? 1.645 : 1.0;
+            return { low: price - scaledATR * multiplier, high: price + scaledATR * multiplier, mid: price };
+        }
+        
+        // Find Swing High/Low for Fibonacci
+        function findSwingPoints(arr, lookback) {
+            if (!arr || arr.length < lookback) lookback = arr ? arr.length : 10;
+            var recent = arr.slice(-lookback);
+            var high = Math.max.apply(null, recent), low = Math.min.apply(null, recent);
+            return { high: high, low: low, direction: recent.indexOf(high) > recent.indexOf(low) ? 'up' : 'down' };
+        }
+        
+        // Fibonacci Extensions
+        function calcFibExtensions(high, low, direction, currentPrice) {
+            var diff = high - low;
+            if (diff <= 0) diff = currentPrice * 0.1;
+            var isUp = direction === 'up';
+            return { fib618: isUp ? high + diff * 0.618 : low - diff * 0.618, fib100: isUp ? high + diff : low - diff, fib1618: isUp ? high + diff * 1.618 : low - diff * 1.618 };
+        }
+        
+        // Long-Term CAGR Projection
+        function calcCAGRProjection(price, years, cagr) {
+            if (!cagr || cagr <= 0) cagr = 0.10;
+            return { conservative: price * Math.pow(1 + cagr * 0.5, years), expected: price * Math.pow(1 + cagr, years), optimistic: price * Math.pow(1 + cagr * 1.5, years) };
+        }
+        
+        // Get asset-type CAGR estimate
+        function getAssetCAGR(asset) {
+            if (asset.type === 'crypto') { if (asset.sym === 'BTC') return 0.35; if (asset.sym === 'ETH') return 0.30; return 0.25; }
+            else if (asset.type === 'stock') { if (asset.sym === 'NVDA' || asset.sym === 'TSLA') return 0.20; if (asset.sym === 'AAPL' || asset.sym === 'MSFT' || asset.sym === 'GOOGL') return 0.12; return 0.08; }
+            return 0.10;
+        }
+        
+        // Calculate consensus confidence score
+        function calcPredictionConfidence(trend, rsi, meanRev, volatility, dataLength) {
+            var score = 50;
+            if (trend.r2 > 0.7) score += 15; else if (trend.r2 > 0.5) score += 10; else if (trend.r2 > 0.3) score += 5;
+            if (rsi !== null) { if (rsi < 30 || rsi > 70) score += 10; else if (rsi < 40 || rsi > 60) score += 5; }
+            if (meanRev.strength > 1.5) score += 8; else if (meanRev.strength > 1) score += 4;
+            if (volatility > 0.05) score -= 15; else if (volatility > 0.03) score -= 10; else if (volatility > 0.02) score -= 5; else score += 5;
+            if (dataLength > 100) score += 10; else if (dataLength > 50) score += 5; else if (dataLength < 20) score -= 10;
+            return { score: Math.max(20, Math.min(85, score)), label: score >= 70 ? 'High' : score >= 50 ? 'Medium' : 'Low' };
+        }
         function renderPreds() {
             var arr = history[sel.sym];
-            if (!arr || arr.length < 20) {
-                if ($('preds')) $('preds').innerHTML = '<div style="padding:10px;color:var(--cyan);">Loading predictions...</div>';
+            if (!arr || arr.length < 14) {
+                if ($('preds')) $('preds').innerHTML = '<div class="pred-loading"><span class="pulse">Loading predictions...</span></div>';
                 return;
             }
+            
             var base = sel.price;
-            var trend = sel.chg / 100; // Current trend as decimal
             var atr = calcATR(arr);
-            if(atr === null) { if ($('preds')) $('preds').innerHTML = '<div style="padding:10px;color:var(--cyan);">Insufficient data for predictions</div>'; return; }
+            if (atr === null || atr === 0) atr = base * 0.02;
+            
+            var rsi = calcRSI(arr);
+            var sma20 = calcSMA(arr, 20);
+            var trend = calcTrend(arr);
+            var meanRev = calcMeanReversion(base, sma20, atr);
+            var swings = findSwingPoints(arr, 30);
+            var fibs = calcFibExtensions(swings.high, swings.low, swings.direction, base);
+            var cagr = getAssetCAGR(sel);
             var volatility = atr / base;
-            // Predictions based on trend and volatility
-            var pred24h = base * (1 + trend * 0.1);
-            var pred7d = base * (1 + trend * 0.5 + volatility * 0.5);
-            var pred30d = base * (1 + trend * 2 + volatility * 1.5);
-            var preds=[{l:'24H',v:pred24h},{l:'7D',v:pred7d},{l:'30D',v:pred30d}];
-            var h=''; for(var i=0;i<preds.length;i++){h+='<div class="pred-row"><span>'+preds[i].l+'</span><span class="pred-val '+(preds[i].v>=base?'bull':'bear')+'" style="color:'+(preds[i].v>=base?'var(--green)':'var(--red)')+'">$'+fmt(preds[i].v)+'</span></div>';} $('preds').innerHTML=h;
+            var confidence = calcPredictionConfidence(trend, rsi, meanRev, volatility, arr.length);
+            
+            var periods = {
+                '24H': { days: 1, type: 'short', method: 'volatility' },
+                '7D': { days: 7, type: 'short', method: 'trend_reversion' },
+                '30D': { days: 30, type: 'short', method: 'trend_fib' },
+                '6M': { days: 180, type: 'medium', method: 'volatility_trend' },
+                '1Y': { days: 365, type: 'long', method: 'cagr' },
+                '5Y': { days: 1825, type: 'very_long', method: 'cagr_speculative' }
+            };
+            
+            var predictions = {};
+            for (var tf in periods) {
+                var p = periods[tf];
+                var pred;
+                if (p.method === 'volatility') {
+                    pred = calcVolatilityRange(base, atr, p.days, 1.0);
+                } else if (p.method === 'trend_reversion') {
+                    var volRange = calcVolatilityRange(base, atr, p.days, 1.0);
+                    var trendAdjust = trend.slope * p.days * 0.5;
+                    var revAdjust = -meanRev.distance * atr * 0.3;
+                    pred = { low: volRange.low + trendAdjust + revAdjust, high: volRange.high + trendAdjust + revAdjust, mid: base + trendAdjust };
+                } else if (p.method === 'trend_fib') {
+                    var volRange = calcVolatilityRange(base, atr, p.days, 1.0);
+                    var trendTarget = base + trend.slope * p.days;
+                    pred = { low: Math.min(volRange.low, swings.low), high: Math.max(volRange.high * 1.1, fibs.fib618), mid: trendTarget };
+                } else if (p.method === 'volatility_trend') {
+                    var volRange = calcVolatilityRange(base, atr, p.days, 1.5);
+                    var trendTarget = base * (1 + (trend.slope / base) * p.days * 0.8);
+                    pred = { low: Math.min(volRange.low, trendTarget * 0.8), high: Math.max(volRange.high, trendTarget * 1.2), mid: trendTarget };
+                } else if (p.method === 'cagr') {
+                    var cagrProj = calcCAGRProjection(base, p.days / 365, cagr);
+                    pred = { low: cagrProj.conservative, mid: cagrProj.expected, high: cagrProj.optimistic };
+                } else if (p.method === 'cagr_speculative') {
+                    var cagrProj = calcCAGRProjection(base, p.days / 365, cagr * 0.7);
+                    pred = { low: cagrProj.conservative * 0.5, mid: cagrProj.expected, high: cagrProj.optimistic * 2.0 };
+                }
+                pred.low = Math.max(0.01, pred.low);
+                pred.high = Math.max(pred.low + 0.01, pred.high);
+                predictions[tf] = pred;
+            }
+            
+            var bias = 'Neutral', biasIcon = '\u2192', bullishCount = 0, bearishCount = 0;
+            if (trend.direction === 'bullish') bullishCount++; else if (trend.direction === 'bearish') bearishCount++;
+            if (rsi !== null && rsi < 45) bullishCount++; else if (rsi !== null && rsi > 55) bearishCount++;
+            if (meanRev.signal === 'oversold' || meanRev.signal === 'depressed') bullishCount++;
+            else if (meanRev.signal === 'overbought' || meanRev.signal === 'extended') bearishCount++;
+            if (swings.direction === 'up') bullishCount++; else bearishCount++;
+            if (bullishCount > bearishCount + 1) { bias = 'Bullish'; biasIcon = '\u2197'; }
+            else if (bearishCount > bullishCount + 1) { bias = 'Bearish'; biasIcon = '\u2198'; }
+            
+            var h = '<div class="prediction-card">';
+            h += '<div class="pred-header"><span class="pred-title">PREDICTIONS</span><span class="pred-info" title="Multi-method consensus using trend, RSI, mean reversion, volatility, and Fibonacci analysis">i</span></div>';
+            h += '<div class="pred-section"><div class="pred-section-title">SHORT-TERM</div>';
+            ['24H', '7D', '30D'].forEach(function(tf) {
+                var p = predictions[tf];
+                var pctFromBase = ((p.mid - base) / base * 100).toFixed(1);
+                var direction = p.mid >= base ? 'bull' : 'bear';
+                h += '<div class="pred-row"><span class="pred-label">' + tf + '</span><span class="pred-range ' + direction + '">$' + fmt(p.low) + ' - $' + fmt(p.high) + '</span><span class="pred-pct ' + direction + '">(' + (pctFromBase >= 0 ? '+' : '') + pctFromBase + '%)</span></div>';
+            });
+            h += '</div>';
+            h += '<div class="pred-section"><div class="pred-section-title">MEDIUM-TERM</div>';
+            ['6M', '1Y'].forEach(function(tf) {
+                var p = predictions[tf];
+                var pctFromBase = ((p.mid - base) / base * 100).toFixed(0);
+                var direction = p.mid >= base ? 'bull' : 'bear';
+                h += '<div class="pred-row"><span class="pred-label">' + tf + '</span><span class="pred-range ' + direction + '">$' + fmt(p.low) + ' - $' + fmt(p.high) + '</span><span class="pred-pct ' + direction + '">(' + (pctFromBase >= 0 ? '+' : '') + pctFromBase + '%)</span></div>';
+            });
+            h += '</div>';
+            h += '<div class="pred-section speculative"><div class="pred-section-title">LONG-TERM <span class="spec-note">(Speculative)</span></div>';
+            var p5y = predictions['5Y'];
+            var dir5y = p5y.mid >= base ? 'bull' : 'bear';
+            h += '<div class="pred-row"><span class="pred-label">5Y</span><span class="pred-range ' + dir5y + '">$' + fmt(p5y.low) + ' - $' + fmt(p5y.high) + '</span><span class="pred-pct ' + dir5y + '">(Wide Range)</span></div>';
+            h += '</div>';
+            h += '<div class="pred-divider"></div>';
+            h += '<div class="pred-metrics">';
+            h += '<div class="pred-metric"><span class="metric-icon">*</span><span class="metric-label">Confidence:</span><span class="metric-value">' + confidence.score + '% (' + confidence.label + ')</span></div>';
+            h += '<div class="pred-metric"><span class="metric-icon">' + biasIcon + '</span><span class="metric-label">Bias:</span><span class="metric-value ' + bias.toLowerCase() + '">' + bias + '</span></div>';
+            h += '</div>';
+            h += '<div class="pred-disclaimer">Not financial advice. Long-term predictions are highly speculative.</div>';
+            h += '</div>';
+            if ($('preds')) $('preds').innerHTML = h;
         }
         function renderWeights() {
             // Real Risk Parity - based on actual holdings and volatility
