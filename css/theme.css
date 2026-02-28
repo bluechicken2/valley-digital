@@ -1317,6 +1317,6 @@ body.light-theme .panel {
     justify-content: center;
 }
 
-.modal-overlay.active {
+.modal-overlay.show {
     display: flex !important;
 }
