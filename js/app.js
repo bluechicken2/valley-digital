@@ -29,6 +29,8 @@ var $ = function(id) { return document.getElementById(id); };
             return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
         }
 
+        // Supabase configuration - ANON KEY is safe for client-side (publishable key)
+        // Row Level Security (RLS) policies protect all user data
         var SUPABASE_URL = 'https://dkxydhuojaspmbpjfyoz.supabase.co';
         var SUPABASE_KEY = 'sb_publishable_ydepQXbHFjFA-_TIwOYNHg_SwN0m5PL';
         var API_BASE = 'https://tradingapi-proxy.cloudflare-5m9f2.workers.dev';
