@@ -2597,4 +2597,456 @@ function init() {
             },CONFIG.INIT_DELAY); 
         }
         if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
-    })();
+    
+// ============================================================
+// PORTFOLIO EVALUATOR MODULE
+// ============================================================
+
+var PortfolioEvaluator = (function() {
+    'use strict';
+    
+    // State
+    var lastEvaluation = null;
+    var isEvaluating = false;
+    var evaluationCache = null;
+    var CACHE_TTL = 60000; // 1 minute cache
+    
+    // Calculate portfolio metrics
+    function calculateMetrics() {
+        var holdings = data.filter(function(a) { return a.hold > 0; });
+        
+        if (holdings.length === 0) {
+            return { empty: true };
+        }
+        
+        var totalValue = 0;
+        var totalChange = 0;
+        var weights = [];
+        var changes = [];
+        
+        for (var i = 0; i < holdings.length; i++) {
+            var a = holdings[i];
+            var value = a.price * a.hold;
+            totalValue += value;
+            totalChange += value * (a.chg / 100);
+            weights.push(value);
+            changes.push(a.chg);
+        }
+        
+        // Calculate weights as percentages
+        var weightPcts = weights.map(function(w) { return (w / totalValue) * 100; });
+        
+        // Concentration (Herfindahl index)
+        var hhi = 0;
+        for (var i = 0; i < weightPcts.length; i++) {
+            hhi += weightPcts[i] * weightPcts[i];
+        }
+        
+        // Max concentration
+        var maxWeight = Math.max.apply(null, weightPcts);
+        
+        // Volatility (std dev of changes)
+        var avgChange = changes.reduce(function(a,b){return a+b;}, 0) / changes.length;
+        var variance = changes.reduce(function(sum, c) {
+            return sum + Math.pow(c - avgChange, 2);
+        }, 0) / changes.length;
+        var volatility = Math.sqrt(variance);
+        
+        // Performance
+        var perfPct = totalValue > 0 ? (totalChange / totalValue) * 100 : 0;
+        
+        // Asset types breakdown
+        var cryptoValue = 0, stockValue = 0;
+        for (var i = 0; i < holdings.length; i++) {
+            if (holdings[i].type === 'crypto') cryptoValue += holdings[i].price * holdings[i].hold;
+            else stockValue += holdings[i].price * holdings[i].hold;
+        }
+        
+        return {
+            empty: false,
+            holdings: holdings,
+            totalValue: totalValue,
+            totalChange: totalChange,
+            perfPct: perfPct,
+            hhi: hhi,
+            maxWeight: maxWeight,
+            volatility: volatility,
+            cryptoPct: totalValue > 0 ? (cryptoValue / totalValue) * 100 : 0,
+            stockPct: totalValue > 0 ? (stockValue / totalValue) * 100 : 0,
+            assetCount: holdings.length,
+            topAsset: holdings.reduce(function(max, a) {
+                var v = a.price * a.hold;
+                return v > max.v ? { sym: a.sym, v: v, pct: (v/totalValue)*100 } : max;
+            }, { sym: '', v: 0, pct: 0 })
+        };
+    }
+    
+    // Calculate health score (0-100)
+    function calculateScore(metrics) {
+        if (metrics.empty) return { score: 0, label: 'No Holdings' };
+        
+        var score = 50; // Base score
+        
+        // Diversification bonus (up to +20)
+        if (metrics.assetCount >= 5) score += 10;
+        if (metrics.assetCount >= 8) score += 5;
+        if (metrics.maxWeight < 40) score += 5;
+        
+        // Concentration penalty (up to -15)
+        if (metrics.maxWeight > 50) score -= 10;
+        if (metrics.maxWeight > 70) score -= 5;
+        
+        // Volatility adjustment (up to -10)
+        if (metrics.volatility > 5) score -= 5;
+        if (metrics.volatility > 10) score -= 5;
+        
+        // Performance bonus/penalty (up to ±15)
+        if (metrics.perfPct > 2) score += 10;
+        if (metrics.perfPct > 5) score += 5;
+        if (metrics.perfPct < -2) score -= 5;
+        if (metrics.perfPct < -5) score -= 10;
+        
+        // Type balance bonus (+5 for mixed portfolio)
+        if (metrics.cryptoPct > 20 && metrics.cryptoPct < 80) score += 5;
+        
+        // Clamp score
+        score = Math.max(0, Math.min(100, Math.round(score)));
+        
+        var label = score >= 80 ? 'Excellent' :
+                    score >= 60 ? 'Good' :
+                    score >= 40 ? 'Fair' :
+                    score >= 20 ? 'Needs Attention' : 'Critical';
+        
+        return { score: score, label: label };
+    }
+    
+    // Get risk level
+    function getRiskLevel(metrics) {
+        if (metrics.empty) return { level: '--', detail: 'Add holdings to assess risk' };
+        
+        var risk = 'Low';
+        var factors = [];
+        
+        if (metrics.maxWeight > 50) {
+            risk = 'Medium';
+            factors.push('High concentration in ' + metrics.topAsset.sym);
+        }
+        if (metrics.cryptoPct > 70) {
+            risk = risk === 'Medium' ? 'High' : 'Medium';
+            factors.push('Heavy crypto exposure');
+        }
+        if (metrics.volatility > 8) {
+            risk = risk === 'Low' ? 'Medium' : 'High';
+            factors.push('High volatility');
+        }
+        if (metrics.assetCount < 3) {
+            risk = risk === 'Low' ? 'Medium' : 'High';
+            factors.push('Limited diversification');
+        }
+        
+        var detail = factors.length > 0 ? factors.join(', ') : 'Well diversified';
+        return { level: risk, detail: detail };
+    }
+    
+    // Get concentration info
+    function getConcentration(metrics) {
+        if (metrics.empty) return { value: '--', detail: 'No holdings' };
+        
+        var detail = 'Top: ' + metrics.topAsset.sym + ' (' + metrics.topAsset.pct.toFixed(1) + '%)';
+        return { value: metrics.maxWeight.toFixed(0) + '%', detail: detail };
+    }
+    
+    // Get performance info
+    function getPerformance(metrics) {
+        if (metrics.empty) return { value: '--', detail: 'No holdings', cls: '' };
+        
+        var value = (metrics.perfPct >= 0 ? '+' : '') + metrics.perfPct.toFixed(2) + '%';
+        var detail = '$' + fmt(Math.abs(metrics.totalChange)) + ' ' + (metrics.totalChange >= 0 ? 'gain' : 'loss');
+        var cls = metrics.perfPct >= 0 ? 'positive' : 'negative';
+        
+        return { value: value, detail: detail, cls: cls };
+    }
+    
+    // Get correlation summary
+    function getCorrelationSummary(metrics) {
+        if (metrics.empty || metrics.assetCount < 2) {
+            return { value: '--', detail: 'Need 2+ assets' };
+        }
+        
+        // Simple correlation proxy based on asset types
+        var sameType = metrics.cryptoPct > 90 || metrics.stockPct > 90;
+        
+        if (sameType) {
+            return { value: 'High', detail: 'Mostly ' + (metrics.cryptoPct > 90 ? 'crypto' : 'stocks') };
+        }
+        return { value: 'Mixed', detail: 'Good type diversity' };
+    }
+    
+    // Generate AI recommendations via /ai endpoint
+    async function fetchAIRecommendations(metrics) {
+        if (metrics.empty) return '<div class="rec-item">Add holdings to your portfolio to receive personalized AI recommendations.</div>';
+        
+        // Build context for AI
+        var context = buildAIContext(metrics);
+        
+        try {
+            var r = await fetch(API_BASE + '/ai', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    messages: [{
+                        role: 'user',
+                        content: 'Analyze this portfolio and provide 3-4 concise, actionable recommendations. Be specific about risk management and opportunities.\n\n' + context
+                    }]
+                })
+            });
+            
+            if (!r.ok) throw new Error('AI request failed');
+            var result = await r.json();
+            return result.response || generateLocalRecommendations(metrics);
+        } catch (e) {
+            console.warn('AI recommendations unavailable, using local fallback');
+            return generateLocalRecommendations(metrics);
+        }
+    }
+    
+    // Build context string for AI
+    function buildAIContext(metrics) {
+        var holdings = metrics.holdings.map(function(a) {
+            return a.sym + ': ' + a.hold + ' units @ $' + fmt(a.price) + ' (' + (a.chg >= 0 ? '+' : '') + a.chg.toFixed(2) + '%)';
+        }).join('\n');
+        
+        return 'PORTFOLIO ANALYSIS:\n' +
+            'Total Value: $' + fmt(metrics.totalValue) + '\n' +
+            '24h Change: ' + (metrics.perfPct >= 0 ? '+' : '') + metrics.perfPct.toFixed(2) + '%\n' +
+            'Assets: ' + metrics.assetCount + '\n' +
+            'Crypto/Stock Split: ' + metrics.cryptoPct.toFixed(0) + '% / ' + metrics.stockPct.toFixed(0) + '%\n' +
+            'Top Holding: ' + metrics.topAsset.sym + ' (' + metrics.topAsset.pct.toFixed(1) + '%)\n' +
+            'Concentration Risk: ' + (metrics.maxWeight > 50 ? 'HIGH' : metrics.maxWeight > 30 ? 'MEDIUM' : 'LOW') + '\n' +
+            'Volatility: ' + metrics.volatility.toFixed(2) + '%\n\n' +
+            'HOLDINGS:\n' + holdings;
+    }
+    
+    // Local fallback recommendations
+    function generateLocalRecommendations(metrics) {
+        var recs = [];
+        
+        // Concentration warning
+        if (metrics.maxWeight > 50) {
+            recs.push('<strong>Reduce Concentration:</strong> ' + metrics.topAsset.sym + ' is ' + metrics.maxWeight.toFixed(0) + '% of your portfolio. Consider diversifying.');
+        }
+        
+        // Type balance
+        if (metrics.cryptoPct > 80) {
+            recs.push('<strong>Crypto Heavy:</strong> Consider adding traditional stocks to reduce overall portfolio volatility.');
+        } else if (metrics.stockPct > 80) {
+            recs.push('<strong>Add Crypto:</strong> Small crypto allocation (5-15%) can improve risk-adjusted returns.');
+        }
+        
+        // Diversification
+        if (metrics.assetCount < 5) {
+            recs.push('<strong>Diversify:</strong> Add more assets to reduce unsystematic risk. Target 8-12 assets minimum.');
+        }
+        
+        // Performance-based
+        if (metrics.perfPct < -3) {
+            recs.push('<strong>Review Losses:</strong> Portfolio is down significantly. Consider if positions are still fundamentally sound or if rebalancing is needed.');
+        } else if (metrics.perfPct > 5) {
+            recs.push('<strong>Take Profits:</strong> Strong gains today. Consider taking partial profits on winners and rebalancing.');
+        }
+        
+        // Volatility
+        if (metrics.volatility > 8) {
+            recs.push('<strong>High Volatility:</strong> Your portfolio is experiencing significant price swings. Ensure position sizes match your risk tolerance.');
+        }
+        
+        if (recs.length === 0) {
+            recs.push('<strong>Looking Good:</strong> Your portfolio appears well-balanced. Continue monitoring and rebalancing periodically.');
+        }
+        
+        return recs.map(function(r) { return '<div class="rec-item">' + r + '</div>'; }).join('');
+    }
+    
+    // Update UI
+    function updateUI(score, metrics) {
+        // Update score ring
+        var scoreEl = $('evaluator-score');
+        var ringPath = $('score-ring-path');
+        var scoreLabel = $('evaluator-score-label');
+        
+        if (scoreEl) scoreEl.textContent = score.score;
+        if (scoreLabel) scoreLabel.textContent = score.label;
+        
+        if (ringPath) {
+            ringPath.setAttribute('stroke-dasharray', score.score + ', 100');
+            ringPath.classList.remove('low', 'medium', 'high');
+            if (score.score >= 60) ringPath.classList.add('high');
+            else if (score.score >= 40) ringPath.classList.add('medium');
+            else ringPath.classList.add('low');
+        }
+        
+        // Update risk
+        var risk = getRiskLevel(metrics);
+        var riskValue = $('eval-risk-value');
+        var riskDetail = $('eval-risk-detail');
+        if (riskValue) {
+            riskValue.textContent = risk.level;
+            riskValue.className = 'metric-value ' + (risk.level === 'High' ? 'negative' : risk.level === 'Low' ? 'positive' : 'neutral');
+        }
+        if (riskDetail) riskDetail.textContent = risk.detail;
+        
+        // Update performance
+        var perf = getPerformance(metrics);
+        var perfValue = $('eval-perf-value');
+        var perfDetail = $('eval-perf-detail');
+        if (perfValue) {
+            perfValue.textContent = perf.value;
+            perfValue.className = 'metric-value ' + perf.cls;
+        }
+        if (perfDetail) perfDetail.textContent = perf.detail;
+        
+        // Update concentration
+        var conc = getConcentration(metrics);
+        var concValue = $('eval-conc-value');
+        var concDetail = $('eval-conc-detail');
+        if (concValue) {
+            concValue.textContent = conc.value;
+            concValue.className = 'metric-value ' + (metrics.maxWeight > 50 ? 'negative' : metrics.maxWeight > 30 ? 'neutral' : 'positive');
+        }
+        if (concDetail) concDetail.textContent = conc.detail;
+        
+        // Update correlation
+        var corr = getCorrelationSummary(metrics);
+        var corrValue = $('eval-corr-value');
+        var corrDetail = $('eval-corr-detail');
+        if (corrValue) {
+            corrValue.textContent = corr.value;
+            corrValue.className = 'metric-value ' + (corr.value === 'High' ? 'negative' : 'positive');
+        }
+        if (corrDetail) corrDetail.textContent = corr.detail;
+        
+        // Update sectors context
+        updateSectorContext();
+    }
+    
+    // Update sector performance display
+    function updateSectorContext() {
+        var container = $('eval-sectors');
+        if (!container) return;
+        
+        if (typeof sectorData !== 'undefined' && sectorData && sectorData.length > 0) {
+            var html = '';
+            for (var i = 0; i < sectorData.length; i++) {
+                var s = sectorData[i];
+                html += '<span class="sector-tag ' + (s.change >= 0 ? 'up' : 'down') + '">' +
+                    s.name + ' ' + (s.change >= 0 ? '+' : '') + s.change.toFixed(1) + '%</span>';
+            }
+            container.innerHTML = html;
+        } else {
+            container.innerHTML = '<span class="sector-tag">Loading sector data...</span>';
+        }
+    }
+    
+    // Main evaluation function
+    async function evaluate() {
+        if (isEvaluating) return;
+        
+        // Check cache
+        var now = Date.now();
+        if (evaluationCache && (now - evaluationCache.time) < CACHE_TTL) {
+            updateUI(evaluationCache.score, evaluationCache.metrics);
+            $('eval-rec-content').innerHTML = evaluationCache.recommendations;
+            return;
+        }
+        
+        isEvaluating = true;
+        var status = $('evaluator-status');
+        if (status) {
+            status.textContent = 'Evaluating...';
+            status.className = 'evaluator-status loading';
+        }
+        
+        try {
+            var metrics = calculateMetrics();
+            var score = calculateScore(metrics);
+            
+            // Update metrics UI immediately
+            updateUI(score, metrics);
+            
+            // Fetch AI recommendations
+            var recommendations = await fetchAIRecommendations(metrics);
+            var recContent = $('eval-rec-content');
+            if (recContent) {
+                recContent.innerHTML = recommendations;
+            }
+            
+            // Cache results
+            evaluationCache = {
+                time: now,
+                score: score,
+                metrics: metrics,
+                recommendations: recommendations
+            };
+            
+            if (status) {
+                status.textContent = 'Updated';
+                status.className = 'evaluator-status success';
+            }
+        } catch (e) {
+            console.error('Evaluator error:', e);
+            if (status) {
+                status.textContent = 'Error';
+                status.className = 'evaluator-status error';
+            }
+        }
+        
+        isEvaluating = false;
+        lastEvaluation = Date.now();
+    }
+    
+    // Force refresh
+    function refresh() {
+        evaluationCache = null;
+        evaluate();
+    }
+    
+    // Initialize and hook into refreshPrices
+    function init() {
+        // Initial evaluation after a short delay
+        setTimeout(evaluate, 1000);
+        
+        // Hook into existing price refresh cycle
+        var originalRefreshPrices = window.refreshPrices;
+        if (typeof originalRefreshPrices === 'function') {
+            window.refreshPrices = async function() {
+                await originalRefreshPrices.apply(this, arguments);
+                // Refresh evaluator after prices update
+                if ($('tab-ai').style.display !== 'none') {
+                    evaluate();
+                }
+            };
+        }
+    }
+    
+    // Public API
+    return {
+        init: init,
+        evaluate: evaluate,
+        refresh: refresh
+    };
+})();
+
+// Global refresh function for button
+window.refreshEvaluator = function() {
+    PortfolioEvaluator.refresh();
+};
+
+// Initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+        PortfolioEvaluator.init();
+    }, 2000);
+});
+
+
+})();

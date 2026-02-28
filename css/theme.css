@@ -1051,3 +1051,254 @@ body.light-theme .panel {
     color: var(--text-dim);
     margin-left: 8px;
 }
+
+/* ===== Portfolio Evaluator ===== */
+.evaluator-container {
+    margin-top: 16px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.evaluator-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+}
+
+.evaluator-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 14px;
+    color: var(--cyan);
+    font-weight: 600;
+}
+
+.evaluator-refresh {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-dim);
+    padding: 4px 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.evaluator-refresh:hover {
+    background: var(--cyan);
+    color: var(--bg-dark);
+}
+
+.evaluator-status {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-left: auto;
+}
+
+.evaluator-status.loading {
+    color: var(--gold);
+}
+
+.evaluator-status.error {
+    color: var(--red);
+}
+
+.evaluator-status.success {
+    color: var(--green);
+}
+
+/* Score Card */
+.evaluator-score-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.evaluator-score-ring {
+    position: relative;
+    width: 100px;
+    height: 100px;
+}
+
+.evaluator-score-ring svg {
+    transform: rotate(-90deg);
+    width: 100%;
+    height: 100%;
+}
+
+.score-ring-bg {
+    fill: none;
+    stroke: var(--bg-elevated);
+    stroke-width: 3;
+}
+
+.score-ring-fill {
+    fill: none;
+    stroke: var(--cyan);
+    stroke-width: 3;
+    stroke-linecap: round;
+    transition: stroke-dasharray 0.5s ease, stroke 0.3s ease;
+}
+
+.score-ring-fill.low { stroke: var(--red); }
+.score-ring-fill.medium { stroke: var(--gold); }
+.score-ring-fill.high { stroke: var(--green); }
+
+.score-value {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Orbitron', monospace;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-bright);
+}
+
+.score-label {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 8px;
+}
+
+/* Metrics Grid */
+.evaluator-metrics {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.evaluator-metric {
+    background: var(--bg-elevated);
+    border-radius: 8px;
+    padding: 12px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+}
+
+.metric-icon {
+    font-size: 20px;
+    line-height: 1;
+}
+
+.metric-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.metric-label {
+    font-size: 10px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.metric-value {
+    font-family: 'Orbitron', monospace;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-bright);
+    margin: 2px 0;
+}
+
+.metric-value.positive { color: var(--green); }
+.metric-value.negative { color: var(--red); }
+.metric-value.neutral { color: var(--gold); }
+
+.metric-detail {
+    font-size: 11px;
+    color: var(--text-dim);
+}
+
+/* Recommendations */
+.evaluator-recommendations {
+    background: var(--bg-elevated);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 12px;
+}
+
+.rec-header {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--cyan);
+    margin-bottom: 8px;
+}
+
+.rec-content {
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.5;
+}
+
+.rec-loading {
+    color: var(--text-dim);
+    font-style: italic;
+}
+
+.rec-item {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.rec-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.rec-item strong {
+    color: var(--cyan);
+}
+
+/* Market Context */
+.evaluator-context {
+    background: var(--bg-elevated);
+    border-radius: 8px;
+    padding: 12px;
+}
+
+.context-header {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--purple);
+    margin-bottom: 8px;
+}
+
+.context-sectors {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.sector-tag {
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    background: var(--bg-surface);
+}
+
+.sector-tag.up { color: var(--green); }
+.sector-tag.down { color: var(--red); }
+
+/* Mobile Responsive */
+@media (max-width: 480px) {
+    .evaluator-metrics {
+        grid-template-columns: 1fr;
+    }
+    
+    .evaluator-score-ring {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .score-value {
+        font-size: 22px;
+    }
+}

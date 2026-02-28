@@ -338,6 +338,77 @@
                         <input type="text" id="ai-input" placeholder="Ask about your portfolio, market trends, or strategies..." onkeypress="if(event.key==='Enter')sendAI()">
                         <button onclick="sendAI()" aria-label="Send message">SEND</button>
                     </div>
+                    <!-- Portfolio Evaluator Section -->
+                    <div class="evaluator-container" id="portfolio-evaluator">
+                        <div class="evaluator-header">
+                            <span class="evaluator-title">🔍 AI Portfolio Evaluator</span>
+                            <button class="evaluator-refresh" onclick="refreshEvaluator()" aria-label="Refresh portfolio evaluation">↻</button>
+                            <span class="evaluator-status" id="evaluator-status">Ready</span>
+                        </div>
+                        
+                        <!-- Health Score -->
+                        <div class="evaluator-score-card">
+                            <div class="evaluator-score-ring" id="evaluator-score-ring">
+                                <svg viewBox="0 0 36 36">
+                                    <path class="score-ring-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                                    <path class="score-ring-fill" id="score-ring-path" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                                </svg>
+                                <div class="score-value" id="evaluator-score">--</div>
+                            </div>
+                            <div class="score-label" id="evaluator-score-label">Portfolio Health</div>
+                        </div>
+                        
+                        <!-- Metrics Grid -->
+                        <div class="evaluator-metrics">
+                            <div class="evaluator-metric" id="evaluator-risk">
+                                <div class="metric-icon">⚠️</div>
+                                <div class="metric-content">
+                                    <div class="metric-label">Risk Level</div>
+                                    <div class="metric-value" id="eval-risk-value">--</div>
+                                    <div class="metric-detail" id="eval-risk-detail">Analyzing...</div>
+                                </div>
+                            </div>
+                            <div class="evaluator-metric" id="evaluator-performance">
+                                <div class="metric-icon">📊</div>
+                                <div class="metric-content">
+                                    <div class="metric-label">Performance</div>
+                                    <div class="metric-value" id="eval-perf-value">--</div>
+                                    <div class="metric-detail" id="eval-perf-detail">Analyzing...</div>
+                                </div>
+                            </div>
+                            <div class="evaluator-metric" id="evaluator-concentration">
+                                <div class="metric-icon">🎯</div>
+                                <div class="metric-content">
+                                    <div class="metric-label">Concentration</div>
+                                    <div class="metric-value" id="eval-conc-value">--</div>
+                                    <div class="metric-detail" id="eval-conc-detail">Analyzing...</div>
+                                </div>
+                            </div>
+                            <div class="evaluator-metric" id="evaluator-correlation">
+                                <div class="metric-icon">🔗</div>
+                                <div class="metric-content">
+                                    <div class="metric-label">Correlation</div>
+                                    <div class="metric-value" id="eval-corr-value">--</div>
+                                    <div class="metric-detail" id="eval-corr-detail">Analyzing...</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- AI Recommendations -->
+                        <div class="evaluator-recommendations" id="evaluator-recommendations">
+                            <div class="rec-header">💡 AI Recommendations</div>
+                            <div class="rec-content" id="eval-rec-content">
+                                <div class="rec-loading">Add holdings to get AI recommendations</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Sector Context -->
+                        <div class="evaluator-context" id="evaluator-context">
+                            <div class="context-header">🌍 Market Context</div>
+                            <div class="context-sectors" id="eval-sectors">--</div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </main>
@@ -357,7 +428,7 @@
     <div class="modal-overlay" id="portfolio-modal"><div class="modal modal-lg"><div class="modal-header"><span class="modal-title">Portfolio Holdings</span><button aria-label="Close" class="modal-close" onclick="hidePortfolioEdit()">X</button></div><div class="modal-body"><div id="holdings-list"></div><div style="margin-top:12px"><button aria-label="Save changes" class="btn-primary" onclick="saveHoldings()">SAVE CHANGES</button></div></div></div></div>
 
     <!-- Add Asset Modal -->
-    <div class="modal-overlay" id="add-asset-modal"><div class="modal"><div class="modal-header"><span class="modal-title">Add Asset to Portfolio</span><button class="modal-close" onclick="hideAddAsset()" aria-label="Close modal">X</button></div><div class="modal-body"><input type="text" class="add-asset-search" id="asset-search" placeholder="Search assets..." oninput="searchAssets()"><div id="asset-options"></div></div></div></div>
+    <div class="modal-overlay" id="add-asset-modal"><div class="modal"><div class="modal-header"><span class="modal-title">Add Asset to Portfolio</span><button class="modal-close" onclick="hideAddAsset()" aria-label="Close modal">X</button></div><div class="modal-body"><input type="text" class="add-asset-search" id="modal-asset-search" placeholder="Search assets..." oninput="searchAssets()"><div id="asset-options"></div></div></div></div>
 
     <!-- PR Modal -->
     
