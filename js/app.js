@@ -1007,19 +1007,8 @@ function renderAlloc() { if(allocCt) allocCt.destroy(); allocCt = new Chart($('a
             $('asset-details').innerHTML = h;
         }
         function renderNews() {
-            var news = [
-                {title:'Fed signals potential rate cuts in 2024',tag:'Economy',time:'2h ago'},
-                {title:'Bitcoin ETF sees record inflows',tag:'Crypto',time:'3h ago'},
-                {title:'NVIDIA announces new AI chip lineup',tag:'Tech',time:'4h ago'},
-                {title:'Apple Vision Pro sales exceed expectations',tag:'Tech',time:'5h ago'},
-                {title:'Ethereum upgrade scheduled for Q2',tag:'Crypto',time:'6h ago'}
-            ];
-            var h = '';
-            for(var i=0;i<news.length;i++){
-                h += '<div class="news-item"><div class="news-title">'+news[i].title+'</div>';
-                h += '<div class="news-meta"><span class="news-tag">'+news[i].tag+'</span><span>'+news[i].time+'</span></div></div>';
-            }
-            $('news-feed').innerHTML = h;
+            // News feed coming soon - no hardcoded articles
+            $('news-feed').innerHTML = '<div class="news-placeholder" style="padding:20px;text-align:center;color:var(--text-muted);"><p>News feed coming soon</p></div>';
         }
         function renderCalendar() {
             var events = [
