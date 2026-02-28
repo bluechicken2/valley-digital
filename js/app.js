@@ -2412,15 +2412,18 @@ function setupInfoTooltips() {
     }, 100); // Small delay to ensure DOM is ready
 }
 
-function init() { 
-            setTimeout(function(){
-                if(checkSession()){
-                    showDashboard();
-                    setupInfoTooltips();
-                }else{
-                    showLogin();
-                }
-            },CONFIG.INIT_DELAY); 
+async function init() {
+            // Wait for Supabase to initialize first
+            await new Promise(resolve => setTimeout(resolve, 800));
+
+            // Check for existing session (now awaits properly)
+            var hasSession = await checkSession();
+            if(hasSession){
+                showDashboard();
+                setupInfoTooltips();
+            }else{
+                showLogin();
+            }
         }
         if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
     })();
