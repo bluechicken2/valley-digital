@@ -282,8 +282,8 @@ function generateTimeLabels(count, tf) {
                 return ema;
             }
             // Use full history for accurate EMA calculation
-            var ema12 = calcEMA(arr, 12);
-            var ema26 = calcEMA(arr, 26);
+            var ema12 = Indicators.calcEMA(arr, 12);
+            var ema26 = Indicators.calcEMA(arr, 26);
             if (!ema12 || !ema26) return null;
             var macd = ema12 - ema26;
             // Normalize as percentage of price for display
@@ -691,9 +691,9 @@ async function fetchSectors() {
             var closes = candles.map(function(c) { return c.c; });
             
             // Calculate indicators
-            var sma20 = showSMA20 ? calcSMA(closes, 20) : [];
-            var ema9 = showEMA ? calcEMA(closes, 9) : [];
-            var ema21 = showEMA ? calcEMA(closes, 21) : [];
+            var sma20 = showSMA20 ? Indicators.calcSMA(closes, 20) : [];
+            var ema9 = showEMA ? Indicators.calcEMA(closes, 9) : [];
+            var ema21 = showEMA ? Indicators.calcEMA(closes, 21) : [];
             var bb = showBollinger ? calcBollingerBands(closes, 20, 2) : null;
             var srLevels = showSR ? calcSupportResistance(candles) : [];
             
@@ -825,7 +825,7 @@ async function fetchSectors() {
                 downsampledVols.push(volSum / count);
                 downsampledLbls.push(lbls[Math.min(vi + Math.floor(volStep/2), lbls.length - 1)]);
             }
-            var volMA = calcSMA(downsampledVols, 10);
+            var volMA = Indicators.calcSMA(downsampledVols, 10);
             volCt = new Chart($('volCt'),{
                 type:'bar',
                 data:{
@@ -1185,34 +1185,10 @@ function renderAlloc() { if(allocCt) allocCt.destroy(); allocCt = new Chart($('a
             setTimeout(function() { renderChart(); }, 100);
         };
         
-        // Calculate indicators
-        function calcSMA(data, period) {
-            var result = [];
-            for(var i = 0; i < data.length; i++) {
-                if(i < period - 1) { result.push(null); }
-                else {
-                    var sum = 0;
-                    for(var j = 0; j < period; j++) sum += data[i - j];
-                    result.push(sum / period);
-                }
-            }
-            return result;
-        }
         
-        function calcEMA(data, period) {
-            var result = [];
-            var k = 2 / (period + 1);
-            var ema = data[0];
-            for(var i = 0; i < data.length; i++) {
-                if(i === 0) { ema = data[i]; }
-                else { ema = data[i] * k + ema * (1 - k); }
-                result.push(ema);
-            }
-            return result;
-        }
         
         function calcBollingerBands(data, period, stdDev) {
-            var sma = calcSMA(data, period);
+            var sma = Indicators.calcSMA(data, period);
             var upper = [], lower = [];
             for(var i = 0; i < data.length; i++) {
                 if(i < period - 1) {
