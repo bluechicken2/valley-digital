@@ -936,3 +936,118 @@ body.light-theme .panel {
     position: relative;
     width: 100%;
 }
+
+/* ==================== NEWS FEED STYLING ==================== */
+.news-item {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.2s;
+}
+.news-item:hover {
+    background: rgba(0,240,255,0.05);
+}
+.news-item:last-child {
+    border-bottom: none;
+}
+.news-title {
+    color: var(--text-bright);
+    font-size: 0.95rem;
+    line-height: 1.4;
+    margin-bottom: 8px;
+}
+.news-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+}
+.news-source {
+    opacity: 0.8;
+}
+.news-sentiment {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+.news-sentiment.positive {
+    background: rgba(0,255,136,0.2);
+    color: #00ff88;
+}
+.news-sentiment.negative {
+    background: rgba(255,51,102,0.2);
+    color: #ff3366;
+}
+.news-sentiment.neutral {
+    background: rgba(136,136,136,0.2);
+    color: #888;
+}
+
+/* ==================== ECONOMIC CALENDAR STYLING ==================== */
+.cal-event {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    background: rgba(255,255,255,0.02);
+    border-radius: 8px;
+    border-left: 3px solid var(--border);
+}
+.cal-event.high {
+    border-left-color: #ff3366;
+    background: rgba(255,51,102,0.05);
+}
+.cal-event.medium {
+    border-left-color: #ffd700;
+    background: rgba(255,215,0,0.05);
+}
+.cal-event.low {
+    border-left-color: #00f0ff;
+    background: rgba(0,240,255,0.05);
+}
+.cal-today {
+    border: 1px solid var(--cyan);
+    box-shadow: 0 0 10px rgba(0,240,255,0.2);
+}
+.cal-time {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    min-width: 50px;
+}
+.cal-name {
+    flex: 1;
+    margin: 0 12px;
+    color: var(--text-bright);
+    font-size: 0.9rem;
+}
+.cal-impact {
+    font-size: 0.65rem;
+    padding: 3px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+.cal-impact.high {
+    background: rgba(255,51,102,0.3);
+    color: #ff3366;
+}
+.cal-impact.medium {
+    background: rgba(255,215,0,0.3);
+    color: #ffd700;
+}
+.cal-impact.low {
+    background: rgba(0,240,255,0.3);
+    color: #00f0ff;
+}
+.cal-currency {
+    font-size: 0.75rem;
+    padding: 2px 6px;
+    background: var(--bg);
+    border-radius: 4px;
+    color: var(--text-dim);
+    margin-left: 8px;
+}
