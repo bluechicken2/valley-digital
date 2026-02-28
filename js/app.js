@@ -1236,8 +1236,19 @@ function renderAlloc() {
             $('asset-details').innerHTML = h;
         }
         function renderNews() {
-            // News feed coming soon - no hardcoded articles
-            $('news-feed').innerHTML = '<div class="news-placeholder" style="padding:20px;text-align:center;color:var(--text-muted);"><p>News feed coming soon</p></div>';
+            if(!$('news-list')) return;
+            try {
+                var cached = getCached('news', 300000); // 5 min cache
+                var articles = cached || await fetch(API_BASE+'/news').then(r=>r.json());
+                if(!cached) setCache('news', articles);
+                var h = '';
+                articles.forEach(function(a) {
+                    h += '<div class="news-item"><a href="'+escapeHtml(a.url)+'" target="_blank" rel="noopener"><div class="news-title">'+escapeHtml(a.title)+'</div><div class="news-meta"><span>'+escapeHtml(a.source)+'</span><span class="news-sentiment '+(a.sentiment||'neutral')+'">'+((a.sentiment||'neutral').toUpperCase())+'</span></div></a></div>';
+                });
+                $('news-list').innerHTML = h || '<div class="empty-state">No news available</div>';
+            } catch(e) {
+                $('news-list').innerHTML = '<div class="empty-state">News unavailable</div>';
+            }
         }
         function renderCalendar() {
             // Economic calendar coming soon - no hardcoded events

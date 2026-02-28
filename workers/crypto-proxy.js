@@ -51,13 +51,30 @@ async function handleRequest(request) {
         version: '4.2',
         fmp: FMP_API_KEY ? 'configured' : 'missing',
         alphaVantage: ALPHA_VANTAGE_KEY ? 'configured' : 'missing',
-        endpoints: ['/prices', '/stocks', '/quote', '/ohlc', '/sectors', '/health'],
+        endpoints: ['/prices', '/stocks', '/quote', '/ohlc', '/sectors', '/news', '/health'],
         timestamp: Date.now()
       }), { headers: corsHeaders });
-    } else {
+        } else if (path === '/news') {
+        try {
+            const newsUrl = 'https://cryptopanic.com/api/v1/posts/?auth_token=FREE&public=true&kind=news&filter=rising';
+            const response = await fetch(newsUrl);
+            const data = await response.json();
+            return new Response(JSON.stringify(data.results?.slice(0, 10).map(n => ({
+                title: n.title,
+                url: n.url,
+                source: n.source.title,
+                published: n.published_at,
+                sentiment: n.votes?.negative > n.votes?.positive ? 'negative' : 'positive'
+            })) || []), {
+                headers: corsHeaders
+            });
+        } catch(e) {
+            return new Response(JSON.stringify([]), { headers: corsHeaders });
+        }
+} else {
       return new Response(JSON.stringify({
         error: 'Not found',
-        endpoints: ['/prices', '/stocks', '/quote', '/ohlc', '/sectors', '/health']
+        endpoints: ['/prices', '/stocks', '/quote', '/ohlc', '/sectors', '/news', '/health']
       }), { headers: corsHeaders });
     }
   } catch (error) {
