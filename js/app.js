@@ -351,13 +351,9 @@ function generateTimeLabels(count, tf) {
         }
         
         function getFallbackStocks() {
-            return {
-                AAPL: { price: 178.50, changePercent: 1.2 },
-                NVDA: { price: 785.20, changePercent: 2.8 },
-                TSLA: { price: 245.80, changePercent: -0.5 },
-                GOOGL: { price: 141.25, changePercent: 0.8 },
-                MSFT: { price: 405.60, changePercent: 1.1 }
-            };
+            // Return null instead of stale prices - UI should show "Data unavailable"
+            console.error('Stock API unavailable - no fallback data');
+            return null;
         }
         function updateTime() { $('time').textContent = new Date().toLocaleTimeString(); }
         
