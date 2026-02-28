@@ -28,17 +28,6 @@ var $ = function(id) { return document.getElementById(id); };
             if(!str) return '';
             return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
         }
-var currentTheme = localStorage.getItem('theme') || 'dark';
-window.toggleTheme = function() {
-    currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
-    document.body.classList.toggle('light-theme', currentTheme === 'light');
-    $('theme-btn').innerHTML = currentTheme === 'dark' ? '&#9790;' : '&#9788;';
-    localStorage.setItem('theme', currentTheme);
-};
-if(currentTheme === 'light') {
-    document.addEventListener('DOMContentLoaded', function() { document.body.classList.add('light-theme'); });
-}
-
 
         // Supabase configuration - ANON KEY is safe for client-side (publishable key)
         // Row Level Security (RLS) policies protect all user data
@@ -91,7 +80,6 @@ var CONFIG = {
         var PORTFOLIO_DATA_VERSION = '2.0';
 
         var user = null, userTier = 'free', sel = null, data = [], alerts = [], sectorData = [], watchlists = [{name:'Crypto',symbols:['BTC','ETH','SOL']},{name:'Tech',symbols:['AAPL','NVDA','MSFT','GOOGL']}];
-        var portfolioHistory = JSON.parse(localStorage.getItem('portfolio_history')||'[]');
         var priceCt = null, volCt = null, allocCt = null, chartType = 'line', timeframe = '1D', chartRendering = false;
         
         // API Response Cache
@@ -360,8 +348,6 @@ function generateTimeLabels(count, tf) {
             }
             renderAll();
             loadUserAlerts();
-            loadWatchlist();
-            renderPortfolioChart();
             refreshPrices();
             setInterval(refreshPrices,CONFIG.REFRESH_INTERVAL);
             updateTime();
@@ -413,36 +399,13 @@ function generateTimeLabels(count, tf) {
                 hideLoading('price-spinner');
                 renderAll();
                 trackPriceChanges();
-                savePortfolioSnapshot();
             checkAlerts();} catch(e) { $('status-dot').className='status-dot error';$('status-text').textContent='CACHED';$('data-badge').textContent='CACHED'; }
         }
         
         function renderAll() { if(!sel || !data || data.length === 0) { return; } try { renderAssets();renderPortfolio();renderTicker();renderInds();renderFG();renderSectors();renderActions();renderPreds();renderWeights();renderChart();renderAlloc();renderAnalytics();renderCorrelation();renderAssetDetails();renderNews();renderCalendar(); } catch(e) { console.error('renderAll error:', e); } }
         
         function renderAssets() { if(!$('assets')) return; var h=''; for(var i=0;i<data.length;i++){var a=data[i];h+='<div data-symbol="'+a.sym+'" class="asset'+(a.sym===sel.sym?' active':'')+'" onclick="selAsset(\''+a.sym+'\')"><div style="display:flex;align-items:center"><div class="asset-icon" style="background:'+a.color+'22;color:'+a.color+'">'+a.sym.substr(0,2)+'</div><div><div class="asset-name">'+a.sym+'<span class="star'+(a.fav?' active':'')+'" onclick="event.stopPropagation();toggleFav(\''+a.sym+'\')">*</span></div><div class="asset-type">'+a.name+'</div></div></div><div style="display:flex;align-items:center;gap:6px"><div style="text-align:right"><div class="asset-price">$'+fmt(a.price)+'</div><div class="asset-chg '+(a.chg>=0?'up':'down')+'">'+(a.chg>=0?'+':'')+a.chg.toFixed(2)+'%</div></div></div></div>';} $('assets').innerHTML=h; }
-        
-function savePortfolioSnapshot() {
-    var total = data.filter(function(a){return a.hold>0;}).reduce(function(sum,a){ return sum + (a.price * a.hold); }, 0);
-    var now = new Date(); var today = now.toISOString().split('T')[0];
-    var existing = portfolioHistory.find(function(h){return h.date===today;});
-    if(existing) { existing.value = total; }
-    else { portfolioHistory.push({ date: today, value: total }); if(portfolioHistory.length > 30) portfolioHistory.shift(); }
-    localStorage.setItem('portfolio_history', JSON.stringify(portfolioHistory));
-}
-function renderPortfolioChart() {
-    var canvas = $('portfolio-chart'); if(!canvas || portfolioHistory.length < 2) return;
-    var ctx = canvas.getContext('2d');
-    var values = portfolioHistory.map(function(h){return h.value;});
-    var labels = portfolioHistory.map(function(h){return h.date.slice(5);});
-    if(window.portfolioLineChart) window.portfolioLineChart.destroy();
-    window.portfolioLineChart = new Chart(ctx, {
-        type: 'line', data: { labels: labels, datasets: [{ data: values, borderColor: '#00f0ff',
-        backgroundColor: 'rgba(0,240,255,0.1)', fill: true, tension: 0.4, pointRadius: 0 }] },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
-        scales: { x: { display: false }, y: { display: false } } }
-    });
-}
-function renderPortfolio() { if(!$('port-val')) return; var tot=0,chg=0; for(var i=0;i<data.length;i++){tot+=data[i].price*data[i].hold;chg+=data[i].price*data[i].hold*data[i].chg/100;} var pct=chg/tot*100; $('port-val').textContent='$'+fmt(tot);$('port-chg').textContent=(chg>=0?'+':'')+'$'+fmt(Math.abs(chg))+' ('+(pct>=0?'+':'')+pct.toFixed(2)+'%)';$('port-chg').className='portfolio-change '+(chg>=0?'up':'down');$('intel').textContent=Math.round(50+pct*2); }
+        function renderPortfolio() { if(!$('port-val')) return; var tot=0,chg=0; for(var i=0;i<data.length;i++){tot+=data[i].price*data[i].hold;chg+=data[i].price*data[i].hold*data[i].chg/100;} var pct=chg/tot*100; $('port-val').textContent='$'+fmt(tot);$('port-chg').textContent=(chg>=0?'+':'')+'$'+fmt(Math.abs(chg))+' ('+(pct>=0?'+':'')+pct.toFixed(2)+'%)';$('port-chg').className='portfolio-change '+(chg>=0?'up':'down');$('intel').textContent=Math.round(50+pct*2); }
         function renderTicker() { if(!$('ticker')) return; var h=''; for(var i=0;i<data.length*2;i++){var a=data[i%data.length];h+='<span class="ticker-item" onclick="selAsset(\''+a.sym+'\')"><span class="ticker-sym">'+a.sym+'</span> $'+fmt(a.price)+' <span style="color:'+(a.chg>=0?'var(--green)':'var(--red)')+'">'+(a.chg>=0?'+':'')+a.chg.toFixed(1)+'%</span></span>';} $('ticker').innerHTML=h+h; }
         function renderFG() { var avg=0; for(var i=0;i<data.length;i++)avg+=data[i].chg; avg/=data.length; var v=Math.max(10,Math.min(90,50-avg*2)); var lbl=v>=75?'GREED':v>=55?'OPTIMISM':v>=45?'NEUTRAL':v>=25?'FEAR':'EXTREME FEAR'; var col=v>=55?'var(--green)':v>=45?'var(--cyan)':v>=25?'var(--gold)':'var(--red)'; $('fg-val').textContent=Math.round(v);$('fg-val').style.color=col;$('fg-lbl').textContent=lbl;$('fg-lbl').style.color=col;$('fg-dot').style.left=v+'%'; }
         function renderInds() { 
@@ -1237,51 +1200,31 @@ function renderAlloc() {
             h += '<div class="analytics-card"><div class="analytics-label">Total Return</div><div class="analytics-value" style="color:'+(ret>=0?'var(--green)':'var(--red)')+'">'+(ret*100).toFixed(2)+'%</div><div class="analytics-sub">Current</div></div>';
             $('analytics-grid').innerHTML = h;
         }
-        function calcCorrelation(x, y) {
-    var n = Math.min(x.length, y.length);
-    if(n < 10) return 0;
-    var sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0, sumY2 = 0;
-    for(var i = 0; i < n; i++) {
-        sumX += x[i]; sumY += y[i]; sumXY += x[i] * y[i];
-        sumX2 += x[i] * x[i]; sumY2 += y[i] * y[i];
-    }
-    var num = n * sumXY - sumX * sumY;
-    var den = Math.sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY));
-    return den === 0 ? 0 : num / den;
-}
-
-function renderCorrelation() {
-    var container = $('corr-matrix');
-    if(!container) return;
-    var holdings = data.filter(function(a){return a.hold > 0 && a.history && a.history.length > 10;});
-    if(holdings.length < 2) {
-        container.innerHTML = '<div class="empty-state">Add 2+ assets with price history</div>';
-        return;
-    }
-    var returns = {};
-    holdings.forEach(function(a) {
-        var changes = [];
-        for(var i = 1; i < a.history.length; i++) {
-            changes.push((a.history[i] - a.history[i-1]) / a.history[i-1]);
+        function renderCorrelation() {
+            var syms = ['BTC','ETH','AAPL','NVDA','TSLA'];
+            var h = '<div class="corr-grid"><div class="corr-cell corr-header"></div>';
+            for(var i=0;i<syms.length;i++) h += '<div class="corr-cell corr-header">'+syms[i]+'</div>';
+            for(var i=0;i<syms.length;i++){
+                h += '<div class="corr-cell corr-header">'+syms[i]+'</div>';
+                for(var j=0;j<syms.length;j++){
+                    var c;
+                    if(i===j) c = 1;
+                    else {
+                        // Calculate correlation between assets - find by symbol, not index
+                        var a1 = data.find(function(a){return a.sym===syms[i];});
+                        var a2 = data.find(function(a){return a.sym===syms[j];});
+                        if(!a1 || !a2) { c = 0; }
+                        else {
+                            c = ((a1.chg * a2.chg) / (Math.abs(a1.chg) * Math.abs(a2.chg) || 1) * 0.5 + 0.5 * (a1.chg > 0 === a2.chg > 0 ? 0.3 : -0.3)).toFixed(2);
+                        }
+                    }
+                    var col = c>0.5?'rgba(0,255,136,'+(c/2)+')':c<-0.5?'rgba(255,51,102,'+(Math.abs(c)/2)+')':'rgba(100,100,100,0.3)';
+                    h += '<div class="corr-cell" style="background:'+col+')">'+c+'</div>';
+                }
+            }
+            h += '</div>';
+            $('corr-matrix').innerHTML = h;
         }
-        returns[a.sym] = changes;
-    });
-    var html = '<table class="corr-table"><thead><tr><th></th>';
-    holdings.forEach(function(a){html+='<th>'+a.sym+'</th>';});
-    html += '</tr></thead><tbody>';
-    holdings.forEach(function(a1) {
-        html += '<tr><th>'+a1.sym+'</th>';
-        holdings.forEach(function(a2) {
-            var corr = calcCorrelation(returns[a1.sym]||[], returns[a2.sym]||[]);
-            var color = corr > 0.5 ? 'rgba(0,255,136,0.3)' : corr < -0.5 ? 'rgba(255,51,102,0.3)' : 'transparent';
-            html += '<td style="background:'+color+'">'+corr.toFixed(2)+'</td>';
-        });
-        html += '</tr>';
-    });
-    html += '</tbody></table>';
-    container.innerHTML = html;
-}
-
         function renderAssetDetails() {
             var h = '<div class="detail-row"><span class="detail-label">Symbol</span><span class="detail-value">'+sel.sym+'</span></div>';
             h += '<div class="detail-row"><span class="detail-label">Name</span><span class="detail-value">'+sel.name+'</span></div>';
@@ -1293,7 +1236,7 @@ function renderCorrelation() {
             if(sel.div) h += '<div class="detail-row"><span class="detail-label">Dividend</span><span class="detail-value">'+sel.div+'%</span></div>';
             $('asset-details').innerHTML = h;
         }
-        async function renderNews() {
+        function renderNews() {
             if(!$('news-list')) return;
             try {
                 var cached = getCached('news', 300000); // 5 min cache
@@ -1622,32 +1565,7 @@ function renderCorrelation() {
 
 window.selAsset = function(s) { for(var i=0;i<data.length;i++) if(data[i].sym===s){sel=data[i];break;} $('chart-sym').textContent=s; 
 if(!history[s])history[s]=null; renderAssets();renderInds();renderActions();renderAssetDetails();renderChart(); fetchOHLC(s).then(function(d){ if(d && d.length>0){ history[s]=d.map(function(c){return c[4];}); renderInds();renderActions(); } }); };
-        window.toggleFav = async function(sym) {
-    var asset = data.find(function(a){return a.sym===sym;});
-    if(!asset) return;
-    asset.fav = !asset.fav;
-    if(typeof TradingAI !== 'undefined' && TradingAI.isAuthenticated()) {
-        try {
-            if(asset.fav) { await TradingAI.addToWatchlist(sym); }
-            else { await TradingAI.removeFromWatchlist(sym); }
-        } catch(e) { console.error('Watchlist sync error:', e); }
-    }
-    renderAssets(); renderPortfolio(); saveHoldings();
-    showToast(asset.fav ? sym+' added to watchlist' : sym+' removed from watchlist');
-};
-window.loadWatchlist = async function() {
-    if(typeof TradingAI !== 'undefined' && TradingAI.isAuthenticated()) {
-        try {
-            var result = await TradingAI.loadWatchlist();
-            if(result.success && result.data) {
-                result.data.forEach(function(item) {
-                    var asset = data.find(function(a){return a.sym===item.symbol;});
-                    if(asset) asset.fav = true;
-                });
-            }
-        } catch(e) { console.error('Load watchlist error:', e); }
-    }
-};
+        window.toggleFav = function(s) { for(var i=0;i<data.length;i++) if(data[i].sym===s){data[i].fav=!data[i].fav;renderAssets();showToast(s+(data[i].fav?' added to':' removed from')+' favorites');break;} };
         window.setTf = function(tf) { 
             // Destroy existing charts immediately
             if(priceCt) { priceCt.destroy(); priceCt = null; }
@@ -1771,7 +1689,7 @@ window.deleteAlert = async function(idx, alertId) {
                     var cond = a.cond || a.condition;
                     var price = a.price || a.target_price;
                     var id = a.id || '';
-                    h += '<div class="alert-item"><span class="sym">' + a.sym + '</span><span>' + (cond === 'above' ? '>' : '<') + '</span><span class="price">$' + fmt(price) + '</span><span style="color:var(--red);cursor:pointer" onclick="deleteAlert(' + i + ',' + id + ')">X</span></div>';
+                    h += '<div class="alert-item"><span class="sym">' + a.sym + '</span><span>' + (cond === 'above' ? '>' : '<') + '</span><span class="price">$' + fmt(price) + '</span><span style="color:var(--red);cursor:pointer" onclick="deleteAlert(' + i + ','' + id + '')">X</span></div>';
                 }
             }
             $('alerts-list').innerHTML = h;
