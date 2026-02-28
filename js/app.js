@@ -347,6 +347,7 @@ function generateTimeLabels(count, tf) {
                 }
             }
             renderAll();
+            loadUserAlerts();
             refreshPrices();
             setInterval(refreshPrices,CONFIG.REFRESH_INTERVAL);
             updateTime();
@@ -1609,7 +1610,33 @@ if(!history[s])history[s]=null; renderAssets();renderInds();renderActions();rend
         window.hideAlerts = function() { $('alerts-modal').classList.remove('show'); };
         window.showAddAlert = function() { hideAlerts(); var opts=''; for(var i=0;i<data.length;i++) opts+='<option value="'+data[i].sym+'">'+data[i].sym+'</option>'; $('alert-asset').innerHTML=opts; $('alert-asset').value=sel.sym; $('alert-price').value=''; $('add-alert-modal').classList.add('show'); };
         window.hideAddAlert = function() { $('add-alert-modal').classList.remove('show'); };
-        window.createAlert = function() { var sym=$('alert-asset').value,cond=$('alert-cond').value,price=parseFloat($('alert-price').value); if(!price||price<=0){showToast('Please enter a valid price');return;} alerts.push({sym:sym,cond:cond,price:price,active:true}); localStorage.setItem('tradingai_alerts', JSON.stringify(alerts)); $('alert-count').textContent=alerts.length; hideAddAlert(); showToast('Alert created: '+sym+' '+cond+' $'+fmt(price)); };
+        window.createAlert = async function() {
+            var sym = $('alert-asset').value;
+            var cond = $('alert-cond').value;
+            var price = parseFloat($('alert-price').value);
+            if(!price || price <= 0) {
+                showToast('Please enter a valid price');
+                return;
+            }
+
+            if(typeof TradingAI !== 'undefined' && TradingAI.isAuthenticated()) {
+                var result = await TradingAI.createAlert(sym, cond, price);
+                if(result.success) {
+                    showToast('Alert created: ' + sym + ' ' + cond + ' $' + fmt(price));
+                    hideAddAlert();
+                    await loadUserAlerts();
+                } else {
+                    showToast('Failed to create alert: ' + (result.error || 'Unknown error'));
+                }
+            } else {
+                // Save locally if not authenticated
+                alerts.push({sym: sym, cond: cond, price: price, active: true});
+                localStorage.setItem('tradingai_alerts', JSON.stringify(alerts));
+                $('alert-count').textContent = alerts.length;
+                hideAddAlert();
+                showToast('Alert saved locally: ' + sym + ' ' + cond + ' $' + fmt(price));
+            }
+        };
         
         function checkAlerts() {
             if(alerts.length === 0) return;
@@ -1639,8 +1666,53 @@ if(!history[s])history[s]=null; renderAssets();renderInds();renderActions();rend
             }
         }
         
-window.deleteAlert = function(idx) { alerts.splice(idx,1); localStorage.setItem('tradingai_alerts', JSON.stringify(alerts)); $('alert-count').textContent=alerts.length; renderAlertsList(); showToast('Alert deleted'); };
-        function renderAlertsList() { var h=''; if(alerts.length===0){h='<div style="text-align:center;padding:20px;color:var(--text-dim)">No alerts</div>';} else{for(var i=0;i<alerts.length;i++){h+='<div class="alert-item"><span class="sym">'+alerts[i].sym+'</span><span>'+(alerts[i].cond==='above'?'>':'<')+'</span><span class="price">$'+fmt(alerts[i].price)+'</span><span style="color:var(--red);cursor:pointer" onclick="deleteAlert('+i+')">X</span></div>';}} $('alerts-list').innerHTML=h; }
+window.deleteAlert = async function(idx, alertId) {
+            if(typeof TradingAI !== 'undefined' && TradingAI.isAuthenticated() && alertId) {
+                await TradingAI.deleteAlert(alertId);
+                await loadUserAlerts();
+            } else {
+                alerts.splice(idx, 1);
+                localStorage.setItem('tradingai_alerts', JSON.stringify(alerts));
+                $('alert-count').textContent = alerts.length;
+                renderAlertsList();
+            }
+            showToast('Alert deleted');
+        };
+        function renderAlertsList() {
+            var h = '';
+            var alertData = window.userAlerts || alerts;
+            if(alertData.length === 0) {
+                h = '<div style="text-align:center;padding:20px;color:var(--text-dim)">No alerts</div>';
+            } else {
+                for(var i = 0; i < alertData.length; i++) {
+                    var a = alertData[i];
+                    var cond = a.cond || a.condition;
+                    var price = a.price || a.target_price;
+                    var id = a.id || '';
+                    h += '<div class="alert-item"><span class="sym">' + a.sym + '</span><span>' + (cond === 'above' ? '>' : '<') + '</span><span class="price">$' + fmt(price) + '</span><span style="color:var(--red);cursor:pointer" onclick="deleteAlert(' + i + ','' + id + '')">X</span></div>';
+                }
+            }
+            $('alerts-list').innerHTML = h;
+        }
+
+        // Load user alerts (from Supabase or localStorage)
+        window.loadUserAlerts = async function() {
+            if(typeof TradingAI !== 'undefined' && TradingAI.isAuthenticated()) {
+                var result = await TradingAI.loadAlerts();
+                if(result.success) {
+                    window.userAlerts = result.data || [];
+                    alerts = window.userAlerts;
+                }
+            } else {
+                var savedAlerts = localStorage.getItem('tradingai_alerts');
+                if(savedAlerts) {
+                    alerts = JSON.parse(savedAlerts);
+                }
+                window.userAlerts = alerts;
+            }
+            $('alert-count').textContent = alerts.length;
+            renderAlertsList();
+        };
         window.showWatchlists = function() { $('user-dropdown').classList.remove('show'); renderWatchlists(); $('watchlists-modal').classList.add('show'); };
         window.hideWatchlists = function() { $('watchlists-modal').classList.remove('show'); };
         function renderWatchlists() { var h=''; for(var i=0;i<watchlists.length;i++){h+='<div class="watchlist-item"><span class="watchlist-name">'+watchlists[i].name+'</span><span class="watchlist-count">'+watchlists[i].symbols.length+' assets</span></div>';} $('watchlists-list').innerHTML=h; }
