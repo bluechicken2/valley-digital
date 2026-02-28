@@ -106,7 +106,7 @@
                 <div class="user-menu">
                     <button aria-label="User menu" class="user-menu-btn" onclick="toggleUserMenu()"><span id="header-email">User</span> v</button>
                     <div class="user-menu-dropdown" id="user-dropdown">
-                        <div class="user-menu-item" onclick="showPRModal()">Pull Requests</div><div class="user-menu-item" onclick="showWatchlists()">Watchlists</div>
+                        <div class="user-menu-item" onclick="showWatchlists()">Watchlists</div>
                         <div class="user-menu-item" onclick="showProfile()">Account Settings</div>
                         <div class="user-menu-item" onclick="showPricing()">Upgrade Plan</div>
                         <div class="user-menu-divider"></div>
@@ -135,9 +135,6 @@
                         <div class="panel-body">
                             <div class="portfolio-value" id="port-val">$0.00</div>
                             <div class="portfolio-change up" id="port-chg">+$0.00 (0.00%)</div>
-                            <div class="portfolio-chart-container" style="height:60px;margin-top:10px;">
-                                <canvas id="portfolio-chart"></canvas>
-                            </div>
                             <div class="portfolio-chart-container" style="height:60px;margin-top:10px;">
                                 <canvas id="portfolio-chart"></canvas>
                             </div>
@@ -363,7 +360,7 @@
     <div class="modal-overlay" id="add-asset-modal"><div class="modal"><div class="modal-header"><span class="modal-title">Add Asset to Portfolio</span><button class="modal-close" onclick="hideAddAsset()" aria-label="Close modal">X</button></div><div class="modal-body"><input type="text" class="add-asset-search" id="asset-search" placeholder="Search assets..." oninput="searchAssets()"><div id="asset-options"></div></div></div></div>
 
     <!-- PR Modal -->
-    <div class="modal-overlay" id="pr-modal"><div class="modal modal-lg"><div class="modal-header"><span class="modal-title">Create Pull Request</span><button class="modal-close" onclick="hidePRModal()" aria-label="Close modal">X</button></div><div class="modal-body"><div class="form-group"><label for="pr-branch">Branch Name</label><input type="text" id="pr-branch" placeholder="feature/my-changes"></div><div class="form-group"><label for="pr-title">PR Title</label><input type="text" id="pr-title" placeholder="Add new feature"></div><div class="form-group"><label for="pr-desc">Description</label><textarea id="pr-desc" style="width:100%;height:80px;background:var(--bg-surface);border:1px solid var(--border);border-radius:6px;padding:10px;color:var(--text-bright);resize:none" placeholder="Describe your changes..."></textarea></div><button aria-label="Create pull request" class="btn-primary" onclick="createPR()">CREATE PULL REQUEST</button><div class="panel-spacing"><span class="panel-title">Recent Pull Requests</span></div><div class="pr-list" id="pr-list" style="margin-top:8px"></div></div></div></div>
+    
     <div class="toast" id="toast"></div>
     
     <script src="js/modules/indicators.js"></script>

@@ -371,83 +371,92 @@ function generateTimeLabels(count, tf) {
         window.showLogin = function() { $('loading').style.display='none'; $('dashboard').style.display='none'; $('auth-login').style.display='flex'; $('auth-signup').style.display='none'; $('auth-reset').style.display='none'; };
         window.showSignup = function() { $('auth-login').style.display='none'; $('auth-signup').style.display='flex'; $('auth-reset').style.display='none'; };
         window.showReset = function() { $('auth-login').style.display='none'; $('auth-signup').style.display='none'; $('auth-reset').style.display='flex'; };
-        async function supabaseAuth(ep, body) { var r = await fetch(SUPABASE_URL+'/auth/v1'+ep, {method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY},body:JSON.stringify(body)}); return {ok:r.ok,data:await r.json()}; }
+        // Auth handled by TradingAI SDK (supabase-integration.js)
         window.handleLogin = async function() {
-    // Rate limiting check (Phase 10)
-    var rateCheck = checkRateLimit('login', 5, 900000); // 5 attempts, 15 min lockout
-    if(rateCheck.blocked) {
-        $('login-error').textContent = 'Too many attempts. Wait '+rateCheck.waitMinutes+' minutes.';
-        $('login-error').classList.add('show');
-        return;
-    }
-
-    var email = $('login-email').value.trim();
-    var pwd = $('login-password').value;
-
-    if(!email || !pwd) {
-        $('login-error').textContent = 'Please fill in all fields';
-        $('login-error').classList.add('show');
-        return;
-    }
-
-    var r = await supabaseAuth('/token?grant_type=password', {email: email, password: pwd});
-    if(r.ok && r.data.access_token) {
-        clearRateLimit('login');
-        localStorage.setItem('sb_token', r.data.access_token);
-        localStorage.setItem('sb_user', JSON.stringify(r.data.user));
-        user = r.data.user;
-        userTier = 'pro';
-        showDashboard();
-        setupInfoTooltips();
-    } else {
-        recordAttempt('login');
-        $('login-error').textContent = r.data.error_description || 'Login failed';
-        $('login-error').classList.add('show');
-    }
-};
+            // Rate limiting check
+            var rateCheck = checkRateLimit('login', 5, 900000);
+            if(rateCheck.blocked) {
+                $('login-error').textContent = 'Too many attempts. Wait '+rateCheck.waitMinutes+' min.';
+                $('login-error').classList.add('show'); return;
+            }
+            var email = $('login-email').value.trim(), pwd = $('login-password').value;
+            if(!email||!pwd){$('login-error').textContent='Please fill in all fields';$('login-error').classList.add('show');return;}
+            $('login-error').classList.remove('show');
+            if(typeof TradingAI !== 'undefined') {
+                var result = await TradingAI.signIn(email, pwd);
+                if(result.success) {
+                    user = result.data.user;
+                    userTier = 'pro';
+                    clearRateLimit('login');
+                    showDashboard();
+                    setupInfoTooltips();
+                    // Load cloud portfolio after login
+                    setTimeout(async function() {
+                        try {
+                            var port = await TradingAI.loadPortfolio();
+                            if(port.success && port.data && port.data.length > 0) {
+                                var h = {};
+                                port.data.forEach(function(item){ if(item.quantity>0) h[item.symbol]=item.quantity; });
+                                localStorage.setItem('holdings', JSON.stringify(h));
+                                data.forEach(function(a){ if(h[a.sym]) a.hold=h[a.sym]; });
+                                renderAll(); showToast('Portfolio synced ☁️');
+                            }
+                        } catch(e) {}
+                    }, 500);
+                } else {
+                    recordAttempt('login');
+                    $('login-error').textContent = result.error?.message || 'Login failed';
+                    $('login-error').classList.add('show');
+                }
+            } else {
+                $('login-error').textContent = 'Auth system not loaded';
+                $('login-error').classList.add('show');
+            }
+        };
         window.handleSignup = async function() {
-    // Rate limiting check (Phase 10)
-    var rateCheck = checkRateLimit('signup', 3, 3600000); // 3 attempts, 1 hour lockout
-    if(rateCheck.blocked) {
-        $('signup-error').textContent = 'Too many attempts. Wait '+rateCheck.waitMinutes+' minutes.';
-        $('signup-error').classList.add('show');
-        return;
-    }
-
-    var email = $('signup-email').value.trim();
-    var pwd = $('signup-password').value;
-    var confirm = $('signup-confirm') ? $('signup-confirm').value : pwd;
-
-    if(!email || !pwd) {
-        $('signup-error').textContent = 'Please fill in all fields';
-        $('signup-error').classList.add('show');
-        return;
-    }
-    if(pwd !== confirm) {
-        $('signup-error').textContent = 'Passwords do not match';
-        $('signup-error').classList.add('show');
-        return;
-    }
-    if(pwd.length < 8) {
-        $('signup-error').textContent = 'Password must be 8+ characters';
-        $('signup-error').classList.add('show');
-        return;
-    }
-
-    var r = await supabaseAuth('/signup', {email: email, password: pwd});
-    if(r.ok) {
-        clearRateLimit('signup');
-        $('signup-success').textContent = 'Account created! Check your email.';
-        $('signup-success').classList.add('show');
-        setTimeout(showLogin, 2000);
-    } else {
-        recordAttempt('signup');
-        $('signup-error').textContent = r.data.error_description || 'Signup failed';
-        $('signup-error').classList.add('show');
-    }
-};
-        window.handleReset = async function() { var email=$('reset-email').value; if(!email){$('reset-error').textContent='Please enter your email';$('reset-error').classList.add('show');return;} var r=await fetch(SUPABASE_URL+'/auth/v1/recover',{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY},body:JSON.stringify({email:email})}); if(r.ok){$('reset-success').textContent='Check your email for reset link';$('reset-success').classList.add('show');} };
-        window.handleLogout = function() { localStorage.removeItem('sb_token');localStorage.removeItem('sb_user');user=null;showLogin();$('user-dropdown').classList.remove('show'); };
+            // Rate limiting check
+            var rateCheck = checkRateLimit('signup', 3, 3600000);
+            if(rateCheck.blocked) {
+                $('signup-error').textContent = 'Too many attempts. Wait '+rateCheck.waitMinutes+' min.';
+                $('signup-error').classList.add('show'); return;
+            }
+            var email = $('signup-email').value.trim(), pwd = $('signup-password').value;
+            var confirm = $('signup-confirm') ? $('signup-confirm').value : pwd;
+            if(!email||!pwd){$('signup-error').textContent='Please fill in all fields';$('signup-error').classList.add('show');return;}
+            if(pwd !== confirm){$('signup-error').textContent='Passwords do not match';$('signup-error').classList.add('show');return;}
+            if(pwd.length < 8){$('signup-error').textContent='Password must be 8+ characters';$('signup-error').classList.add('show');return;}
+            $('signup-error').classList.remove('show');
+            recordAttempt('signup');
+            if(typeof TradingAI !== 'undefined') {
+                var result = await TradingAI.signUp(email, pwd);
+                if(result.success) {
+                    clearRateLimit('signup');
+                    $('signup-success').textContent = 'Account created! Check your email to verify.';
+                    $('signup-success').classList.add('show');
+                    setTimeout(showLogin, 2000);
+                } else {
+                    $('signup-error').textContent = result.error?.message || 'Signup failed';
+                    $('signup-error').classList.add('show');
+                }
+            } else {
+                $('signup-error').textContent = 'Auth system not loaded';
+                $('signup-error').classList.add('show');
+            }
+        };
+        window.handleReset = async function() {
+            var email=$('reset-email').value;
+            if(!email){$('reset-error').textContent='Please enter your email';$('reset-error').classList.add('show');return;}
+            if(typeof TradingAI !== 'undefined') {
+                var result = await TradingAI.resetPassword(email);
+                if(result.success){$('reset-success').textContent='Check your email for reset link';$('reset-success').classList.add('show');}
+                else{$('reset-error').textContent=result.error?.message||'Reset failed';$('reset-error').classList.add('show');}
+            }
+        };
+        window.handleLogout = async function() {
+            if(typeof TradingAI !== 'undefined') await TradingAI.signOut();
+            localStorage.removeItem('sb_token'); localStorage.removeItem('sb_user');
+            user=null; showLogin(); $('user-dropdown').classList.remove('show');
+        };
         window.selectTier = function(t) { document.querySelectorAll('.tier-option').forEach(function(o){o.classList.remove('selected');});event.currentTarget.classList.add('selected'); };
         
         function checkSession() { var t=localStorage.getItem('sb_token'),u=localStorage.getItem('sb_user'); if(t&&u){user=JSON.parse(u);userTier='pro';return true;} return false; }
