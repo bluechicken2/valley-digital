@@ -1422,7 +1422,7 @@ function renderAlloc() {
         // Interactions
         
         // Chart Enhancement Variables
-        var showBollinger = false, showEMA = false, showSR = false, showSMA200 = localStorage.getItem('showSMA200') === 'true', showSMA20 = localStorage.getItem('showSMA20') !== 'false';
+        var showBollinger = false, showEMA = false, showSR = false, showSMA200 = localStorage.getItem('showSMA200') === 'true', showSMA20 = localStorage.getItem('showSMA20') === 'true';
         // Sync button states on init
         document.addEventListener('DOMContentLoaded', function() {
             if($('toggle-sma20')) $('toggle-sma20').classList.toggle('active', showSMA20);
