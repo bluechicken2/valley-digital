@@ -8,6 +8,8 @@ ENVIRONMENT = "production"
 # Secrets (set via: wrangler secret put <NAME>)
 # - FINANCIAL_MODELING_PREP
 # - ALPHA_VANTAGE_API
+# - CRYPTOPANIC_API_KEY  <- NEW: Get from https://cryptopanic.com/api/
+# - VENICE_KEY
 
 # Routes - uncomment and modify after deployment
 # [[routes]]
