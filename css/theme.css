@@ -1789,3 +1789,18 @@ body.light-theme .panel {
 #portfolio-modal .modal-body {
     max-height: calc(60vh - 180px) !important;
 }
+
+/* ==========================================
+   FIX: Make modal overlay scrollable
+   ========================================== */
+.modal-overlay {
+    overflow-y: auto !important;
+    align-items: flex-start !important;
+    justify-content: center !important;
+}
+
+.modal-overlay .modal {
+    margin-top: 5vh !important;
+    margin-bottom: 10vh !important;
+    flex-shrink: 0 !important;
+}
