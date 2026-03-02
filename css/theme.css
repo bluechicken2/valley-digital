@@ -1304,28 +1304,6 @@ body.light-theme .panel {
 }
 
 /* CRITICAL FIX: Modal Overlay Display */
-.modal-overlay {
-    display: none !important;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0,0,0,0.8);
-    z-index: 1000;
-    align-items: center;
-    justify-content: center;
-}
-
-.modal-overlay.show {
-    display: flex !important;
-}
-
-/* ==========================================
-   ENHANCED MODAL SYSTEM - Cyberpunk Terminal
-   TradingAI Neural Nexus Dashboard
-   ========================================== */
-
 /* Modal Overlay - Dark backdrop with blur */
 .modal-overlay {
     position: fixed !important;
