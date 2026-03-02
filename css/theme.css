@@ -1771,3 +1771,21 @@ body.light-theme .panel {
 .modal-body {
     max-height: calc(55vh - 100px) !important;
 }
+
+/* ==========================================
+   FIX: Portfolio Modal - Explicit high positioning
+   ========================================== */
+#portfolio-modal {
+    align-items: flex-start !important;
+    padding-top: 60px !important;
+    padding-bottom: 100px !important;
+}
+
+#portfolio-modal .modal {
+    max-height: 65vh !important;
+    margin-top: 0 !important;
+}
+
+#portfolio-modal .modal-body {
+    max-height: calc(60vh - 180px) !important;
+}
