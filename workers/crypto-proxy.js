@@ -97,9 +97,12 @@ async function getNews(corsHeaders) {
                      (n.votes && n.votes.positive > 0) ? 'positive' : 'neutral',
           currencies: (n.currencies || []).map(c => c.code).slice(0, 3)
         }));
-        cache.news.data = articles;
-        cache.news.timestamp = Date.now();
-        return new Response(JSON.stringify(articles), { headers: corsHeaders });
+        // Only use API results if we actually got articles
+        if (articles.length > 0) {
+          cache.news.data = articles;
+          cache.news.timestamp = Date.now();
+          return new Response(JSON.stringify(articles), { headers: corsHeaders });
+        }
       }
     } catch (error) {
       console.error('CryptoPanic error:', error);
