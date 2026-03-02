@@ -1772,64 +1772,31 @@ body.light-theme .panel {
     max-height: calc(55vh - 100px) !important;
 }
 
-/* ==========================================
-   FIX: Portfolio Modal - Explicit high positioning
-   ========================================== */
-#portfolio-modal {
-    align-items: flex-start !important;
-    padding-top: 60px !important;
-    padding-bottom: 100px !important;
-}
-
-#portfolio-modal .modal {
-    max-height: 65vh !important;
-    margin-top: 0 !important;
-}
-
-#portfolio-modal .modal-body {
-    max-height: calc(60vh - 180px) !important;
-}
 
 /* ==========================================
-   FIX: Make modal overlay scrollable
-   ========================================== */
-.modal-overlay {
-    overflow-y: auto !important;
-    align-items: flex-start !important;
-    justify-content: center !important;
-}
-
-.modal-overlay .modal {
-    margin-top: 5vh !important;
-    margin-bottom: 10vh !important;
-    flex-shrink: 0 !important;
-}
-
-/* ==========================================
-   NUCLEAR FIX: Force modal to top with reduced height
+   DEFINITIVE FIX: Portfolio Modal Positioning
    ========================================== */
 #portfolio-modal.show {
     display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    justify-content: flex-start !important;
-    padding-top: 30px !important;
-    padding-bottom: 30px !important;
+    align-items: flex-start !important;
+    justify-content: center !important;
+    padding: 20px !important;
     overflow-y: auto !important;
 }
 
 #portfolio-modal.show .modal {
-    position: relative !important;
-    top: 0 !important;
-    max-height: 60vh !important;
-    margin: 0 auto !important;
+    max-height: 55vh !important;
+    min-height: auto !important;
+    margin-top: 10px !important;
 }
 
 #portfolio-modal.show .modal-body {
-    max-height: 40vh !important;
+    max-height: 35vh !important;
     overflow-y: auto !important;
 }
 
 #portfolio-modal.show .modal-footer {
-    flex-shrink: 0 !important;
+    position: sticky !important;
+    bottom: 0 !important;
+    background: var(--bg-panel) !important;
 }
