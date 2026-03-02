@@ -1804,3 +1804,32 @@ body.light-theme .panel {
     margin-bottom: 10vh !important;
     flex-shrink: 0 !important;
 }
+
+/* ==========================================
+   NUCLEAR FIX: Force modal to top with reduced height
+   ========================================== */
+#portfolio-modal.show {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    padding-top: 30px !important;
+    padding-bottom: 30px !important;
+    overflow-y: auto !important;
+}
+
+#portfolio-modal.show .modal {
+    position: relative !important;
+    top: 0 !important;
+    max-height: 60vh !important;
+    margin: 0 auto !important;
+}
+
+#portfolio-modal.show .modal-body {
+    max-height: 40vh !important;
+    overflow-y: auto !important;
+}
+
+#portfolio-modal.show .modal-footer {
+    flex-shrink: 0 !important;
+}
