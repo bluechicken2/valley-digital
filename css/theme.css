@@ -160,7 +160,7 @@
         .holding-row { 
             display: flex !important;
             justify-content: space-between !important;
-            align-items: center !important;
+            align-items: flex-start !important;
             padding: 12px !important;
             background: var(--bg-surface) !important;
             border: 1px solid var(--border) !important;
@@ -270,7 +270,7 @@
         .indicator-ema9 { background: #ff6b6b; }
         .indicator-ema21 { background: #4ecdc4; }
         .indicator-bb { background: rgba(100,149,237,0.5); }
-        .chart-fullscreen { position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 9999 !important; border-radius: 0 !important; padding: 20px !important; background: var(--bg-void) !important; }
+        .chart-fullscreen { position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 9999 !important; border-radius: 0 !important; padding: 40px 20px !important; background: var(--bg-void) !important; }
         .chart-fullscreen .chart-canvas-container { height: calc(100% - 160px) !important; }
         .chart-fullscreen-btn { position: absolute; top: 8px; right: 8px; z-index: 20; background: rgba(0,0,0,0.5); border: 1px solid var(--border); border-radius: 4px; padding: 4px 8px; color: var(--text-dim); font-size: 0.65rem; cursor: pointer; }
         .chart-fullscreen-btn:hover { background: var(--cyan); color: var(--bg-void); }
@@ -1340,9 +1340,9 @@ body.light-theme .panel {
     -webkit-backdrop-filter: blur(8px) !important;
     z-index: 1000 !important;
     display: none !important;
-    align-items: center !important;
+    align-items: flex-start !important;
     justify-content: center !important;
-    padding: 20px !important;
+    padding: 40px 20px !important;
     animation: modalFadeIn 0.25s ease !important;
 }
 
@@ -1394,7 +1394,7 @@ body.light-theme .panel {
 /* Modal Header - Title Bar */
 .modal-header {
     display: flex !important;
-    align-items: center !important;
+    align-items: flex-start !important;
     justify-content: space-between !important;
     padding: 18px 20px !important;
     background: linear-gradient(90deg, rgba(0, 240, 255, 0.08) 0%, rgba(168, 85, 247, 0.08) 100%) !important;
@@ -1437,7 +1437,7 @@ body.light-theme .panel {
 
 /* Modal Body - Scrollable content area */
 .modal-body {
-    padding: 20px !important;
+    padding: 40px 20px !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
     max-height: calc(85vh - 140px) !important;
@@ -1578,7 +1578,7 @@ body.light-theme .panel {
     transition: all 0.2s ease !important;
     display: flex !important;
     justify-content: space-between !important;
-    align-items: center !important;
+    align-items: flex-start !important;
 }
 
 #asset-options div:hover {
@@ -1600,7 +1600,7 @@ body.light-theme .panel {
 .holding-row {
     display: flex !important;
     justify-content: space-between !important;
-    align-items: center !important;
+    align-items: flex-start !important;
     padding: 14px 16px !important;
     background: var(--bg-surface) !important;
     border: 1px solid var(--border) !important;
