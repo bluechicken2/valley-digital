@@ -1748,3 +1748,26 @@ body.light-theme .panel {
     padding: 14px 20px !important;
     box-shadow: 0 -10px 20px var(--bg-panel) !important;
 }
+
+/* ==========================================
+   FIX: Modal Footer - Always visible at bottom
+   ========================================== */
+.modal-footer {
+    padding: 16px 20px !important;
+    background: linear-gradient(180deg, var(--bg-void) 0%, var(--bg-panel) 100%) !important;
+    border-top: 1px solid rgba(0, 240, 255, 0.15) !important;
+    border-radius: 0 0 16px 16px !important;
+    flex-shrink: 0 !important;
+}
+
+.modal-footer .btn-primary {
+    width: 100% !important;
+    padding: 14px 20px !important;
+    font-size: 0.9rem !important;
+    letter-spacing: 1px !important;
+}
+
+/* Adjust modal-body to leave space for footer */
+.modal-body {
+    max-height: calc(80vh - 180px) !important;
+}
