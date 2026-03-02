@@ -1,5 +1,5 @@
 // TradingAI Supabase Configuration
-// This file contains the connection settings for Supabase backend
+// Updated: 2026-03-02
 
 const SUPABASE_CONFIG = {
     url: 'https://dkxydhuojaspmbpjfyoz.supabase.co',
@@ -73,11 +73,11 @@ class SupabaseClient {
     async createAlert(userId, symbol, condition, targetPrice) {
         return this.request('/rest/v1/alerts', {
             method: 'POST',
-            body: JSON.stringify({ 
-                user_id: userId, 
-                symbol, 
-                condition, 
-                target_price: targetPrice 
+            body: JSON.stringify({
+                user_id: userId,
+                symbol,
+                condition,
+                target_price: targetPrice
             })
         });
     }
