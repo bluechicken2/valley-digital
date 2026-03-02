@@ -480,12 +480,11 @@ function generateTimeLabels(count, tf) {
             try {
                 var cached = getCached('prices', CACHE_TTL.PRICE);
                 var crypto, stocks;
-                if(cached if(cached && cached.crypto && cached.stocks) {if(cached && cached.crypto && cached.stocks) { cached.crypto if(cached && cached.crypto && cached.stocks) {if(cached && cached.crypto && cached.stocks) { cached.stocks if(cached && cached.crypto && cached.stocks) {if(cached && cached.crypto && cached.stocks) { cached.crypto.bitcoin if(cached && cached.crypto && cached.stocks) {if(cached && cached.crypto && cached.stocks) { cached.crypto.bitcoin.usd > 0) {
+                if(cached && cached.crypto && cached.stocks && cached.crypto.bitcoin && cached.crypto.bitcoin.usd > 0) {
                     crypto = cached.crypto;
                     stocks = cached.stocks;
                 } else {
                     var cryptoRes = await fetch(API_BASE+'/prices');
-                    if(!cryptoRes.ok) throw new Error("Worker prices failed: "+cryptoRes.status);
                     crypto = await cryptoRes.json();
                     // Try stocks endpoint, use fallback if not available
                     try {
