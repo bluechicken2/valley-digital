@@ -1,12 +1,17 @@
 // TradingAI Service Worker v2.0.0 - Phase 10 Security & Performance
 
-const CACHE_NAME = 'tradingai-v1';
+const CACHE_NAME = 'tradingai-v2';
 const STATIC_ASSETS = [
     '/',
     '/index.html',
     '/css/theme.css',
     '/js/app.js',
-    'https://cdn.jsdelivr.net/npm/chart.js'
+    '/js/supabase-integration.js',
+    '/js/modules/indicators.js',
+    'https://cdn.jsdelivr.net/npm/chart.js',
+    'https://cdn.jsdelivr.net/npm/chartjs-chart-financial@0.1.1/dist/chartjs-chart-financial.min.js',
+    'https://cdn.jsdelivr.net/npm/luxon@3.4.4/build/global/luxon.min.js',
+    'https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.3.1/dist/chartjs-adapter-luxon.umd.min.js'
 ];
 const API_CACHE_TTL = 30000; // 30 seconds for API
 
@@ -79,31 +84,6 @@ self.addEventListener('fetch', (event) => {
         })
     );
 });
-
-// Background sync for offline actions
-self.addEventListener('sync', (event) => {
-    if (event.tag === 'sync-prices') {
-        event.waitUntil(syncPrices());
-    }
-});
-
-async function syncPrices() {
-    try {
-        const response = await fetch('https://tradingapi-proxy.cloudflare-5m9f2.workers.dev/prices');
-        const data = await response.json();
-
-        // Notify all clients
-        const clients = await self.clients.matchAll();
-        clients.forEach((client) => {
-            client.postMessage({
-                type: 'PRICES_UPDATED',
-                data: data
-            });
-        });
-    } catch (error) {
-        console.error('Sync failed:', error);
-    }
-}
 
 // Push notifications
 self.addEventListener('push', (event) => {

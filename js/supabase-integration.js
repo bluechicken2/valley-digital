@@ -38,34 +38,21 @@
             onAuthStateChange(event, session);
         });
 
-        console.log('Supabase initialized');
         return true;
     }
 
     // Handle auth state changes
     async function onAuthStateChange(event, session) {
-        const authContainer = document.getElementById('auth-modal');
-        const userMenu = document.getElementById('user-menu');
-
         if (event === 'SIGNED_IN' && session) {
-            if (authContainer) authContainer.classList.add('hidden');
-            if (userMenu) {
-                userMenu.classList.remove('hidden');
-                const userEmail = document.getElementById('user-email');
-                if (userEmail) userEmail.textContent = session.user.email;
-            }
-
+            // Load all user data in parallel
             await Promise.all([
                 loadPortfolio(),
                 loadAlerts(),
                 loadWatchlists(),
                 loadUserSettings()
             ]);
-
-            showNotification('Welcome back!', 'success');
+            showNotification('Portfolio synced from cloud ☁️', 'success');
         } else if (event === 'SIGNED_OUT') {
-            if (authContainer) authContainer.classList.remove('hidden');
-            if (userMenu) userMenu.classList.add('hidden');
             clearUserData();
             showNotification('Signed out', 'info');
         }
@@ -443,7 +430,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (typeof window.supabase !== 'undefined') {
         TradingAI.init().then(function(success) {
             if (success) {
-                console.log('TradingAI initialized successfully');
             } else {
                 console.error('TradingAI initialization failed');
             }

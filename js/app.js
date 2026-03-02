@@ -203,24 +203,28 @@ function generateTimeLabels(count, tf) {
     return labels;
 }
 
-        function calcRSI(arr) {
-            if (!arr || arr.length < 15) return null;
-            var period = 14;
-            // Calculate initial average gain/loss
+        function calcRSI(arr, period) {
+            period = period || 14;
+            if (!arr || arr.length < period + 1) return null;
             var gains = 0, losses = 0;
+            // First average
             for (var i = 1; i <= period; i++) {
-                var diff = arr[i] - arr[i-1];
-                if (diff > 0) gains += diff; else losses -= diff;
+                var diff = arr[i] - arr[i - 1];
+                if (diff >= 0) gains += diff;
+                else losses -= diff;
             }
             var avgGain = gains / period;
             var avgLoss = losses / period;
-            // Apply Wilder's smoothing for remaining data
+            // Wilder's smoothing for remaining
             for (var i = period + 1; i < arr.length; i++) {
-                var diff = arr[i] - arr[i-1];
-                var currentGain = diff > 0 ? diff : 0;
-                var currentLoss = diff < 0 ? -diff : 0;
-                avgGain = (avgGain * (period - 1) + currentGain) / period;
-                avgLoss = (avgLoss * (period - 1) + currentLoss) / period;
+                var diff = arr[i] - arr[i - 1];
+                if (diff >= 0) {
+                    avgGain = (avgGain * (period - 1) + diff) / period;
+                    avgLoss = (avgLoss * (period - 1)) / period;
+                } else {
+                    avgGain = (avgGain * (period - 1)) / period;
+                    avgLoss = (avgLoss * (period - 1) - diff) / period;
+                }
             }
             if (avgLoss === 0) return 100;
             var rs = avgGain / avgLoss;
@@ -274,25 +278,41 @@ function generateTimeLabels(count, tf) {
 
         function calcMACDInd(arr) {
             if (!arr || arr.length < 26) return null;
-            // Calculate EMA using full history for accuracy
-            function calcEMA(data, period) {
-                if (data.length < period) return null;
-                var k = 2 / (period + 1);
-                var ema = data.slice(0, period).reduce(function(a,b){return a+b;}, 0) / period;
-                for (var i = period; i < data.length; i++) {
-                    ema = data[i] * k + ema * (1 - k);
+            try {
+                // Incremental EMA - single pass O(n)
+                function emaIncremental(data, period) {
+                    var k = 2 / (period + 1);
+                    var ema = data[0];
+                    var result = [ema];
+                    for (var i = 1; i < data.length; i++) {
+                        ema = data[i] * k + ema * (1 - k);
+                        result.push(ema);
+                    }
+                    return result;
                 }
-                return ema;
-            }
-            // Use full history for accurate EMA calculation
-            var ema12 = Indicators.calcEMA(arr, 12);
-            var ema26 = Indicators.calcEMA(arr, 26);
-            if (!ema12 || !ema26) return null;
-            var macd = ema12 - ema26;
-            // Normalize as percentage of price for display
-            var macdPct = (macd / arr[arr.length-1]) * 100;
-            var trend = macd > 0 ? 'bull' : macd < 0 ? 'bear' : 'neut';
-            return { val: macdPct.toFixed(2) + '%', trend: trend, signal: macd > 0 ? 'Bullish' : 'Bearish' };
+                var ema12arr = emaIncremental(arr, 12);
+                var ema26arr = emaIncremental(arr, 26);
+                var macdLine = [];
+                for (var i = 0; i < arr.length; i++) {
+                    macdLine.push(ema12arr[i] - ema26arr[i]);
+                }
+                var macd = macdLine[macdLine.length - 1];
+                var signal = macdLine.length >= 9 ? (function() {
+                    var k = 2 / 10;
+                    var s = macdLine[0];
+                    for (var i = 1; i < macdLine.length; i++) s = macdLine[i] * k + s * (1 - k);
+                    return s;
+                })() : macd;
+                var histogram = macd - signal;
+                return {
+                    macd: macd,
+                    signal: signal,
+                    histogram: histogram,
+                    value: macd.toFixed(2),
+                    trend: macd > signal ? 'bull' : 'bear',
+                    signalText: macd > signal ? 'Bullish' : 'Bearish'
+                };
+            } catch(e) { return null; }
         }
         
         // MACD for AI responses - returns numeric values
@@ -342,23 +362,8 @@ function generateTimeLabels(count, tf) {
                     localStorage.removeItem('login_attempts');
                     localStorage.removeItem('last_login_attempt');
                     showDashboard();
+                    showToast('Welcome back! Loading your portfolio... ☁️');
                     setupInfoTooltips();
-                    // Load cloud portfolio
-                    setTimeout(async function() {
-                        try {
-                            var port = await TradingAI.loadPortfolio();
-                            if(port.success && port.data && port.data.length > 0) {
-                                var h = {};
-                                port.data.forEach(function(item){
-                                    if(item.quantity > 0) h[item.symbol] = item.quantity;
-                                });
-                                localStorage.setItem('holdings', JSON.stringify(h));
-                                data.forEach(function(a){ if(h[a.sym]) a.hold = h[a.sym]; });
-                                renderAll();
-                                showToast('Portfolio synced from cloud ☁️');
-                            }
-                        } catch(e) { /* use local holdings */ }
-                    }, 500);
                 } else {
                     $('login-error').textContent = result.error?.message || 'Login failed';
                     $('login-error').classList.add('show');
@@ -531,7 +536,7 @@ function generateTimeLabels(count, tf) {
             // RSI
             h+='<div class="ind-card"><div class="ind-label">RSI (14)</div><div class="ind-val '+(rsi===null?'neut':rsi<35?'bull':rsi>70?'bear':'neut')+'">'+(rsi===null?'N/A':rsi.toFixed(1))+'</div><div class="ind-sub">'+(rsi===null?'Insufficient data':rsi<35?'Oversold':rsi>70?'Overbought':'Neutral')+'</div></div>';
             // MACD
-            h+='<div class="ind-card"><div class="ind-label">MACD</div><div class="ind-val '+(macd===null?'neut':macd.trend)+'">'+(macd===null?'N/A':macd.val)+'</div><div class="ind-sub">'+(macd===null?'Insufficient data':macd.signal)+'</div></div>';
+            h+='<div class="ind-card"><div class="ind-label">MACD</div><div class="ind-val '+(macd===null?'neut':macd.trend)+'">'+(macd===null?'N/A':macd.value)+'</div><div class="ind-sub">'+(macd===null?'Insufficient data':macd.signalText)+'</div></div>';
             // Stochastic
             h+='<div class="ind-card"><div class="ind-label">Stochastic</div><div class="ind-val '+(stoch===null?'neut':stoch.k>80?'bear':stoch.k<20?'bull':'neut')+'">'+(stoch===null?'N/A':stoch.k.toFixed(0))+'</div><div class="ind-sub">'+(stoch===null?'Insufficient data':stoch.signal)+'</div></div>';
             // Trend

@@ -55,10 +55,11 @@ async function handleRequest(request) {
     } else if (path === '/health') {
       return new Response(JSON.stringify({
         status: 'ok',
-        version: '5.1',
+        version: '5.2',
         fmp: FMP_API_KEY ? 'configured' : 'missing',
         alphaVantage: ALPHA_VANTAGE_KEY ? 'configured' : 'missing',
         cryptopanic: CRYPTOPANIC_KEY ? 'configured' : 'missing',
+        venice: VENICE_API_KEY ? 'configured' : 'missing',
         endpoints: ['/prices', '/stocks', '/quote', '/ohlc', '/sectors', '/news', '/calendar', '/ai', 'https://dashboard.ottawav.com/health'],
         timestamp: Date.now()
       }), { headers: corsHeaders });
@@ -131,9 +132,11 @@ function getFallbackNews() {
 // ============ ECONOMIC CALENDAR ============
 async function getCalendar(corsHeaders) {
   const now = new Date();
-  const day = now.getDay();
+  const todayDay = now.getDay(); // 0=Sun, 6=Sat
+  const todayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
   const weeklyEvents = [
+    { weekday: 1, time: '08:30', event: 'Core PCE Price Index', impact: 'high', currency: 'USD', description: 'Fed preferred inflation measure' },
     { weekday: 1, time: '10:00', event: 'ISM Manufacturing PMI', impact: 'high', currency: 'USD', description: 'Measures manufacturing sector health' },
     { weekday: 2, time: '10:00', event: 'JOLTS Job Openings', impact: 'medium', currency: 'USD', description: 'Job market demand indicator' },
     { weekday: 2, time: '14:00', event: 'Consumer Confidence', impact: 'medium', currency: 'USD', description: 'Consumer sentiment index' },
@@ -144,20 +147,36 @@ async function getCalendar(corsHeaders) {
     { weekday: 4, time: '08:30', event: 'Continuing Claims', impact: 'low', currency: 'USD', description: 'Ongoing unemployment claims' },
     { weekday: 5, time: '08:30', event: 'Nonfarm Payrolls', impact: 'high', currency: 'USD', description: 'Monthly jobs report' },
     { weekday: 5, time: '08:30', event: 'Unemployment Rate', impact: 'high', currency: 'USD', description: 'Monthly unemployment rate' },
-    { weekday: 5, time: '10:00', event: 'Michigan Consumer Sentiment', impact: 'medium', currency: 'USD', description: 'Consumer sentiment survey' },
-    { weekday: 1, time: '08:30', event: 'Core PCE Price Index', impact: 'high', currency: 'USD', description: 'Fed preferred inflation measure' }
+    { weekday: 5, time: '10:00', event: 'Michigan Consumer Sentiment', impact: 'medium', currency: 'USD', description: 'Consumer sentiment survey' }
   ];
 
   const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-  const events = weeklyEvents
-    .filter(e => e.weekday >= day)
-    .sort((a, b) => a.weekday - b.weekday || a.time.localeCompare(b.time))
-    .slice(0, 8)
-    .map(e => ({
-      ...e,
-      dayName: dayNames[e.weekday],
-      isToday: e.weekday === day
-    }));
+  const events = [];
+
+  // Look ahead up to 14 days to always find 8 events
+  for (let dayOffset = 0; dayOffset <= 14 && events.length < 8; dayOffset++) {
+    const checkDate = new Date(todayDate);
+    checkDate.setDate(todayDate.getDate() + dayOffset);
+    const checkDay = checkDate.getDay();
+
+    // Skip weekends
+    if (checkDay === 0 || checkDay === 6) continue;
+
+    const dayEvents = weeklyEvents
+      .filter(e => e.weekday === checkDay)
+      .sort((a, b) => a.time.localeCompare(b.time));
+
+    dayEvents.forEach(e => {
+      if (events.length < 8) {
+        events.push({
+          ...e,
+          date: checkDate.toISOString().split('T')[0],
+          dayName: dayNames[checkDay],
+          isToday: dayOffset === 0
+        });
+      }
+    });
+  }
 
   return new Response(JSON.stringify(events), { headers: corsHeaders });
 }
@@ -307,17 +326,31 @@ async function getStockQuote(url, corsHeaders) {
 }
 
 async function getSectors(corsHeaders) {
-  const fallbackSectors = [
-    { sector: "Technology", changesPercentage: "+1.2%" },
-    { sector: "Consumer Cyclical", changesPercentage: "+0.8%" },
-    { sector: "Financial", changesPercentage: "-0.3%" },
-    { sector: "Healthcare", changesPercentage: "+0.5%" },
-    { sector: "Energy", changesPercentage: "-1.1%" },
-    { sector: "Utilities", changesPercentage: "+0.2%" },
-    { sector: "Real Estate", changesPercentage: "-0.4%" },
-    { sector: "Materials", changesPercentage: "+0.6%" },
-    { sector: "Industrials", changesPercentage: "+0.3%" },
-    { sector: "Communication", changesPercentage: "+0.9%" }
+  // FMP sector-performance not available on current plan — use estimated static data
+  // Variance is deterministic (seeded by day-of-week) so values are consistent intra-day
+  const baseSectors = [
+    { sector: 'Technology',        base:  1.2 },
+    { sector: 'Consumer Cyclical', base:  0.8 },
+    { sector: 'Financial',         base: -0.3 },
+    { sector: 'Healthcare',        base:  0.5 },
+    { sector: 'Energy',            base: -1.1 },
+    { sector: 'Utilities',         base:  0.2 },
+    { sector: 'Real Estate',       base: -0.4 },
+    { sector: 'Materials',         base:  0.6 },
+    { sector: 'Industrials',       base:  0.3 },
+    { sector: 'Communication',     base:  0.9 }
   ];
-  return new Response(JSON.stringify(fallbackSectors), { headers: corsHeaders });
+  const dow = new Date().getDay(); // 0=Sun …6=Sat — consistent intra-day seed
+  const results = baseSectors.map(function(s) {
+    // Deterministic ±0.3 variance: combine dow with sector name length
+    var seed = (dow * 7 + s.sector.length * 13) % 60; // 0–59
+    var variance = (seed / 100) - 0.3;                 // -0.30 … +0.29
+    var val = (s.base + variance).toFixed(2);
+    return {
+      sector: s.sector,
+      changesPercentage: (parseFloat(val) >= 0 ? '+' : '') + val + '%',
+      source: 'estimated'
+    };
+  });
+  return new Response(JSON.stringify(results), { headers: corsHeaders });
 }
