@@ -876,25 +876,25 @@
 }
 
 /* Alert Modal Styles - Phase 8 */
-.modal {
-    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center;
-    z-index: 1000;
-}
-.modal-content {
-    background: var(--card-bg); border: 1px solid var(--border);
-    border-radius: 12px; padding: 24px; max-width: 400px; width: 90%;
-}
-.modal-content h3 { margin: 0 0 20px; color: var(--text-bright); }
-.modal-content .form-group { margin-bottom: 16px; }
-.modal-content select, .modal-content input {
-    width: 100%; padding: 12px; background: var(--bg); border: 1px solid var(--border);
-    color: var(--text); border-radius: 8px; font-size: 1rem;
-}
-.modal-buttons { display: flex; gap: 12px; margin-top: 20px; }
-.modal-buttons button { flex: 1; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: 600; }
-.btn-primary { background: var(--cyan); color: #000; border: none; }
-.btn-secondary { background: transparent; color: var(--text); border: 1px solid var(--border); }
+/* OLD */.modal {
+/* OLD */    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+/* OLD */    background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center;
+/* OLD */    z-index: 1000;
+/* OLD */}
+/* OLD */.modal-content {
+/* OLD */    background: var(--card-bg); border: 1px solid var(--border);
+/* OLD */    border-radius: 12px; padding: 24px; max-width: 400px; width: 90%;
+/* OLD */}
+/* OLD */.modal-content h3 { margin: 0 0 20px; color: var(--text-bright); }
+/* OLD */.modal-content .form-group { margin-bottom: 16px; }
+/* OLD */.modal-content select, .modal-content input {
+/* OLD */    width: 100%; padding: 12px; background: var(--bg); border: 1px solid var(--border);
+/* OLD */    color: var(--text); border-radius: 8px; font-size: 1rem;
+/* OLD */}
+/* OLD */.modal-buttons { display: flex; gap: 12px; margin-top: 20px; }
+/* OLD */.modal-buttons button { flex: 1; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+/* OLD */.btn-primary { background: var(--cyan); color: #000; border: none; }
+/* OLD */.btn-secondary { background: transparent; color: var(--text); border: 1px solid var(--border); }
 
 
 /* Light Theme Overrides */
