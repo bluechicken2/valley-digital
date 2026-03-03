@@ -1379,7 +1379,7 @@ function renderAlloc() {
             h += '</div></div>';
             
             h += '<div class="detail-actions">';
-            h += '<button class="detail-action-btn" onclick="toggleFav(''+sel.sym+'')"><span>★</span> '+(!sel.fav?'Add to':'Remove from')+' Favorites</button>';
+            h += '<button class="detail-action-btn" onclick="toggleFav(\''+sel.sym+'\')"><span>★</span> '+(!sel.fav?'Add to':'Remove from')+' Favorites</button>';
             h += '<button class="detail-action-btn" onclick="showAddAlert()"><span>🔔</span> Set Alert</button>';
             h += '</div>';
             
@@ -2091,16 +2091,14 @@ window.addEventListener('supabase:portfolio-loaded', function(e) {
         
         window.exportScreenerCSV = function() {
             var results = getScreenerResults();
-            var csv = 'Symbol,Name,Price,24h Change,RSI,MACD Signal,Volume,Type
-';
+            var csv = 'Symbol,Name,Price,24h Change,RSI,MACD Signal,Volume,Type\n';
             for(var i=0; i<results.length; i++) {
                 var a = results[i];
                 var arr = history[a.sym];
                 var rsi = arr && arr.length >= 15 ? calcRSI(arr).toFixed(1) : 'N/A';
                 var macd = arr && arr.length >= 26 ? calcMACDInd(arr) : null;
                 var macdSig = macd ? (macd.trend === 'bull' ? 'Bullish' : macd.trend === 'bear' ? 'Bearish' : 'Neutral') : 'N/A';
-                csv += (a.sym+','+(a.name||'')+','+a.price+','+a.chg.toFixed(2)+'%,'+rsi+','+macdSig+','+(a.vol24h||0)+','+(a.type||'')+"
-");
+                csv += (a.sym+','+(a.name||'')+','+a.price+','+a.chg.toFixed(2)+'%,'+rsi+','+macdSig+','+(a.vol24h||0)+','+(a.type||'')+'\n');
             }
             var blob = new Blob([csv], {type:'text/csv'});
             var url = URL.createObjectURL(blob);
@@ -2299,17 +2297,10 @@ window.addEventListener('supabase:portfolio-loaded', function(e) {
                 showToast('No chat to export', 'warning');
                 return;
             }
-            var text = 'TradingAI Chat Export - ' + new Date().toLocaleDateString() + '
-
-';
+            var text = 'TradingAI Chat Export - ' + new Date().toLocaleDateString() + '\n\n';
             for(var i = 0; i < aiHistory.length; i++) {
                 var m = aiHistory[i];
-                var role = m.role === 'user' ? 'YOU' : 'AI';
-                var time = m.time ? new Date(m.time).toLocaleString() : '';
-                text += '[' + time + '] ' + role + ':
-' + m.text + '
-
-';
+                text += '[' + time + '] ' + role + ':\n' + m.text + '\n\n';
             }
             var blob = new Blob([text], {type: 'text/plain'});
             var url = URL.createObjectURL(blob);
