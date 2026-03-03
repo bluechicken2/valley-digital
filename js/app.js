@@ -1875,7 +1875,63 @@ window.deleteAlert = function(idx) { alerts.splice(idx,1); localStorage.setItem(
         
         document.querySelectorAll('.modal-overlay').forEach(function(o){o.addEventListener('click',function(e){if(e.target===o)o.classList.remove('show');});});
 
-        var screenerFilters = {rsi:false, volume:false, change:false};
+        var screenerFilters = {rsiOversold:false, rsiOverbought:false, macdBullish:false, macdBearish:false, volumeHigh:false, changeUp:false, changeDown:false};
+        var screenerSortBy = 'sym';
+        var screenerSortDir = 'asc';
+        
+        window.setScreenerSort = function(col) {
+            if(screenerSortBy === col) screenerSortDir = screenerSortDir === 'asc' ? 'desc' : 'asc';
+            else { screenerSortBy = col; screenerSortDir = 'asc'; }
+            renderScreener();
+        };
+        
+        window.exportScreenerCSV = function() {
+            var results = getScreenerResults();
+            var csv = 'Symbol,Name,Price,24h Change,RSI,MACD Signal,Volume,Type
+';
+            for(var i=0; i<results.length; i++) {
+                var a = results[i];
+                var arr = history[a.sym];
+                var rsi = arr && arr.length >= 15 ? calcRSI(arr).toFixed(1) : 'N/A';
+                var macd = arr && arr.length >= 26 ? calcMACDInd(arr) : null;
+                var macdSig = macd ? (macd.trend === 'bull' ? 'Bullish' : macd.trend === 'bear' ? 'Bearish' : 'Neutral') : 'N/A';
+                csv += (a.sym+','+(a.name||'')+','+a.price+','+a.chg.toFixed(2)+'%,'+rsi+','+macdSig+','+(a.vol24h||0)+','+(a.type||'')+"
+");
+            }
+            var blob = new Blob([csv], {type:'text/csv'});
+            var url = URL.createObjectURL(blob);
+            var lnk = document.createElement('a');
+            lnk.href = url;
+            lnk.download = 'tradingai-screener-'+new Date().toISOString().slice(0,10)+'.csv';
+            lnk.click();
+            URL.revokeObjectURL(url);
+            showToast('Exported ' + results.length + ' assets', 'success');
+        };
+        
+        function getScreenerResults() {
+            return data.filter(function(a) {
+                var arr = history[a.sym];
+                var rsi = arr && arr.length >= 15 ? calcRSI(arr) : 50;
+                var macd = arr && arr.length >= 26 ? calcMACDInd(arr) : null;
+                if(screenerFilters.rsiOversold && rsi >= 30) return false;
+                if(screenerFilters.rsiOverbought && rsi <= 70) return false;
+                if(screenerFilters.macdBullish && (!macd || macd.trend !== 'bull')) return false;
+                if(screenerFilters.macdBearish && (!macd || macd.trend !== 'bear')) return false;
+                if(screenerFilters.volumeHigh && (!a.vol24h || a.vol24h < 1e9)) return false;
+                if(screenerFilters.changeUp && a.chg < 5) return false;
+                if(screenerFilters.changeDown && a.chg > -5) return false;
+                return true;
+            }).sort(function(x, y) {
+                var a, b;
+                if(screenerSortBy === 'sym') { a = x.sym; b = y.sym; }
+                else if(screenerSortBy === 'price') { a = x.price; b = y.price; }
+                else if(screenerSortBy === 'chg') { a = x.chg; b = y.chg; }
+                else if(screenerSortBy === 'vol') { a = x.vol24h || 0; b = y.vol24h || 0; }
+                else { a = x.sym; b = y.sym; }
+                if(typeof a === 'string') return screenerSortDir === 'asc' ? a.localeCompare(b) : b.localeCompare(a);
+                return screenerSortDir === 'asc' ? a - b : b - a;
+            });
+        }
         var paperBalance = 100000, paperPositions = {};
         // Load paper trading state from localStorage
         (function loadPaperState() {
