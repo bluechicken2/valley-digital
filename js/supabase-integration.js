@@ -252,6 +252,7 @@
             if (error) throw error;
             window.userWatchlist = data || [];
             updateWatchlistUI(data);
+            window.dispatchEvent(new CustomEvent("supabase:watchlists-loaded", { detail: data || [] }));
             return { success: true, data };
         } catch (error) {
             console.error('Error loading watchlist:', error);

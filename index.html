@@ -339,6 +339,10 @@
                         <button aria-label="AI risk analysis" class="ai-quick-btn" onclick="quickAI('risks')">⚠️ Risks</button>
                         <button aria-label="AI trading tips" class="ai-quick-btn" onclick="quickAI('tips')">💡 Tips</button>
                     </div>
+                    <div class="ai-actions-bar">
+                        <button class="ai-action-btn" onclick="clearAIChat()" title="Clear chat">🗑️ Clear</button>
+                        <button class="ai-action-btn" onclick="exportAIChat()" title="Export chat">📥 Export</button>
+                    </div>
                     <div class="ai-input">
                         <input type="text" id="ai-input" placeholder="Ask about your portfolio, market trends, or strategies..." onkeypress="if(event.key==='Enter')sendAI()">
                         <button onclick="sendAI()" aria-label="Send message">SEND</button>
@@ -366,7 +370,80 @@
 
     <!-- PR Modal -->
     <div class="modal-overlay" id="pr-modal"><div class="modal modal-lg"><div class="modal-header"><span class="modal-title">Create Pull Request</span><button class="modal-close" onclick="hidePRModal()" aria-label="Close modal">X</button></div><div class="modal-body"><div class="form-group"><label for="pr-branch">Branch Name</label><input type="text" id="pr-branch" placeholder="feature/my-changes"></div><div class="form-group"><label for="pr-title">PR Title</label><input type="text" id="pr-title" placeholder="Add new feature"></div><div class="form-group"><label for="pr-desc">Description</label><textarea id="pr-desc" style="width:100%;height:80px;background:var(--bg-surface);border:1px solid var(--border);border-radius:6px;padding:10px;color:var(--text-bright);resize:none" placeholder="Describe your changes..."></textarea></div><button aria-label="Create pull request" class="btn-primary" onclick="createPR()">CREATE PULL REQUEST</button><div class="panel-spacing"><span class="panel-title">Recent Pull Requests</span></div><div class="pr-list" id="pr-list" style="margin-top:8px"></div></div></div></div>
-        <!-- Paper Trade Modal -->
+        <!-- Settings Modal -->
+    <div class="modal-overlay" id="settings-modal">
+      <div class="modal" style="max-width:420px">
+        <div class="modal-header">
+          <span class="modal-title">⚙️ Settings</span>
+          <button class="modal-close" onclick="hideSettings()" aria-label="Close modal">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="settings-section">
+            <div class="settings-section-title">Appearance</div>
+            <div class="settings-option">
+              <span>Theme</span>
+              <select id="setting-theme" onchange="saveSetting('theme', this.value)">
+                <option value="dark">Dark</option>
+                <option value="light">Light</option>
+                <option value="auto">Auto</option>
+              </select>
+            </div>
+            <div class="settings-option">
+              <span>Compact Mode</span>
+              <input type="checkbox" id="setting-compact" onchange="saveSetting('compact', this.checked)">
+            </div>
+          </div>
+          <div class="settings-section">
+            <div class="settings-section-title">Notifications</div>
+            <div class="settings-option">
+              <span>Price Alerts</span>
+              <input type="checkbox" id="setting-alerts" onchange="saveSetting('alerts', this.checked)" checked>
+            </div>
+            <div class="settings-option">
+              <span>Browser Notifications</span>
+              <input type="checkbox" id="setting-browser" onchange="saveSetting('browserNotify', this.checked)">
+            </div>
+            <div class="settings-option">
+              <span>Sound Effects</span>
+              <input type="checkbox" id="setting-sound" onchange="saveSetting('sound', this.checked)">
+            </div>
+          </div>
+          <div class="settings-section">
+            <div class="settings-section-title">Data & Sync</div>
+            <div class="settings-option">
+              <span>Auto-refresh (sec)</span>
+              <input type="number" id="setting-refresh" style="width:60px" value="30" min="5" max="300" onchange="saveSetting('refreshInterval', this.value)">
+            </div>
+            <div class="settings-option">
+              <span>Default Chart Range</span>
+              <select id="setting-chart" onchange="saveSetting('chartRange', this.value)">
+                <option value="1D">1 Day</option>
+                <option value="1W">1 Week</option>
+                <option value="1M" selected>1 Month</option>
+                <option value="3M">3 Months</option>
+                <option value="1Y">1 Year</option>
+              </select>
+            </div>
+          </div>
+          <div class="settings-section">
+            <div class="settings-section-title">Indicators</div>
+            <div class="settings-option">
+              <span>SMA 20 Default</span>
+              <input type="checkbox" id="setting-sma20" onchange="saveSetting('showSMA20', this.checked)">
+            </div>
+            <div class="settings-option">
+              <span>SMA 200 Default</span>
+              <input type="checkbox" id="setting-sma200" onchange="saveSetting('showSMA200', this.checked)">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer" style="padding:14px">
+          <button class="btn-primary" onclick="hideSettings()" style="width:100%">Done</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Paper Trade Modal -->
     <div class="modal-overlay" id="paper-modal">
       <div class="modal" style="max-width:380px">
         <div class="modal-header">
@@ -404,5 +481,12 @@
                 </span>
             </div>
         </div>
-    </body>
+        <!-- Footer -->
+    <footer class="app-footer">
+        <span class="footer-status"><span class="status-dot" id="footer-status-dot"></span><span id="footer-status-text">Connected</span></span>
+        <span class="footer-version">TradingAI v12.2</span>
+        <span class="footer-time" id="footer-time"></span>
+    </footer>
+
+</body>
 </html>

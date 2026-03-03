@@ -1,0 +1,5 @@
+# TradingAI Robots
+User-agent: *
+Allow: /
+
+Sitemap: https://dashboard.ottawav.com/sitemap.xml

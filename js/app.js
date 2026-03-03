@@ -524,6 +524,26 @@ function generateTimeLabels(count, tf) {
         
         function renderAssets() { if(!$('assets')) return; if(!data || data.length===0){ $('assets').innerHTML='<div class="skeleton-text"></div><div class="skeleton-text"></div><div class="skeleton-text"></div>'; return; } var h=''; for(var i=0;i<data.length;i++){var a=data[i];var eSym=escapeHtml(a.sym);var eName=escapeHtml(a.name);h+='<div data-symbol="'+eSym+'" class="asset'+(a.sym===sel.sym?' active':'')+'" onclick="selAsset(\''+eSym+'\')"><div style="display:flex;align-items:center"><div class="asset-icon" style="background:'+a.color+'22;color:'+a.color+'">'+eSym.substr(0,2)+'</div><div><div class="asset-name">'+eSym+'<span class="star'+(a.fav?' active':'')+'" onclick="event.stopPropagation();toggleFav(\''+eSym+'\')">*</span></div><div class="asset-type">'+eName+'</div></div></div><div style="display:flex;align-items:center;gap:6px"><div style="text-align:right"><div class="asset-price">$'+fmt(a.price)+'</div><div class="asset-chg '+(a.chg>=0?'up':'down')+'">'+(a.chg>=0?'+':'')+a.chg.toFixed(2)+'%</div></div></div></div>';} $('assets').innerHTML=h; }
         function renderPortfolio() { if(!$('port-val')) return; var tot=0,chg=0; for(var i=0;i<data.length;i++){tot+=data[i].price*data[i].hold;chg+=data[i].price*data[i].hold*data[i].chg/100;} var pct=tot>0?chg/tot*100:0; $('port-val').textContent='$'+fmt(tot);$('port-chg').textContent=(chg>=0?'+':'')+'$'+fmt(Math.abs(chg))+' ('+(pct>=0?'+':'')+pct.toFixed(2)+'%)';$('port-chg').className='portfolio-change '+(chg>=0?'up':'down');$('intel').textContent=Math.round(50+pct*2); var emptyEl=$('port-empty'); if(tot===0){ if(!emptyEl){ var d=document.createElement('div'); d.id='port-empty'; d.className='empty-state'; d.style.cssText='color:var(--text-muted);font-size:0.8rem;margin-top:8px;'; d.innerHTML='Add your first asset — click <strong>EDIT</strong>'; if($('port-val').parentNode)$('port-val').parentNode.appendChild(d); } }else{ if(emptyEl)emptyEl.remove(); } }
+
+        function updateFooterTime() {
+            var el = $('footer-time');
+            if(el) el.textContent = new Date().toLocaleTimeString();
+        }
+        setInterval(updateFooterTime, 1000);
+        updateFooterTime();
+        
+        // Ticker pause on hover
+        var tickerPaused = false;
+        if($('ticker')) {
+            $('ticker').addEventListener('mouseenter', function() {
+                tickerPaused = true;
+                $('ticker').classList.add('ticker-paused');
+            });
+            $('ticker').addEventListener('mouseleave', function() {
+                tickerPaused = false;
+                $('ticker').classList.remove('ticker-paused');
+            });
+        }
         function renderTicker() { if(!$('ticker')) return; var h=''; for(var i=0;i<data.length*2;i++){var a=data[i%data.length];h+='<span class="ticker-item" onclick="selAsset(\''+a.sym+'\')"><span class="ticker-sym">'+a.sym+'</span> $'+fmt(a.price)+' <span style="color:'+(a.chg>=0?'var(--green)':'var(--red)')+'">'+(a.chg>=0?'+':'')+a.chg.toFixed(1)+'%</span></span>';} $('ticker').innerHTML=h+h; }
         function renderFG() { var avg=0; for(var i=0;i<data.length;i++)avg+=data[i].chg; avg/=data.length; var v=Math.max(10,Math.min(90,50-avg*2)); var lbl=v>=75?'GREED':v>=55?'OPTIMISM':v>=45?'NEUTRAL':v>=25?'FEAR':'EXTREME FEAR'; var col=v>=55?'var(--green)':v>=45?'var(--cyan)':v>=25?'var(--gold)':'var(--red)'; $('fg-val').textContent=Math.round(v);$('fg-val').style.color=col;$('fg-lbl').textContent=lbl;$('fg-lbl').style.color=col;$('fg-dot').style.left=v+'%'; }
         function renderInds() { 
@@ -1331,14 +1351,38 @@ function renderAlloc() {
             $('corr-matrix').innerHTML = h;
         }
         function renderAssetDetails() {
-            var h = '<div class="detail-row"><span class="detail-label">Symbol</span><span class="detail-value">'+sel.sym+'</span></div>';
-            h += '<div class="detail-row"><span class="detail-label">Name</span><span class="detail-value">'+sel.name+'</span></div>';
-            h += '<div class="detail-row"><span class="detail-label">Price</span><span class="detail-value">$'+fmt(sel.price)+'</span></div>';
-            h += '<div class="detail-row"><span class="detail-label">Market Cap</span><span class="detail-value">$'+fmt(sel.mktCap)+'</span></div>';
-            h += '<div class="detail-row"><span class="detail-label">24h Volume</span><span class="detail-value">$'+fmt(sel.vol24h)+'</span></div>';
-            h += '<div class="detail-row"><span class="detail-label">Type</span><span class="detail-value">'+sel.type.toUpperCase()+'</span></div>';
-            if(sel.pe) h += '<div class="detail-row"><span class="detail-label">P/E Ratio</span><span class="detail-value">'+sel.pe+'</span></div>';
-            if(sel.div) h += '<div class="detail-row"><span class="detail-label">Dividend</span><span class="detail-value">'+sel.div+'%</span></div>';
+            var arr = history[sel.sym];
+            var rsi = arr && arr.length >= 15 ? calcRSI(arr) : null;
+            var macd = arr && arr.length >= 26 ? calcMACDInd(arr) : null;
+            var high52 = arr && arr.length > 0 ? Math.max.apply(null, arr.slice(-252).map(function(p){return p.h||p.c||p;})) : null;
+            var low52 = arr && arr.length > 0 ? Math.min.apply(null, arr.slice(-252).map(function(p){return p.l||p.c||p;})) : null;
+            
+            var h = '<div class="detail-header"><span class="detail-symbol">'+sel.sym+'</span><span class="detail-type">'+sel.type.toUpperCase()+'</span></div>';
+            h += '<div class="detail-name">'+sel.name+'</div>';
+            h += '<div class="detail-price-row"><span class="detail-price">$'+fmt(sel.price)+'</span>';
+            h += '<span class="detail-chg '+(sel.chg>=0?'up':'down')+'">'+(sel.chg>=0?'+':'')+sel.chg.toFixed(2)+'%</span></div>';
+            
+            h += '<div class="detail-section"><div class="detail-section-title">Technical Indicators</div>';
+            h += '<div class="detail-grid">';
+            h += '<div class="detail-metric"><span class="metric-label">RSI (14)</span><span class="metric-value '+(rsi===null?'':rsi<30?'bull':rsi>70?'bear':'')+'">'+(rsi===null?'-':rsi.toFixed(1))+'</span></div>';
+            h += '<div class="detail-metric"><span class="metric-label">MACD</span><span class="metric-value '+(!macd?'':macd.trend==='bull'?'bull':macd.trend==='bear'?'bear':'')+'">'+(!macd?'-':macd.trend==='bull'?'▲':macd.trend==='bear'?'▼':'●')+'</span></div>';
+            h += '<div class="detail-metric"><span class="metric-label">52W High</span><span class="metric-value">'+(high52===null?'-':'$'+fmt(high52))+'</span></div>';
+            h += '<div class="detail-metric"><span class="metric-label">52W Low</span><span class="metric-value">'+(low52===null?'-':'$'+fmt(low52))+'</span></div>';
+            h += '</div></div>';
+            
+            h += '<div class="detail-section"><div class="detail-section-title">Fundamentals</div>';
+            h += '<div class="detail-grid">';
+            h += '<div class="detail-metric"><span class="metric-label">Market Cap</span><span class="metric-value">$'+fmt(sel.mktCap)+'</span></div>';
+            h += '<div class="detail-metric"><span class="metric-label">24h Volume</span><span class="metric-value">$'+fmt(sel.vol24h)+'</span></div>';
+            if(sel.pe) h += '<div class="detail-metric"><span class="metric-label">P/E Ratio</span><span class="metric-value">'+sel.pe+'</span></div>';
+            if(sel.div) h += '<div class="detail-metric"><span class="metric-label">Dividend</span><span class="metric-value">'+sel.div+'%</span></div>';
+            h += '</div></div>';
+            
+            h += '<div class="detail-actions">';
+            h += '<button class="detail-action-btn" onclick="toggleFav(''+sel.sym+'')"><span>★</span> '+(!sel.fav?'Add to':'Remove from')+' Favorites</button>';
+            h += '<button class="detail-action-btn" onclick="showAddAlert()"><span>🔔</span> Set Alert</button>';
+            h += '</div>';
+            
             $('asset-details').innerHTML = h;
         }
         async function renderNews() {
@@ -1894,12 +1938,98 @@ window.addEventListener('supabase:portfolio-loaded', function(e) {
             $('alerts-list').innerHTML = h;
         }
         window.showWatchlists = function() { $('user-dropdown').classList.remove('show'); renderWatchlists(); $('watchlists-modal').classList.add('show'); };
+
+        window.showSettings = function() {
+            loadSettings();
+            $('settings-modal').classList.add('active');
+        };
+        window.hideSettings = function() {
+            $('settings-modal').classList.remove('active');
+        };
+        
+        var userSettings = {};
+        function loadSettings() {
+            try {
+                var saved = localStorage.getItem('tradingai_settings');
+                if(saved) userSettings = JSON.parse(saved);
+            } catch(e) { userSettings = {}; }
+            
+            // Apply to form
+            $('setting-theme').value = userSettings.theme || 'dark';
+            $('setting-compact').checked = !!userSettings.compact;
+            $('setting-alerts').checked = userSettings.alerts !== false;
+            $('setting-browser').checked = !!userSettings.browserNotify;
+            $('setting-sound').checked = !!userSettings.sound;
+            $('setting-refresh').value = userSettings.refreshInterval || 30;
+            $('setting-chart').value = userSettings.chartRange || '1M';
+            $('setting-sma20').checked = !!userSettings.showSMA20;
+            $('setting-sma200').checked = !!userSettings.showSMA200;
+        }
+        
+        window.saveSetting = function(key, value) {
+            userSettings[key] = value;
+            localStorage.setItem('tradingai_settings', JSON.stringify(userSettings));
+            
+            // Apply immediately
+            if(key === 'theme') {
+                if(value === 'light') document.body.classList.add('light-theme');
+                else if(value === 'dark') document.body.classList.remove('light-theme');
+            }
+            if(key === 'compact') {
+                document.body.classList.toggle('compact-mode', value);
+            }
+            
+            // Sync to Supabase if logged in
+            if(window.supabaseOps && window.supabaseOps.saveSettings) {
+                window.supabaseOps.saveSettings(userSettings);
+            }
+            
+            showToast('Setting saved', 'success');
+        };
         window.hideWatchlists = function() { $('watchlists-modal').classList.remove('show'); };
         function renderWatchlists() { var h=''; for(var i=0;i<watchlists.length;i++){h+='<div class="watchlist-item"><span class="watchlist-name">'+watchlists[i].name+'</span><span class="watchlist-count">'+watchlists[i].symbols.length+' assets</span></div>';} $('watchlists-list').innerHTML=h; }
-        window.createWatchlist = function() { var name=prompt('Enter watchlist name:'); if(name){watchlists.push({name:name,symbols:[]});renderWatchlists();showToast('Watchlist created');} };
+        window.createWatchlist = async function() {
+            var name = prompt('Enter watchlist name:');
+            if(!name) return;
+            
+            // Try Supabase first if logged in
+            if(window.supabaseOps && window.supabaseOps.createWatchlist) {
+                var result = await window.supabaseOps.createWatchlist(name);
+                if(result && result.success) return;
+            }
+            
+            // LocalStorage fallback
+            watchlists.push({name: name, symbols: []});
+            localStorage.setItem('tradingai_watchlists', JSON.stringify(watchlists));
+            renderWatchlists();
+            showToast('Watchlist created', 'success');
+        };
+        
+        // Listen for Supabase watchlists loaded
+        window.addEventListener('supabase:watchlists-loaded', function(e) {
+            if(e.detail && e.detail.length > 0) {
+                watchlists = e.detail.map(function(w) {
+                    return {id: w.id, name: w.name, symbols: w.symbols || []};
+                });
+                renderWatchlists();
+            }
+        });
         function renderPricing() { var h='';h+='<div class="pricing-card"><div class="pricing-name">FREE</div><div class="pricing-price">$0/mo</div><div class="pricing-features"><div class="pricing-feature">3 Assets</div><div class="pricing-feature">Delayed Data</div></div></div>';h+='<div class="pricing-card" style="border-color:var(--cyan)"><div class="pricing-name">PRO</div><div class="pricing-price">$19/mo</div><div class="pricing-features"><div class="pricing-feature">Unlimited Assets</div><div class="pricing-feature">Real-time Data</div><div class="pricing-feature">Price Alerts</div></div><button class="pricing-btn">UPGRADE</button></div>';h+='<div class="pricing-card"><div class="pricing-name">ELITE</div><div class="pricing-price">$49/mo</div><div class="pricing-features"><div class="pricing-feature">Everything in PRO</div><div class="pricing-feature">API Access</div><div class="pricing-feature">Priority Support</div></div><button class="pricing-btn">UPGRADE</button></div>';$('pricing-cards').innerHTML=h; }
         
-        function showToast(msg) { $('toast').textContent=msg; $('toast').classList.add('show'); setTimeout(function(){$('toast').classList.remove('show');},3000); }
+        function showToast(msg, type) {
+            var toast = $('toast');
+            var icon = '';
+            type = type || 'info';
+            switch(type) {
+                case 'success': icon = '✓ '; break;
+                case 'error': icon = '✕ '; break;
+                case 'warning': icon = '⚠ '; break;
+                default: icon = 'ℹ ';
+            }
+            toast.innerHTML = '<span class="toast-icon">' + icon + '</span><span class="toast-msg">' + msg + '</span>';
+            toast.className = 'show toast-' + type;
+            setTimeout(function() { toast.classList.remove('show'); }, 3000);
+        }
         
         // Keyboard
         
@@ -2153,6 +2283,43 @@ window.addEventListener('supabase:portfolio-loaded', function(e) {
             try { localStorage.setItem('aiChatHistory', JSON.stringify(aiHistory)); } catch(e) {}
         }
 
+
+        window.clearAIChat = function() {
+            if(aiHistory.length === 0) return;
+            if(confirm('Clear all chat history?')) {
+                aiHistory = [];
+                saveChatHistory();
+                renderAIChat();
+                showToast('Chat cleared', 'success');
+            }
+        };
+        
+        window.exportAIChat = function() {
+            if(aiHistory.length === 0) {
+                showToast('No chat to export', 'warning');
+                return;
+            }
+            var text = 'TradingAI Chat Export - ' + new Date().toLocaleDateString() + '
+
+';
+            for(var i = 0; i < aiHistory.length; i++) {
+                var m = aiHistory[i];
+                var role = m.role === 'user' ? 'YOU' : 'AI';
+                var time = m.time ? new Date(m.time).toLocaleString() : '';
+                text += '[' + time + '] ' + role + ':
+' + m.text + '
+
+';
+            }
+            var blob = new Blob([text], {type: 'text/plain'});
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = 'tradingai-chat-' + new Date().toISOString().slice(0,10) + '.txt';
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Chat exported', 'success');
+        };
         function loadChatHistory() {
             try { var saved = localStorage.getItem('aiChatHistory'); if(saved) aiHistory = JSON.parse(saved); } catch(e) {}
         }
