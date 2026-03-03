@@ -1877,6 +1877,21 @@ window.deleteAlert = function(idx) { alerts.splice(idx,1); localStorage.setItem(
 
         var screenerFilters = {rsi:false, volume:false, change:false};
         var paperBalance = 100000, paperPositions = {};
+        // Load paper trading state from localStorage
+        (function loadPaperState() {
+            try {
+                var saved = localStorage.getItem('paperTrading');
+                if(saved) {
+                    var state = JSON.parse(saved);
+                    paperBalance = state.balance || 100000;
+                    paperPositions = state.positions || {};
+                }
+            } catch(e) { console.warn('Failed to load paper trading state'); }
+        })();
+        function savePaperState() {
+            try { localStorage.setItem('paperTrading', JSON.stringify({balance: paperBalance, positions: paperPositions})); } catch(e) {}
+        }
+        var paperTradeMode = 'buy'; // 'buy' or 'sell' 
         var aiHistory = [];
         loadChatHistory();
 
@@ -1907,24 +1922,73 @@ window.deleteAlert = function(idx) { alerts.splice(idx,1); localStorage.setItem(
             $('paper-positions').innerHTML = h;
         }
 
-        window.paperBuy = function() {
-            var amt = prompt('Buy '+sel.sym+' - Enter amount:');
-            if(amt && !isNaN(amt)) {
-                var cost = parseFloat(amt)*sel.price;
-                if(cost<=paperBalance) { paperBalance -= cost; paperPositions[sel.sym] = (paperPositions[sel.sym]||0) + parseFloat(amt); renderPaper(); showToast('Bought '+amt+' '+sel.sym); }
-                else showToast('Insufficient balance');
+        window.paperBuy = function() { showPaperModal('buy'); };
+        window.paperSell = function() { showPaperModal('sell'); };
+        
+        function showPaperModal(mode) {
+            if(!sel) { showToast('Select an asset first', 'warning'); return; }
+            paperTradeMode = mode;
+            var title = mode === 'buy' ? 'Buy ' + sel.sym : 'Sell ' + sel.sym;
+            var info = 'Price: $' + fmt(sel.price) + ' | Balance: $' + fmt(paperBalance);
+            if(mode === 'sell') {
+                var held = paperPositions[sel.sym] || 0;
+                info += ' | Held: ' + held;
+            }
+            $('paper-modal-title').textContent = title;
+            $('paper-modal-info').textContent = info;
+            $('paper-amount').value = '';
+            $('paper-confirm-btn').textContent = mode === 'buy' ? 'Buy Now' : 'Sell Now';
+            updatePaperCostPreview();
+            $('paper-modal').classList.add('active');
+        }
+        
+        window.hidePaperModal = function() {
+            $('paper-modal').classList.remove('active');
+        };
+        
+        window.updatePaperCostPreview = function() {
+            var amt = parseFloat($('paper-amount').value) || 0;
+            var total = amt * sel.price;
+            if(paperTradeMode === 'buy') {
+                $('paper-cost-preview').textContent = 'Total Cost: $' + fmt(total);
+                $('paper-cost-preview').style.color = total > paperBalance ? 'var(--red)' : 'var(--cyan)';
+            } else {
+                var held = paperPositions[sel.sym] || 0;
+                $('paper-cost-preview').textContent = 'Total Value: $' + fmt(total);
+                $('paper-cost-preview').style.color = amt > held ? 'var(--red)' : 'var(--green)';
             }
         };
-        window.paperSell = function() {
-            if(paperPositions[sel.sym]) {
-                var amt = prompt('Sell '+sel.sym+' - Enter amount (have '+paperPositions[sel.sym]+'):');
-                if(amt && !isNaN(amt) && parseFloat(amt)<=paperPositions[sel.sym]) {
-                    paperBalance += parseFloat(amt)*sel.price;
-                    paperPositions[sel.sym] -= parseFloat(amt);
-                    if(paperPositions[sel.sym]<=0) delete paperPositions[sel.sym];
-                    renderPaper(); showToast('Sold '+amt+' '+sel.sym);
+        
+        window.confirmPaperTrade = function() {
+            var amt = parseFloat($('paper-amount').value);
+            if(!amt || amt <= 0 || isNaN(amt)) { showToast('Enter a valid amount', 'warning'); return; }
+            
+            if(paperTradeMode === 'buy') {
+                var cost = amt * sel.price;
+                if(cost <= paperBalance) {
+                    paperBalance -= cost;
+                    paperPositions[sel.sym] = (paperPositions[sel.sym] || 0) + amt;
+                    savePaperState();
+                    renderPaper();
+                    hidePaperModal();
+                    showToast('Bought ' + amt + ' ' + sel.sym, 'success');
+                } else {
+                    showToast('Insufficient balance', 'error');
                 }
-            } else showToast('No '+sel.sym+' positions');
+            } else {
+                var held = paperPositions[sel.sym] || 0;
+                if(amt <= held) {
+                    paperBalance += amt * sel.price;
+                    paperPositions[sel.sym] -= amt;
+                    if(paperPositions[sel.sym] <= 0) delete paperPositions[sel.sym];
+                    savePaperState();
+                    renderPaper();
+                    hidePaperModal();
+                    showToast('Sold ' + amt + ' ' + sel.sym, 'success');
+                } else {
+                    showToast('Insufficient ' + sel.sym + ' holdings', 'error');
+                }
+            }
         };
 
         function renderAIChat() {

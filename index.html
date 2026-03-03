@@ -366,6 +366,27 @@
 
     <!-- PR Modal -->
     <div class="modal-overlay" id="pr-modal"><div class="modal modal-lg"><div class="modal-header"><span class="modal-title">Create Pull Request</span><button class="modal-close" onclick="hidePRModal()" aria-label="Close modal">X</button></div><div class="modal-body"><div class="form-group"><label for="pr-branch">Branch Name</label><input type="text" id="pr-branch" placeholder="feature/my-changes"></div><div class="form-group"><label for="pr-title">PR Title</label><input type="text" id="pr-title" placeholder="Add new feature"></div><div class="form-group"><label for="pr-desc">Description</label><textarea id="pr-desc" style="width:100%;height:80px;background:var(--bg-surface);border:1px solid var(--border);border-radius:6px;padding:10px;color:var(--text-bright);resize:none" placeholder="Describe your changes..."></textarea></div><button aria-label="Create pull request" class="btn-primary" onclick="createPR()">CREATE PULL REQUEST</button><div class="panel-spacing"><span class="panel-title">Recent Pull Requests</span></div><div class="pr-list" id="pr-list" style="margin-top:8px"></div></div></div></div>
+        <!-- Paper Trade Modal -->
+    <div class="modal-overlay" id="paper-modal">
+      <div class="modal" style="max-width:380px">
+        <div class="modal-header">
+          <span class="modal-title" id="paper-modal-title">Buy BTC</span>
+          <button class="modal-close" onclick="hidePaperModal()" aria-label="Close modal">✕</button>
+        </div>
+        <div class="modal-body">
+          <div style="margin-bottom:12px;color:var(--text-dim);font-size:0.85rem" id="paper-modal-info">Price: $0.00 | Balance: $0.00</div>
+          <div class="form-group">
+            <label for="paper-amount">Amount</label>
+            <input type="number" id="paper-amount" class="auth-input" placeholder="Enter amount" min="0" step="any" oninput="updatePaperCostPreview()">
+          </div>
+          <div style="margin-top:8px;font-size:0.8rem;color:var(--cyan);font-family:'JetBrains Mono',monospace" id="paper-cost-preview">Total: $0.00</div>
+        </div>
+        <div class="modal-footer" style="display:flex;gap:8px;padding:14px">
+          <button class="btn-primary" id="paper-confirm-btn" onclick="confirmPaperTrade()" style="flex:1">Confirm</button>
+          <button class="btn-primary" onclick="hidePaperModal()" style="flex:1;background:var(--bg-surface);color:var(--text-dim)">Cancel</button>
+        </div>
+      </div>
+    </div>
     <div class="toast" id="toast"></div>
     
     <script src="js/modules/indicators.js"></script>
