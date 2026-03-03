@@ -2,6 +2,7 @@
 
 const CACHE_NAME = 'tradingai-v2';
 const STATIC_ASSETS = [
+    '/manifest.json',
     '/',
     '/index.html',
     '/css/theme.css',
