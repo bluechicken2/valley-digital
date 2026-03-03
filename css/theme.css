@@ -387,7 +387,14 @@
     gap: 4px;
     flex-wrap: wrap;
 }
-@media (max-width: 1200px) { .grid-2 { grid-template-columns: 1fr; } .grid-3 { grid-template-columns: 1fr; } .analytics-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 1200px) {
+    .grid-2 { grid-template-columns: 1fr; }
+    .grid-3 { grid-template-columns: 1fr; }
+    .analytics-grid { grid-template-columns: repeat(3, 1fr); }
+    /* Chart panel rises above portfolio/assets when grid collapses */
+    #tab-dashboard .grid-2 > div:nth-child(1) { order: 2; }
+    #tab-dashboard .grid-2 > div:nth-child(2) { order: 1; }
+}
 
 /* ==========================================
    COMPREHENSIVE MOBILE LAYOUT FIX
