@@ -875,7 +875,7 @@ async function fetchSectors() {
             showLoading('chart-loading');
             var cm = {'BTC':'bitcoin','ETH':'ethereum','SOL':'solana','XRP':'ripple','ADA':'cardano','DOGE':'dogecoin'};
             var coin = cm[sym] || 'bitcoin';
-            var days = timeframe==='1H'?'1':timeframe==='1W'?'7':timeframe==='1M'?'30':timeframe==='3M'?'90':'7';
+            var days = timeframe==='1H'?'1':timeframe==='1D'?'1':timeframe==='1W'?'7':timeframe==='1M'?'30':timeframe==='3M'?'90':'1';
             try {
                 var r = await fetch('https://tradingapi-proxy.cloudflare-5m9f2.workers.dev/ohlc?coin='+coin+'&days='+days);
                 if(!r.ok) throw new Error('OHLC fetch failed');
@@ -941,295 +941,279 @@ async function fetchSectors() {
             else { renderLine(); }
         }
         function renderCandles(ohlc) {
-            var candles=[], lbls=[], vols=[], times=[];
-            var arr = history[sel.sym] || [];
+    if(priceCt) { priceCt.destroy(); priceCt = null; }
+    if(volCt) { volCt.destroy(); volCt = null; }
 
-            // Limit candles to last 100 for performance
-            var maxCandles = 100;
-            var startIdx = ohlc && ohlc.length > maxCandles ? ohlc.length - maxCandles : 0;
+    if(!ohlc || ohlc.length === 0) {
+        showToast('Chart data unavailable');
+        $('chart-price').textContent = '$' + fmt(sel.price);
+        return;
+    }
 
-            if(ohlc && ohlc.length>0) {
-                for(var i=startIdx;i<ohlc.length;i++) {
-                    var c=ohlc[i];
-                    candles.push({o:c[1],h:c[2],l:c[3],c:c[4]});
-                    var d=new Date(c[0]);
-                    times.push(d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}));
-                    lbls.push(i); vols.push(Math.abs((c.c-c.o)/c.o*1000)+50);
-                }
-            } else {
-                candles = []; showToast('Chart data unavailable');
-                // Generate proper time labels for fallback candles
-                times = generateTimeLabels(100, timeframe);
-                // No fake volume data - wait for real data
-            }
-            // Update price display (always show sel.price)
-            $('chart-price').textContent='$'+fmt(sel.price);
-            if(candles.length>0) {
-                var last=candles[candles.length-1];
-                var chg=((last.c-candles[0].o)/candles[0].o*100).toFixed(2);
-                $('chart-chg').textContent=(chg>=0?'+':'')+chg+'%';
-                $('chart-chg').className='chart-chg '+(chg>=0?'up':'down');
-            }
-            if(priceCt) priceCt.destroy(); if(volCt) volCt.destroy();
-            
-            // Get close prices for indicators
-            var closes = candles.map(function(c) { return c.c; });
-            
-            // Calculate indicators
-            var sma20 = showSMA20 ? Indicators.calcSMA(closes, 20) : [];
-            var sma200 = showSMA200 ? Indicators.calcSMA(closes, 200) : [];
-            var ema9 = showEMA ? Indicators.calcEMA(closes, 9) : [];
-            var ema21 = showEMA ? Indicators.calcEMA(closes, 21) : [];
-            var bb = showBollinger ? calcBollingerBands(closes, 20, 2) : null;
-            var srLevels = showSR ? calcSupportResistance(candles) : [];
-            
-            // Update price axis
-            var minPrice = Math.min(...candles.map(function(c) { return c.l; }));
-            var maxPrice = Math.max(...candles.map(function(c) { return c.h; }));
-            if(bb) {
-                minPrice = Math.min(minPrice, ...bb.lower.filter(function(v) { return v !== null; }));
-                maxPrice = Math.max(maxPrice, ...bb.upper.filter(function(v) { return v !== null; }));
-            }
-            updatePriceAxis(minPrice, maxPrice);
-            
-            // Build datasets
-            var datasets = [];
-            
-            // SMA-20
-            if(showSMA20 && sma20.length > 0) {
-                datasets.push({
-                    type:'line', data:sma20, borderColor:'rgba(255,215,0,0.9)', borderWidth:2,
-                    pointRadius:0, fill:false, order:1, label:'SMA-20'
-                });
-            }
-            // EMA lines
-            if(showEMA) {
-                datasets.push({
-                    type:'line', data:ema9, borderColor:'rgba(255,107,107,0.9)', borderWidth:1.5,
-                    pointRadius:0, fill:false, order:2, label:'EMA-9'
-                });
-                datasets.push({
-                    type:'line', data:ema21, borderColor:'rgba(78,205,196,0.9)', borderWidth:1.5,
-                    pointRadius:0, fill:false, order:3, label:'EMA-21'
-                });
-            }
-            // SMA-200
-            if(showSMA200 && sma200.length > 0) {
-                datasets.push({
-                    type:'line', data:sma200, borderColor:'rgba(255,165,0,0.9)', borderWidth:2,
-                    pointRadius:0, fill:false, order:0, label:'SMA-200'
-                });
-            }
-            
-            // Bollinger Bands
-            if(bb) {
-                datasets.push({
-                    type:'line', data:bb.upper, borderColor:'rgba(100,149,237,0.5)', borderWidth:1,
-                    pointRadius:0, fill:false, order:4, borderDash:[4,4], label:'BB Upper'
-                });
-                datasets.push({
-                    type:'line', data:bb.lower, borderColor:'rgba(100,149,237,0.5)', borderWidth:1,
-                    pointRadius:0, fill:'-1', backgroundColor:'rgba(100,149,237,0.1)', order:5, borderDash:[4,4], label:'BB Lower'
-                });
-            }
-            
-            // Candlestick wicks (high-low shadows as thin lines)
-            datasets.push({
-                type:'bar',
-                data:candles.map(function(c){ return [c.l, c.h]; }),
-                backgroundColor:'transparent',
-                borderColor:candles.map(function(c){return c.c>=c.o?'#00ff88':'#ff3366';}),
-                borderWidth:1.5,
-                barPercentage:0.08,
-                order:98,
-                categoryPercentage:0.9
-            });
+    // Limit to last 120 candles for performance
+    var maxCandles = 120;
+    var startIdx = ohlc.length > maxCandles ? ohlc.length - maxCandles : 0;
+    var slice = ohlc.slice(startIdx);
 
-            // Candlestick bodies (floating bars from open to close)
-            datasets.push({
-                type:'bar',
-                data:candles.map(function(c){ return [Math.min(c.o,c.c), Math.max(c.o,c.c)]; }),
-                backgroundColor:candles.map(function(c){return c.c>=c.o?'#00ff88':'#ff3366';}),
-                borderColor:candles.map(function(c){return c.c>=c.o?'#00ff88':'#ff3366';}),
-                borderWidth:0,
-                barPercentage:0.6,
-                order:99,
-                categoryPercentage:0.9
-            });
-            
-            priceCt = new Chart($('priceCt'),{
-                type:'bar',
-                data:{labels:times,datasets:datasets},
-                options:{
-                    responsive:true,
-                    maintainAspectRatio:false,
-                    interaction:{mode:'index',intersect:false},
-                    layout:{padding:{right:60,top:5,bottom:5,left:5}},
-                    plugins:{
-                        legend:{display:false},
-                        tooltip:{
-                            backgroundColor:'rgba(15,18,24,0.95)',
-                            borderColor:'rgba(0,240,255,0.3)',
-                            borderWidth:1,
-                            titleFont:{size:12,weight:'bold'},
-                            callbacks:{
-                                title:function(ctx){
-                                    var idx = ctx[0].dataIndex;
-                                    var label = times[idx] || ctx[0].label;
-                                    return label;
-                                },
-                                label:function(ctx){
-                                    if(ctx.dataset.label && ctx.dataset.label.includes('SMA')) return ctx.dataset.label+': $'+(ctx.raw?ctx.raw.toFixed(2):'N/A');
-                                    if(ctx.dataset.label && ctx.dataset.label.includes('EMA')) return ctx.dataset.label+': $'+(ctx.raw?ctx.raw.toFixed(2):'N/A');
-                                    var idx=ctx.dataIndex;
-                                    if(idx >=0 && idx < candles.length){
-                                        var c=candles[idx];
-                                        return 'O:$'+c.o.toFixed(2)+' H:$'+c.h.toFixed(2)+' L:$'+c.l.toFixed(2)+' C:$'+c.c.toFixed(2);
-                                    }
-                                    return '';
-                                }
+    // Build candlestick data with real timestamps
+    var candleData = slice.map(function(c) {
+        return { x: c[0], o: c[1], h: c[2], l: c[3], c: c[4] };
+    });
+
+    // Build volume data
+    var volData = slice.map(function(c) {
+        return { x: c[0], y: c[5] || Math.abs((c[4]-c[1])/(c[1]||1)*1000)+50 };
+    });
+
+    // Update price display
+    $('chart-price').textContent = '$' + fmt(sel.price);
+    var last = candleData[candleData.length - 1];
+    var first = candleData[0];
+    if(last && first) {
+        var chg = ((last.c - first.o) / first.o * 100).toFixed(2);
+        $('chart-chg').textContent = (chg >= 0 ? '+' : '') + chg + '%';
+        $('chart-chg').className = 'chart-chg ' + (chg >= 0 ? 'up' : 'down');
+    }
+
+    // Time format based on timeframe
+    var timeUnit = timeframe === '1H' ? 'hour' : timeframe === '1D' ? 'hour' : timeframe === '1W' ? 'day' : 'day';
+    var timeFormat = timeframe === '1H' || timeframe === '1D' ? 'HH:mm' : timeframe === '1W' ? 'MMM d HH:mm' : 'MMM d';
+    var tooltipFormat = timeframe === '1H' || timeframe === '1D' ? 'MMM d, HH:mm' : 'MMM d, yyyy';
+
+    // Get close prices for indicator calculations
+    var closes = candleData.map(function(c) { return c.c; });
+    var timestamps = candleData.map(function(c) { return c.x; });
+
+    // Calculate indicators
+    var sma20arr = showSMA20 ? Indicators.calcSMA(closes, 20) : [];
+    var sma200arr = showSMA200 ? Indicators.calcSMA(closes, 200) : [];
+    var ema9arr = showEMA ? Indicators.calcEMA(closes, 9) : [];
+    var ema21arr = showEMA ? Indicators.calcEMA(closes, 21) : [];
+    var bb = showBollinger ? calcBollingerBands(closes, 20, 2) : null;
+    var srLevels = showSR ? calcSupportResistance(candleData.map(function(c){return{o:c.o,h:c.h,l:c.l,c:c.c};})) : [];
+
+    // Price min/max for axis
+    var minPrice = Math.min.apply(null, candleData.map(function(c){return c.l;}));
+    var maxPrice = Math.max.apply(null, candleData.map(function(c){return c.h;}));
+    var padding = (maxPrice - minPrice) * 0.05;
+    if(bb) {
+        var bbMin = Math.min.apply(null, bb.lower.filter(function(v){return v!==null;}));
+        var bbMax = Math.max.apply(null, bb.upper.filter(function(v){return v!==null;}));
+        minPrice = Math.min(minPrice, bbMin);
+        maxPrice = Math.max(maxPrice, bbMax);
+    }
+    updatePriceAxis(minPrice, maxPrice);
+
+    // Build overlay datasets (indicators use timestamped data)
+    var overlayDatasets = [];
+    var toTimeSeries = function(arr) {
+        return arr.map(function(v, i) { return { x: timestamps[i], y: v }; });
+    };
+
+    if(showSMA20 && sma20arr.length > 0) {
+        overlayDatasets.push({ type:'line', data: toTimeSeries(sma20arr), borderColor:'rgba(255,215,0,0.9)', borderWidth:1.5, pointRadius:0, fill:false, spanGaps:true, label:'SMA-20', order:1 });
+    }
+    if(showEMA && ema9arr.length > 0) {
+        overlayDatasets.push({ type:'line', data: toTimeSeries(ema9arr), borderColor:'rgba(255,107,107,0.9)', borderWidth:1.5, pointRadius:0, fill:false, spanGaps:true, label:'EMA-9', order:2 });
+        overlayDatasets.push({ type:'line', data: toTimeSeries(ema21arr), borderColor:'rgba(78,205,196,0.9)', borderWidth:1.5, pointRadius:0, fill:false, spanGaps:true, label:'EMA-21', order:3 });
+    }
+    if(showSMA200 && sma200arr.length > 0) {
+        overlayDatasets.push({ type:'line', data: toTimeSeries(sma200arr), borderColor:'rgba(255,165,0,0.9)', borderWidth:2, pointRadius:0, fill:false, spanGaps:true, label:'SMA-200', order:0 });
+    }
+    if(bb) {
+        overlayDatasets.push({ type:'line', data: toTimeSeries(bb.upper), borderColor:'rgba(100,149,237,0.5)', borderWidth:1, pointRadius:0, fill:false, spanGaps:true, borderDash:[4,4], label:'BB Upper', order:4 });
+        overlayDatasets.push({ type:'line', data: toTimeSeries(bb.lower), borderColor:'rgba(100,149,237,0.5)', borderWidth:1, pointRadius:0, fill:'-1', backgroundColor:'rgba(100,149,237,0.08)', spanGaps:true, borderDash:[4,4], label:'BB Lower', order:5 });
+    }
+
+    // SR level annotations via horizontal lines
+    if(showSR && srLevels.length > 0) {
+        srLevels.slice(0,4).forEach(function(level, idx) {
+            var color = level.type === 'resistance' ? 'rgba(255,51,102,0.5)' : 'rgba(0,255,136,0.5)';
+            overlayDatasets.push({ type:'line', data: timestamps.map(function(t){return {x:t, y:level.price};}), borderColor:color, borderWidth:1, pointRadius:0, fill:false, borderDash:[6,3], label:level.type, order:6+idx });
+        });
+    }
+
+    // Main candlestick dataset
+    var candleDataset = {
+        type: 'candlestick',
+        label: sel.sym,
+        data: candleData,
+        color: { up: '#00ff88', down: '#ff3366', unchanged: '#888888' },
+        borderColor: { up: '#00ff88', down: '#ff3366', unchanged: '#888888' },
+        order: 99
+    };
+
+    priceCt = new Chart($('priceCt'), {
+        type: 'candlestick',
+        data: { datasets: [candleDataset, ...overlayDatasets] },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode:'index', intersect:false },
+            layout: { padding: { right:50, top:5, bottom:5, left:5 } },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: 'rgba(15,18,24,0.95)',
+                    borderColor: 'rgba(0,240,255,0.3)',
+                    borderWidth: 1,
+                    titleFont: { size:11, weight:'bold' },
+                    callbacks: {
+                        label: function(ctx) {
+                            if(ctx.datasetIndex === 0 && ctx.raw) {
+                                var c = ctx.raw;
+                                return ['O: $'+c.o.toFixed(2), 'H: $'+c.h.toFixed(2), 'L: $'+c.l.toFixed(2), 'C: $'+c.c.toFixed(2)];
                             }
+                            if(ctx.dataset.label && ctx.parsed && ctx.parsed.y) {
+                                return ctx.dataset.label + ': $' + ctx.parsed.y.toFixed(2);
+                            }
+                            return null;
                         }
-                    },
-                    scales:{
-                        x:{display:false,stacked:true},
-                        y:{display:false,stacked:true}
                     }
                 }
-            });
-            
-            // Volume chart - downsample to max 50 bars for performance
-            var maxVolBars = 50;
-            var volStep = Math.ceil(vols.length / maxVolBars);
-            var downsampledVols = [], downsampledLbls = [];
-            for(var vi = 0; vi < vols.length; vi += volStep) {
-                var volSum = 0, count = 0;
-                for(var vj = vi; vj < Math.min(vi + volStep, vols.length); vj++) {
-                    volSum += vols[vj];
-                    count++;
-                }
-                downsampledVols.push(volSum / count);
-                downsampledLbls.push(lbls[Math.min(vi + Math.floor(volStep/2), lbls.length - 1)]);
-            }
-            var volMA = Indicators.calcSMA(downsampledVols, 10);
-            volCt = new Chart($('volCt'),{
-                type:'bar',
-                data:{
-                    labels:downsampledLbls,
-                    datasets:[{
-                        data:downsampledVols,
-                        backgroundColor:candles.map(function(c){return c.c>=c.o?'rgba(0,255,136,0.5)':'rgba(255,51,102,0.5)';}),
-                        borderRadius:2,
-                        order:2
-                    },{
-                        type:'line',
-                        data:volMA,
-                        borderColor:'rgba(168,85,247,0.8)',
-                        borderWidth:1.5,
-                        pointRadius:0,
-                        fill:false,
-                        order:1
-                    }]
+            },
+            scales: {
+                x: {
+                    type: 'timeseries',
+                    time: {
+                        unit: timeUnit,
+                        displayFormats: { hour: timeFormat, day: timeFormat },
+                        tooltipFormat: tooltipFormat
+                    },
+                    grid: { color: 'rgba(255,255,255,0.04)', drawBorder:false },
+                    ticks: { color:'#5a6a7e', font:{size:9}, maxTicksLimit:8, maxRotation:0 }
                 },
-                options:{
-                    responsive:true,
-                    maintainAspectRatio:false,
-                    plugins:{legend:{display:false}},
-                    scales:{x:{display:false},y:{display:false}}
+                y: {
+                    position: 'right',
+                    min: minPrice - padding,
+                    max: maxPrice + padding,
+                    grid: { color: 'rgba(255,255,255,0.04)', drawBorder:false },
+                    ticks: { color:'#5a6a7e', font:{size:9}, callback: function(v){ return '$'+v.toLocaleString(undefined,{maximumFractionDigits:2}); } }
                 }
-            });
-            
-            // Update time axis
-            var timeHtml = '';
-            var step = Math.max(1, Math.floor(times.length / 6));
-            for(var i = 0; i < times.length; i += step) {
-                timeHtml += '<span>' + (times[i] || i) + '</span>';
             }
-            $('time-axis').innerHTML = timeHtml;
         }
+    });
+
+    // Volume chart with timestamps
+    var upColor = 'rgba(0,255,136,0.5)';
+    var downColor = 'rgba(255,51,102,0.5)';
+    var volBgColors = candleData.map(function(c) { return c.c >= c.o ? upColor : downColor; });
+
+    volCt = new Chart($('volCt'), {
+        type: 'bar',
+        data: {
+            datasets: [{
+                data: volData,
+                backgroundColor: volBgColors,
+                borderRadius: 1,
+                barPercentage: 0.8,
+                categoryPercentage: 0.9
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend:{ display:false }, tooltip:{ enabled:false } },
+            scales: {
+                x: { type:'timeseries', display:false },
+                y: { display:false }
+            }
+        }
+    });
+
+    // Update manual time axis div
+    var step = Math.max(1, Math.floor(slice.length / 6));
+    var timeHtml = '';
+    for(var i = 0; i < slice.length; i += step) {
+        var d = new Date(slice[i][0]);
+        var label = timeframe === '1H' || timeframe === '1D'
+            ? d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false})
+            : d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+        timeHtml += '<span>' + label + '</span>';
+    }
+    $('time-axis').innerHTML = timeHtml;
+        }
+
         function renderLine() {
-            try {
-            
-            var len = timeframe==='1H'?24:timeframe==='1W'?168:timeframe==='1M'?720:timeframe==='3M'?2160:96;
-            var arr = history[sel.sym]; 
-            if(!arr || arr.length === 0) {  return; }
-            var disp=arr, lbls=[], times=[]; // Use all available data
-            // Generate proper time labels based on timeframe
-            times = generateTimeLabels(disp.length, timeframe);
-            for(var i=0;i<disp.length;i++) {
-                lbls.push(i);
-            }
-            // Update price display (always show sel.price)
-            $('chart-price').textContent='$'+fmt(sel.price);
-            if(disp.length>0) {
-                var chg=((disp[disp.length-1]-disp[0])/disp[0]*100).toFixed(2);
-                $('chart-chg').textContent=(chg>=0?'+':'')+chg+'%';
-                $('chart-chg').className='chart-chg '+(chg>=0?'up':'down');
-            }
-            if(priceCt) priceCt.destroy(); if(volCt) volCt.destroy();
-            var vols=[]; for(var i=0;i<disp.length;i++) { var prev = i>0 ? disp[i-1] : disp[i]; vols.push(Math.abs((disp[i]-prev)/prev*1000)+50); }
+    try {
+    var arr = history[sel.sym];
+    if(!arr || arr.length === 0) { return; }
 
-            // Calculate SMA
-            var sma=[]; var period=20;
-            for(var i=0;i<disp.length;i++) {
-                if(i<period-1) sma.push(null);
-                else { var sum=0; for(var j=0;j<period;j++) sum+=disp[i-j]; sma.push(sum/period); }
-            }
-            // Build datasets conditionally
-            var lineDatasets = [];
-            if(showSMA20) {
-                lineDatasets.push({data:sma,borderColor:'rgba(255,215,0,0.8)',borderWidth:2,pointRadius:0,fill:false,spanGaps:true});
-            }
-            lineDatasets.push({data:disp,borderColor:'#00f0ff',backgroundColor:'rgba(0,240,255,0.1)',fill:true,tension:0.4,pointRadius:0});
+    // Use real OHLC timestamps if available for accurate time labels
+    var ohlcCacheKey = 'ohlc_'+sel.sym+'_'+timeframe;
+    var ohlcRaw = getCached(ohlcCacheKey, CACHE_TTL.OHLC * 2);
+    var disp = arr;
+    var times = [];
 
-            priceCt = new Chart($('priceCt'),{
-                type:'line',
-                data:{
-                    labels:times,
-                    datasets:lineDatasets
-                },
-                options:{
-                    responsive:true,
-                    maintainAspectRatio:false,
-                    interaction:{mode:'index',intersect:false},
-                    layout:{padding:{right:60,top:5,bottom:5,left:5}},
-                    plugins:{
-                        legend:{display:false},
-                        tooltip:{
-                            enabled:true,
-                            backgroundColor:'rgba(15,18,24,0.95)',
-                            borderColor:'rgba(0,240,255,0.3)',
-                            borderWidth:1,
-                            titleFont:{size:12,weight:'bold'},
-                            callbacks:{
-                                title:function(ctx){
-                                    var idx=ctx[0].dataIndex;
-                                    return times[idx]||ctx[0].label||'';
-                                },
-                                label:function(ctx){
-                                    return ' $'+ctx.parsed.y.toLocaleString();
-                                }
-                            }
-                        }
-                    },
-                    scales:{
-                        x:{display:true,grid:{display:false},ticks:{color:'#5a6a7e',font:{size:9},maxTicksLimit:8}},
-                        y:{position:'right',grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#5a6a7e',callback:function(v){return'$'+v.toLocaleString();}}}
+    if(ohlcRaw && ohlcRaw.length > 0) {
+        disp = ohlcRaw.map(function(c){return c[4];});
+        times = ohlcRaw.map(function(c) {
+            var d = new Date(c[0]);
+            if(timeframe === '1H' || timeframe === '1D') return d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false});
+            if(timeframe === '1W') return d.toLocaleDateString('en-US',{month:'short',day:'numeric'})+'\n'+d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false});
+            return d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+        });
+    } else {
+        times = generateTimeLabels(disp.length, timeframe);
+    }
+
+    $('chart-price').textContent='$'+fmt(sel.price);
+    if(disp.length>0) {
+        var chg=((disp[disp.length-1]-disp[0])/disp[0]*100).toFixed(2);
+        $('chart-chg').textContent=(chg>=0?'+':'')+chg+'%';
+        $('chart-chg').className='chart-chg '+(chg>=0?'up':'down');
+    }
+    if(priceCt) priceCt.destroy(); if(volCt) volCt.destroy();
+    var vols=[]; for(var i=0;i<disp.length;i++) { var prev = i>0 ? disp[i-1] : disp[i]; vols.push(Math.abs((disp[i]-prev)/prev*1000)+50); }
+
+    var sma=[]; var period=20;
+    for(var i=0;i<disp.length;i++) {
+        if(i<period-1) sma.push(null);
+        else { var sum=0; for(var j=0;j<period;j++) sum+=disp[i-j]; sma.push(sum/period); }
+    }
+    var lineDatasets = [];
+    if(showSMA20) {
+        lineDatasets.push({data:sma,borderColor:'rgba(255,215,0,0.8)',borderWidth:2,pointRadius:0,fill:false,spanGaps:true});
+    }
+    lineDatasets.push({data:disp,borderColor:'#00f0ff',backgroundColor:'rgba(0,240,255,0.08)',fill:true,tension:0.3,pointRadius:0});
+
+    priceCt = new Chart($('priceCt'),{
+        type:'line',
+        data:{ labels:times, datasets:lineDatasets },
+        options:{
+            responsive:true,
+            maintainAspectRatio:false,
+            interaction:{mode:'index',intersect:false},
+            layout:{padding:{right:60,top:5,bottom:5,left:5}},
+            plugins:{
+                legend:{display:false},
+                tooltip:{
+                    enabled:true,
+                    backgroundColor:'rgba(15,18,24,0.95)',
+                    borderColor:'rgba(0,240,255,0.3)',
+                    borderWidth:1,
+                    titleFont:{size:11,weight:'bold'},
+                    callbacks:{
+                        title:function(ctx){ return times[ctx[0].dataIndex]||''; },
+                        label:function(ctx){ return ' $'+ctx.parsed.y.toLocaleString(undefined,{maximumFractionDigits:2}); }
                     }
                 }
-            });
-            volCt = new Chart($('volCt'),{type:'bar',data:{labels:times,datasets:[{data:vols,backgroundColor:vols.map(function(v,i){return (i<disp.length-1 && disp[i+1]>disp[i])?'rgba(0,255,136,0.5)':'rgba(255,51,102,0.5)';})}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:false,position:'right'}}}});
-            $('last-update').textContent='Last update: '+new Date().toLocaleTimeString();
-            
-            // Update time axis
-            var timeHtml = '';
-            var step = Math.max(1, Math.floor(times.length / 6));
-            for(var i = 0; i < times.length; i += step) {
-                timeHtml += '<span>' + (times[i] || i) + '</span>';
+            },
+            scales:{
+                x:{display:true,grid:{display:false},ticks:{color:'#5a6a7e',font:{size:9},maxTicksLimit:8,maxRotation:0}},
+                y:{position:'right',grid:{color:'rgba(255,255,255,0.04)',drawBorder:false},ticks:{color:'#5a6a7e',font:{size:9},callback:function(v){return'$'+v.toLocaleString(undefined,{maximumFractionDigits:v<1?4:0});}}}
             }
-            $('time-axis').innerHTML = timeHtml;
-            
-            } catch(e) { console.error('renderLine ERROR:', e); }
+        }
+    });
+    volCt = new Chart($('volCt'),{type:'bar',data:{labels:times,datasets:[{data:vols,backgroundColor:vols.map(function(v,i){return (i<disp.length-1&&disp[i+1]>disp[i])?'rgba(0,255,136,0.45)':'rgba(255,51,102,0.45)';}),borderRadius:1}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{enabled:false}},scales:{x:{display:false},y:{display:false}}}});
+    $('last-update').textContent='Last update: '+new Date().toLocaleTimeString();
+
+    var step = Math.max(1, Math.floor(times.length / 6));
+    var timeHtml = '';
+    for(var i = 0; i < times.length; i += step) timeHtml += '<span>' + (times[i]||'') + '</span>';
+    $('time-axis').innerHTML = timeHtml;
+
+    } catch(e) { console.error('renderLine ERROR:', e); }
         }
 
 function renderAlloc() {
@@ -1700,7 +1684,60 @@ function renderAlloc() {
 
 window.selAsset = function(s) { for(var i=0;i<data.length;i++) if(data[i].sym===s){sel=data[i];break;} $('chart-sym').textContent=s; 
 if(!history[s])history[s]=null; renderAssets();renderInds();renderActions();renderAssetDetails();renderChart(); fetchOHLC(s).then(function(d){ if(d && d.length>0){ history[s]=d.map(function(c){return c[4];}); renderInds();renderActions(); } }); };
-        window.toggleFav = function(s) { for(var i=0;i<data.length;i++) if(data[i].sym===s){data[i].fav=!data[i].fav;renderAssets();showToast(s+(data[i].fav?' added to':' removed from')+' favorites');break;} };
+        window.toggleFav = async function(s) {
+    for(var i=0;i<data.length;i++) {
+        if(data[i].sym===s) {
+            data[i].fav = !data[i].fav;
+            renderAssets();
+            showToast(s + (data[i].fav?' added to':' removed from') + ' favorites');
+            // Persist to localStorage
+            try {
+                localStorage.setItem('assetList', JSON.stringify(data.map(function(a){return{sym:a.sym,name:a.name,type:a.type,color:a.color,hold:a.hold,fav:a.fav};})));
+                var holdings = {};
+                for(var j=0;j<data.length;j++) holdings[data[j].sym] = data[j].hold;
+                localStorage.setItem('holdings', JSON.stringify(holdings));
+            } catch(e) {}
+            // Sync to Supabase for cross-device
+            if(typeof TradingAI !== 'undefined' && user) {
+                try {
+                    await TradingAI.addToPortfolio(data[i].sym, data[i].hold || 0, data[i].fav);
+                } catch(e) {}
+            }
+            break;
+        }
+    }
+};
+
+// Listen for cloud portfolio data from Supabase
+window.addEventListener('supabase:portfolio-loaded', function(e) {
+    var portfolioItems = e.detail;
+    if(!portfolioItems || portfolioItems.length === 0) return;
+    var updated = false;
+    portfolioItems.forEach(function(item) {
+        var sym = (item.symbol || item.sym || '').toUpperCase();
+        var qty = parseFloat(item.quantity || item.hold || 0);
+        var fav = item.favorite || item.fav || false;
+        for(var i=0;i<data.length;i++) {
+            if(data[i].sym === sym) {
+                data[i].hold = qty;
+                data[i].fav = fav;
+                updated = true;
+                break;
+            }
+        }
+    });
+    if(updated) {
+        var holdings = {};
+        for(var i=0;i<data.length;i++) holdings[data[i].sym] = data[i].hold;
+        localStorage.setItem('holdings', JSON.stringify(holdings));
+        localStorage.setItem('assetList', JSON.stringify(data.map(function(a){return{sym:a.sym,name:a.name,type:a.type,color:a.color,hold:a.hold,fav:a.fav};})));
+        renderPortfolio();
+        renderWeights();
+        renderAlloc();
+        renderAssets();
+        showToast('Portfolio synced from cloud ☁️');
+    }
+});
         window.setTf = function(tf) { 
             // Destroy existing charts immediately
             if(priceCt) { priceCt.destroy(); priceCt = null; }

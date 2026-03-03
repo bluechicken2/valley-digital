@@ -124,6 +124,10 @@
             if (error) throw error;
             window.userPortfolio = data || [];
             updatePortfolioUI(data);
+            // Notify app.js to sync portfolio data to UI
+            if(data && data.length > 0) {
+                window.dispatchEvent(new CustomEvent('supabase:portfolio-loaded', { detail: data }));
+            }
             return { success: true, data };
         } catch (error) {
             console.error('Error loading portfolio:', error);
