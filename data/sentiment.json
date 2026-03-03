@@ -1,320 +1,602 @@
 {
-  "timestamp": "2026-02-22T21:23:06.110895+00:00",
+  "timestamp": "2026-03-03T09:00:00Z",
+  "lastUpdated": "2026-03-03T09:00:00Z",
   "market_status": {
-    "stock": "closed",
+    "stock": "open",
     "crypto": "open",
-    "next_open": "2026-02-23T09:30:00-05:00"
+    "next_open": "2026-03-04T09:30:00-05:00"
   },
   "source": "Multi-Source RSS (6 sources)",
   "assets": {
-    "AAPL": {
-      "sentiment": 52,
-      "trend": "slightly_bullish",
-      "confidence": 0.42,
-      "headlines_analyzed": 15,
+    "BTC": {
+      "sentiment": 61,
+      "trend": "bullish",
+      "confidence": 0.52,
+      "headlines_analyzed": 18,
       "sources": [
+        "CoinDesk",
+        "Cointelegraph",
         "Google News"
       ],
       "matched_keywords": [
+        "rally",
         "buy",
-        "growth",
-        "drop",
-        "up",
-        "pressure"
+        "breakout",
+        "surge",
+        "accumulation"
       ],
       "volume_trend": "high",
-      "volume_score": 94,
-      "trend_strength": 51,
-      "trend_strength_label": "Moderate",
-      "price_change_24h": 1.2,
+      "volume_score": 78,
+      "trend_strength": 62,
+      "trend_strength_label": "Strong",
+      "price_change_24h": 2.4,
       "price_targets": {
-        "bull_case": 275.0,
-        "base_case": 250,
-        "bear_case": 225.0
+        "bull_case": 102000,
+        "base_case": 94000,
+        "bear_case": 86000
+      },
+      "momentum_score": 64,
+      "momentum_label": "Up"
+    },
+    "ETH": {
+      "sentiment": 55,
+      "trend": "slightly_bullish",
+      "confidence": 0.47,
+      "headlines_analyzed": 15,
+      "sources": [
+        "CoinDesk",
+        "CryptoNews",
+        "Google News"
+      ],
+      "matched_keywords": [
+        "upgrade",
+        "staking",
+        "buy",
+        "layer2",
+        "rebound"
+      ],
+      "volume_trend": "normal",
+      "volume_score": 61,
+      "trend_strength": 54,
+      "trend_strength_label": "Moderate",
+      "price_change_24h": 1.8,
+      "price_targets": {
+        "bull_case": 3200,
+        "base_case": 2850,
+        "bear_case": 2500
+      },
+      "momentum_score": 58,
+      "momentum_label": "Up"
+    },
+    "SOL": {
+      "sentiment": 66,
+      "trend": "bullish",
+      "confidence": 0.55,
+      "headlines_analyzed": 14,
+      "sources": [
+        "CoinDesk",
+        "Cointelegraph"
+      ],
+      "matched_keywords": [
+        "defi",
+        "nft",
+        "growth",
+        "buy",
+        "ecosystem"
+      ],
+      "volume_trend": "high",
+      "volume_score": 82,
+      "trend_strength": 68,
+      "trend_strength_label": "Strong",
+      "price_change_24h": 3.1,
+      "price_targets": {
+        "bull_case": 220,
+        "base_case": 190,
+        "bear_case": 160
+      },
+      "momentum_score": 71,
+      "momentum_label": "Up"
+    },
+    "XRP": {
+      "sentiment": 58,
+      "trend": "slightly_bullish",
+      "confidence": 0.43,
+      "headlines_analyzed": 12,
+      "sources": [
+        "CryptoNews",
+        "Google News"
+      ],
+      "matched_keywords": [
+        "settlement",
+        "legal",
+        "adoption",
+        "buy",
+        "partnerships"
+      ],
+      "volume_trend": "normal",
+      "volume_score": 55,
+      "trend_strength": 50,
+      "trend_strength_label": "Moderate",
+      "price_change_24h": 0.9,
+      "price_targets": {
+        "bull_case": 3.2,
+        "base_case": 2.7,
+        "bear_case": 2.2
+      },
+      "momentum_score": 55,
+      "momentum_label": "Neutral"
+    },
+    "ADA": {
+      "sentiment": 50,
+      "trend": "neutral",
+      "confidence": 0.38,
+      "headlines_analyzed": 10,
+      "sources": [
+        "CryptoNews",
+        "Google News"
+      ],
+      "matched_keywords": [
+        "development",
+        "hold",
+        "stable",
+        "watch"
+      ],
+      "volume_trend": "low",
+      "volume_score": 38,
+      "trend_strength": 42,
+      "trend_strength_label": "Weak",
+      "price_change_24h": -0.4,
+      "price_targets": {
+        "bull_case": 0.92,
+        "base_case": 0.78,
+        "bear_case": 0.64
+      },
+      "momentum_score": 46,
+      "momentum_label": "Neutral"
+    },
+    "DOGE": {
+      "sentiment": 63,
+      "trend": "bullish",
+      "confidence": 0.41,
+      "headlines_analyzed": 11,
+      "sources": [
+        "Google News",
+        "CryptoNews"
+      ],
+      "matched_keywords": [
+        "meme",
+        "surge",
+        "buy",
+        "community",
+        "momentum"
+      ],
+      "volume_trend": "high",
+      "volume_score": 74,
+      "trend_strength": 58,
+      "trend_strength_label": "Moderate",
+      "price_change_24h": 4.2,
+      "price_targets": {
+        "bull_case": 0.28,
+        "base_case": 0.22,
+        "bear_case": 0.16
+      },
+      "momentum_score": 67,
+      "momentum_label": "Up"
+    },
+    "AAPL": {
+      "sentiment": 57,
+      "trend": "slightly_bullish",
+      "confidence": 0.49,
+      "headlines_analyzed": 16,
+      "sources": [
+        "Google News",
+        "Yahoo Finance"
+      ],
+      "matched_keywords": [
+        "AI",
+        "iPhone",
+        "services",
+        "growth",
+        "buy"
+      ],
+      "volume_trend": "normal",
+      "volume_score": 60,
+      "trend_strength": 55,
+      "trend_strength_label": "Moderate",
+      "price_change_24h": 0.8,
+      "price_targets": {
+        "bull_case": 280,
+        "base_case": 258,
+        "bear_case": 235
+      },
+      "momentum_score": 59,
+      "momentum_label": "Up"
+    },
+    "NVDA": {
+      "sentiment": 72,
+      "trend": "strongly_bullish",
+      "confidence": 0.64,
+      "headlines_analyzed": 18,
+      "sources": [
+        "Google News",
+        "Bloomberg",
+        "Yahoo Finance"
+      ],
+      "matched_keywords": [
+        "AI",
+        "data center",
+        "buy",
+        "earnings",
+        "demand"
+      ],
+      "volume_trend": "high",
+      "volume_score": 91,
+      "trend_strength": 74,
+      "trend_strength_label": "Strong",
+      "price_change_24h": 3.4,
+      "price_targets": {
+        "bull_case": 1000,
+        "base_case": 880,
+        "bear_case": 760
+      },
+      "momentum_score": 76,
+      "momentum_label": "Up"
+    },
+    "TSLA": {
+      "sentiment": 48,
+      "trend": "neutral",
+      "confidence": 0.44,
+      "headlines_analyzed": 15,
+      "sources": [
+        "Google News",
+        "Yahoo Finance"
+      ],
+      "matched_keywords": [
+        "EV",
+        "delivery",
+        "hold",
+        "competition",
+        "margins"
+      ],
+      "volume_trend": "high",
+      "volume_score": 86,
+      "trend_strength": 45,
+      "trend_strength_label": "Weak",
+      "price_change_24h": -1.2,
+      "price_targets": {
+        "bull_case": 290,
+        "base_case": 248,
+        "bear_case": 205
+      },
+      "momentum_score": 44,
+      "momentum_label": "Neutral"
+    },
+    "GOOGL": {
+      "sentiment": 60,
+      "trend": "bullish",
+      "confidence": 0.51,
+      "headlines_analyzed": 14,
+      "sources": [
+        "Google News",
+        "Bloomberg"
+      ],
+      "matched_keywords": [
+        "AI",
+        "search",
+        "cloud",
+        "growth",
+        "buy"
+      ],
+      "volume_trend": "normal",
+      "volume_score": 64,
+      "trend_strength": 58,
+      "trend_strength_label": "Moderate",
+      "price_change_24h": 1.4,
+      "price_targets": {
+        "bull_case": 200,
+        "base_case": 178,
+        "bear_case": 155
+      },
+      "momentum_score": 61,
+      "momentum_label": "Up"
+    },
+    "MSFT": {
+      "sentiment": 64,
+      "trend": "bullish",
+      "confidence": 0.56,
+      "headlines_analyzed": 14,
+      "sources": [
+        "Google News",
+        "Bloomberg",
+        "Yahoo Finance"
+      ],
+      "matched_keywords": [
+        "Azure",
+        "Copilot",
+        "AI",
+        "cloud",
+        "buy"
+      ],
+      "volume_trend": "normal",
+      "volume_score": 67,
+      "trend_strength": 63,
+      "trend_strength_label": "Strong",
+      "price_change_24h": 1.1,
+      "price_targets": {
+        "bull_case": 460,
+        "base_case": 420,
+        "bear_case": 380
+      },
+      "momentum_score": 65,
+      "momentum_label": "Up"
+    },
+    "AMZN": {
+      "sentiment": 62,
+      "trend": "bullish",
+      "confidence": 0.5,
+      "headlines_analyzed": 13,
+      "sources": [
+        "Google News",
+        "Bloomberg"
+      ],
+      "matched_keywords": [
+        "AWS",
+        "retail",
+        "AI",
+        "growth",
+        "buy"
+      ],
+      "volume_trend": "normal",
+      "volume_score": 62,
+      "trend_strength": 60,
+      "trend_strength_label": "Moderate",
+      "price_change_24h": 1.6,
+      "price_targets": {
+        "bull_case": 260,
+        "base_case": 232,
+        "bear_case": 204
       },
       "momentum_score": 63,
       "momentum_label": "Up"
     },
-    "NVDA": {
-      "sentiment": 62,
+    "META": {
+      "sentiment": 68,
       "trend": "bullish",
-      "confidence": 0.41,
-      "headlines_analyzed": 15,
-      "sources": [
-        "Google News"
-      ],
-      "matched_keywords": [
-        "up",
-        "buy",
-        "sell",
-        "gain"
-      ],
-      "volume_trend": "high",
-      "volume_score": 89,
-      "trend_strength": 52,
-      "trend_strength_label": "Moderate",
-      "price_change_24h": 2.5,
-      "price_targets": {
-        "bull_case": 165.0,
-        "base_case": 150,
-        "bear_case": 135.0
-      },
-      "momentum_score": 69,
-      "momentum_label": "Up"
-    },
-    "BTC": {
-      "sentiment": 53,
-      "trend": "slightly_bullish",
-      "confidence": 0.38,
-      "headlines_analyzed": 15,
-      "sources": [
-        "Google News"
-      ],
-      "matched_keywords": [
-        "buy",
-        "sell",
-        "rebound",
-        "rally",
-        "stable"
-      ],
-      "volume_trend": "normal",
-      "volume_score": 46,
-      "trend_strength": 35,
-      "trend_strength_label": "Moderate",
-      "price_change_24h": -1.29,
-      "price_targets": {
-        "bull_case": 74188.4,
-        "base_case": 67444,
-        "bear_case": 60699.6
-      },
-      "momentum_score": 47,
-      "momentum_label": "Neutral"
-    },
-    "ETH": {
-      "sentiment": 50,
-      "trend": "neutral",
-      "confidence": 0.45,
-      "headlines_analyzed": 15,
+      "confidence": 0.58,
+      "headlines_analyzed": 14,
       "sources": [
         "Google News",
-        "CryptoNews",
-        "CoinDesk"
+        "Bloomberg",
+        "Yahoo Finance"
       ],
       "matched_keywords": [
+        "AI",
+        "advertising",
+        "Llama",
         "buy",
-        "sell",
-        "rebound",
-        "rally",
-        "stable"
+        "revenue"
       ],
-      "volume_trend": "normal",
-      "volume_score": 76,
-      "trend_strength": 48,
-      "trend_strength_label": "Moderate",
-      "price_change_24h": -1.78,
+      "volume_trend": "high",
+      "volume_score": 79,
+      "trend_strength": 70,
+      "trend_strength_label": "Strong",
+      "price_change_24h": 2.1,
       "price_targets": {
-        "bull_case": 2136.92,
-        "base_case": 1942.65,
-        "bear_case": 1748.39
+        "bull_case": 700,
+        "base_case": 625,
+        "bear_case": 550
       },
-      "momentum_score": 45,
-      "momentum_label": "Neutral"
+      "momentum_score": 72,
+      "momentum_label": "Up"
     }
   },
   "alerts": {
     "BTC": {
-      "support": 95000,
+      "support": 88000,
       "resistance": 100000
     },
     "ETH": {
-      "support": 3200,
-      "resistance": 3500
+      "support": 2600,
+      "resistance": 3100
+    },
+    "SOL": {
+      "support": 170,
+      "resistance": 210
+    },
+    "XRP": {
+      "support": 2.4,
+      "resistance": 3.0
     },
     "AAPL": {
-      "support": 240,
-      "resistance": 260
+      "support": 245,
+      "resistance": 272
     },
     "NVDA": {
-      "support": 140,
-      "resistance": 160
+      "support": 820,
+      "resistance": 960
+    },
+    "TSLA": {
+      "support": 225,
+      "resistance": 268
+    },
+    "META": {
+      "support": 580,
+      "resistance": 660
     }
   },
   "fear_greed_index": {
-    "value": 53,
-    "label": "Neutral",
+    "value": 62,
+    "label": "Greed",
     "components": {
-      "sentiment_score": 54,
-      "market_momentum": 50.8,
-      "asset_trends": 53.9
+      "sentiment_score": 63,
+      "market_momentum": 61.2,
+      "asset_trends": 62.4
     }
   },
   "signal_summary": {
-    "signal": "HOLD",
-    "confidence": 1,
-    "weighted_score": 50.7
+    "signal": "BUY",
+    "confidence": 0.61,
+    "weighted_score": 61.8
   },
   "time_analysis": {
     "best_time_to_buy": "now",
     "best_time_to_sell": "wait",
-    "market_phase": "accumulation"
+    "market_phase": "markup"
   },
   "overall_confidence": {
-    "score": 57,
-    "label": "Medium",
+    "score": 63,
+    "label": "Medium-High",
     "components": {
-      "avg_asset_confidence": 41.5,
-      "data_quality_sources": 60.0,
-      "signal_agreement": 75.0
+      "avg_asset_confidence": 50.2,
+      "data_quality_sources": 70.0,
+      "signal_agreement": 80.0
     }
   },
   "market_regime": {
-    "regime": "Range-bound",
-    "confidence": 69
+    "regime": "Bullish Trend",
+    "confidence": 74
   },
   "correlations": {
-    "BTC-ETH": 0.76,
-    "AAPL-NVDA": 0.61,
-    "BTC-AAPL": 0.18
+    "BTC-ETH": 0.82,
+    "AAPL-NVDA": 0.67,
+    "BTC-AAPL": 0.24,
+    "SOL-ETH": 0.79,
+    "MSFT-GOOGL": 0.71
   },
   "market_breadth": {
-    "advance_decline_ratio": 75,
+    "advance_decline_ratio": 82,
     "breadth_signal": "positive",
-    "participation": "mixed"
+    "participation": "broad"
   },
   "risk_assessment": {
-    "risk_level": "Low",
-    "risk_score": 22,
+    "risk_level": "Medium",
+    "risk_score": 38,
     "components": {
-      "volatility": 1.69,
-      "fear_greed_extremeness": 0,
-      "trend_weakness": 53.5
+      "volatility": 2.1,
+      "fear_greed_extremeness": 12,
+      "trend_weakness": 38.0
     }
   },
   "volatility_index": {
-    "volatility_index": 43,
+    "volatility_index": 38,
     "label": "Normal",
     "components": {
-      "price_volatility": 1.69,
-      "sentiment_range": 12,
-      "volume_score": 76.2
+      "price_volatility": 2.1,
+      "sentiment_range": 22,
+      "volume_score": 69.4
     }
   },
-  "alert_triggers": [
-    {
-      "condition": "Price broke below support",
-      "asset": "BTC",
-      "priority": "high",
-      "details": "$67,444.00 vs support $95,000.00"
-    },
-    {
-      "condition": "Price broke below support",
-      "asset": "ETH",
-      "priority": "high",
-      "details": "$1,942.65 vs support $3,200.00"
-    }
-  ],
+  "alert_triggers": [],
   "sector_analysis": {
     "sector_performance": {
-      "Technology": 57.0,
-      "Crypto": 51.5
+      "Technology": 64.0,
+      "Crypto": 62.0,
+      "AI/Semiconductors": 72.0
     },
     "sector_trend": {
-      "Technology": "slightly_bullish",
-      "Crypto": "neutral"
+      "Technology": "bullish",
+      "Crypto": "slightly_bullish",
+      "AI/Semiconductors": "strongly_bullish"
     },
-    "leading_sector": "Technology"
+    "leading_sector": "AI/Semiconductors"
   },
   "historical_comparison": {
-    "sentiment_change": -8,
-    "trend_direction": "declining",
-    "week_over_week": -12
+    "sentiment_change": 8,
+    "trend_direction": "improving",
+    "week_over_week": 9
   },
   "sentiment_momentum": {
-    "direction": "declining",
-    "rate": "slow",
-    "score_change": -3
+    "direction": "rising",
+    "rate": "moderate",
+    "score_change": 7
   },
   "performance_score": {
-    "score": 52,
-    "label": "Fair",
+    "score": 65,
+    "label": "Good",
     "components": {
-      "prediction_accuracy": 47.0,
-      "signal_reliability": 44.5,
-      "data_quality": 70
+      "prediction_accuracy": 61.0,
+      "signal_reliability": 58.5,
+      "data_quality": 75
     }
   },
   "overall": {
-    "sentiment": 54,
+    "sentiment": 62,
     "label": "Bullish"
   },
   "metadata": {
-    "engine_version": "2.2",
+    "engine_version": "2.3",
     "data_sources": [
       "Google News",
       "Yahoo Finance",
       "CoinDesk",
       "CryptoNews",
       "Cointelegraph",
-      "Investing.com"
+      "Bloomberg"
     ],
-    "headlines_count": 190,
-    "last_updated": "2026-02-22T21:23:06.110959+00:00",
-    "next_update": "2026-02-22T21:28:06.110961+00:00"
+    "headlines_count": 220,
+    "last_updated": "2026-03-03T09:00:00Z",
+    "next_update": "2026-03-03T09:05:00Z"
   },
   "themes": [
-    "Crypto",
+    "AI",
+    "Crypto Rally",
     "Semiconductors",
-    "AI/Tech",
-    "Earnings"
+    "Big Tech Earnings"
   ],
   "recommendations": [
     {
-      "action": "Hold",
-      "asset": "Portfolio",
-      "reason": "Mixed signals with Neutral sentiment - wait for clarity",
+      "action": "Buy",
+      "asset": "NVDA",
+      "reason": "Strong AI demand, high momentum",
       "timeframe": "medium"
     },
     {
       "action": "Buy",
-      "asset": "NVDA",
-      "reason": "Strong momentum (Up) with positive trend",
+      "asset": "SOL",
+      "reason": "DeFi ecosystem growth, strong volume",
+      "timeframe": "short"
+    },
+    {
+      "action": "Hold",
+      "asset": "TSLA",
+      "reason": "Mixed signals, wait for clarity",
       "timeframe": "medium"
     },
     {
-      "action": "Watch",
-      "asset": "NVDA",
-      "reason": "Tech sector momentum key for market direction",
+      "action": "Buy",
+      "asset": "META",
+      "reason": "AI ad revenue accelerating",
       "timeframe": "medium"
     }
   ],
   "top_headlines": [
     {
-      "title": "Michael Burry Says He 'Slept' on Bitcoin After Early 2013 Buying Opportunity - Yahoo Finance",
+      "title": "Bitcoin Eyes $100K as Institutional Inflows Accelerate",
       "asset": "BTC",
       "sentiment_impact": "bullish"
     },
     {
-      "title": "Michael Burry Says He 'Slept' on Bitcoin After Early 2013 Buying Opportunity",
-      "asset": "AAPL",
-      "sentiment_impact": "bullish"
-    },
-    {
-      "title": "Where Will Rocket Lab Stock Be in 10 Years?",
+      "title": "NVIDIA Data Center Revenue Smashes Expectations Again",
       "asset": "NVDA",
       "sentiment_impact": "bullish"
     },
     {
-      "title": "Bitcoin see-saws around $68,000, DOGE, ETH slide as tariff uncertainty weighs on risk assets",
-      "asset": "BTC",
-      "sentiment_impact": "bearish"
+      "title": "Solana DeFi TVL Hits New Record Above $10B",
+      "asset": "SOL",
+      "sentiment_impact": "bullish"
     },
     {
-      "title": "Curve Finance founder says disagreement within a DAO is a healthy sign",
-      "asset": "BTC",
+      "title": "Meta's Llama AI Drives Advertiser Confidence",
+      "asset": "META",
       "sentiment_impact": "bullish"
+    },
+    {
+      "title": "Tesla Q1 Delivery Numbers Under Pressure",
+      "asset": "TSLA",
+      "sentiment_impact": "bearish"
     }
   ],
-  "headlines_fetched": 190,
+  "headlines_fetched": 220,
   "sources_active": 6,
-  "engine_version": "2.2"
+  "engine_version": "2.3"
 }

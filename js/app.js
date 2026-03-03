@@ -522,15 +522,15 @@ function generateTimeLabels(count, tf) {
         
         function renderAll() { if(!sel || !data || data.length === 0) { return; } try { renderAssets();renderPortfolio();renderTicker();renderInds();renderFG();renderSectors();renderActions();renderPreds();renderWeights();renderChart();renderAlloc();renderAnalytics();renderCorrelation();renderAssetDetails();renderNews();renderCalendar(); } catch(e) { console.error('renderAll error:', e); } }
         
-        function renderAssets() { if(!$('assets')) return; var h=''; for(var i=0;i<data.length;i++){var a=data[i];var eSym=escapeHtml(a.sym);var eName=escapeHtml(a.name);h+='<div data-symbol="'+eSym+'" class="asset'+(a.sym===sel.sym?' active':'')+'" onclick="selAsset(\''+eSym+'\')"><div style="display:flex;align-items:center"><div class="asset-icon" style="background:'+a.color+'22;color:'+a.color+'">'+eSym.substr(0,2)+'</div><div><div class="asset-name">'+eSym+'<span class="star'+(a.fav?' active':'')+'" onclick="event.stopPropagation();toggleFav(\''+eSym+'\')">*</span></div><div class="asset-type">'+eName+'</div></div></div><div style="display:flex;align-items:center;gap:6px"><div style="text-align:right"><div class="asset-price">$'+fmt(a.price)+'</div><div class="asset-chg '+(a.chg>=0?'up':'down')+'">'+(a.chg>=0?'+':'')+a.chg.toFixed(2)+'%</div></div></div></div>';} $('assets').innerHTML=h; }
-        function renderPortfolio() { if(!$('port-val')) return; var tot=0,chg=0; for(var i=0;i<data.length;i++){tot+=data[i].price*data[i].hold;chg+=data[i].price*data[i].hold*data[i].chg/100;} var pct=chg/tot*100; $('port-val').textContent='$'+fmt(tot);$('port-chg').textContent=(chg>=0?'+':'')+'$'+fmt(Math.abs(chg))+' ('+(pct>=0?'+':'')+pct.toFixed(2)+'%)';$('port-chg').className='portfolio-change '+(chg>=0?'up':'down');$('intel').textContent=Math.round(50+pct*2); }
+        function renderAssets() { if(!$('assets')) return; if(!data || data.length===0){ $('assets').innerHTML='<div class="skeleton-text"></div><div class="skeleton-text"></div><div class="skeleton-text"></div>'; return; } var h=''; for(var i=0;i<data.length;i++){var a=data[i];var eSym=escapeHtml(a.sym);var eName=escapeHtml(a.name);h+='<div data-symbol="'+eSym+'" class="asset'+(a.sym===sel.sym?' active':'')+'" onclick="selAsset(\''+eSym+'\')"><div style="display:flex;align-items:center"><div class="asset-icon" style="background:'+a.color+'22;color:'+a.color+'">'+eSym.substr(0,2)+'</div><div><div class="asset-name">'+eSym+'<span class="star'+(a.fav?' active':'')+'" onclick="event.stopPropagation();toggleFav(\''+eSym+'\')">*</span></div><div class="asset-type">'+eName+'</div></div></div><div style="display:flex;align-items:center;gap:6px"><div style="text-align:right"><div class="asset-price">$'+fmt(a.price)+'</div><div class="asset-chg '+(a.chg>=0?'up':'down')+'">'+(a.chg>=0?'+':'')+a.chg.toFixed(2)+'%</div></div></div></div>';} $('assets').innerHTML=h; }
+        function renderPortfolio() { if(!$('port-val')) return; var tot=0,chg=0; for(var i=0;i<data.length;i++){tot+=data[i].price*data[i].hold;chg+=data[i].price*data[i].hold*data[i].chg/100;} var pct=tot>0?chg/tot*100:0; $('port-val').textContent='$'+fmt(tot);$('port-chg').textContent=(chg>=0?'+':'')+'$'+fmt(Math.abs(chg))+' ('+(pct>=0?'+':'')+pct.toFixed(2)+'%)';$('port-chg').className='portfolio-change '+(chg>=0?'up':'down');$('intel').textContent=Math.round(50+pct*2); var emptyEl=$('port-empty'); if(tot===0){ if(!emptyEl){ var d=document.createElement('div'); d.id='port-empty'; d.className='empty-state'; d.style.cssText='color:var(--text-muted);font-size:0.8rem;margin-top:8px;'; d.innerHTML='Add your first asset — click <strong>EDIT</strong>'; if($('port-val').parentNode)$('port-val').parentNode.appendChild(d); } }else{ if(emptyEl)emptyEl.remove(); } }
         function renderTicker() { if(!$('ticker')) return; var h=''; for(var i=0;i<data.length*2;i++){var a=data[i%data.length];h+='<span class="ticker-item" onclick="selAsset(\''+a.sym+'\')"><span class="ticker-sym">'+a.sym+'</span> $'+fmt(a.price)+' <span style="color:'+(a.chg>=0?'var(--green)':'var(--red)')+'">'+(a.chg>=0?'+':'')+a.chg.toFixed(1)+'%</span></span>';} $('ticker').innerHTML=h+h; }
         function renderFG() { var avg=0; for(var i=0;i<data.length;i++)avg+=data[i].chg; avg/=data.length; var v=Math.max(10,Math.min(90,50-avg*2)); var lbl=v>=75?'GREED':v>=55?'OPTIMISM':v>=45?'NEUTRAL':v>=25?'FEAR':'EXTREME FEAR'; var col=v>=55?'var(--green)':v>=45?'var(--cyan)':v>=25?'var(--gold)':'var(--red)'; $('fg-val').textContent=Math.round(v);$('fg-val').style.color=col;$('fg-lbl').textContent=lbl;$('fg-lbl').style.color=col;$('fg-dot').style.left=v+'%'; }
         function renderInds() { 
             if(!sel || !$('inds')) return;
             var arr = history[sel.sym];
             if(!arr || arr.length < 26) {
-                $('inds').innerHTML = '<div style="padding:20px;text-align:center;color:var(--cyan);">Loading indicators...</div>';
+                $('inds').innerHTML = '<div class="skeleton-text"></div><div class="skeleton-text"></div><div class="skeleton-text"></div><div class="skeleton-text"></div>';
                 return;
             } var rsi=calcRSI(arr),stoch=calcStochastic(arr),atr=calcATR(arr),adx=calcADX(arr),will=calcWilliams(arr),obv=calcOBV(arr),macd=calcMACDInd(arr); var h='<div class="ind-grid">';
             // RSI
@@ -571,8 +571,11 @@ async function fetchSectors() {
         // Check if response is array (valid data) not error object
         if(json && Array.isArray(json) && json.length > 0) {
             sectorData = json.map(function(s) {
-                var pct = parseFloat((s.changesPercentage || '0').replace('%','').replace('+',''));
-                return { n: s.sector, c: pct };
+                // Support both new format {name, change} and legacy {sector, changesPercentage}
+                var name = s.name || s.sector || 'Unknown';
+                var pct = (typeof s.change === 'number') ? s.change :
+                           parseFloat((s.changesPercentage || '0').replace('%','').replace('+',''));
+                return { n: name, c: pct, src: s.source || 'live' };
             });
             renderSectors();
         } else {

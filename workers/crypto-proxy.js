@@ -258,8 +258,64 @@ async function getCryptoPrices(corsHeaders) {
 }
 
 async function getOHLC(url, corsHeaders) {
+  const OHLC_STOCK_SYMBOLS = ['AAPL','NVDA','TSLA','GOOGL','MSFT','AMZN','META'];
   const coin = url.searchParams.get('coin') || 'bitcoin';
-  const days = url.searchParams.get('days') || '7';
+  const days = parseInt(url.searchParams.get('days') || '7');
+
+  if(OHLC_STOCK_SYMBOLS.includes(coin.toUpperCase())) {
+      const sym = coin.toUpperCase();
+      // Try FMP first
+      if (FMP_API_KEY) {
+          try {
+              const from = new Date(Date.now() - days * 86400000).toISOString().split('T')[0];
+              const fmpUrl = `https://financialmodelingprep.com/stable/historical-price-eod/full?symbol=${sym}&from=${from}&apikey=${FMP_API_KEY}`;
+              const r = await fetch(fmpUrl);
+              if(r.ok) {
+                  const d = await r.json();
+                  const hist = (d.historical || []);
+                  if (hist.length > 0) {
+                      hist.reverse();
+                      const ohlc = hist.map(c => [
+                          new Date(c.date).getTime(),
+                          c.open, c.high, c.low, c.close, c.volume
+                      ]);
+                      return new Response(JSON.stringify(ohlc), { headers: corsHeaders });
+                  }
+              }
+          } catch(e) {
+              console.error('FMP OHLC error:', e);
+          }
+      }
+      // Fallback: Alpha Vantage TIME_SERIES_DAILY
+      if (ALPHA_VANTAGE_KEY) {
+          try {
+              const avUrl = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${sym}&outputsize=compact&apikey=${ALPHA_VANTAGE_KEY}`;
+              const r = await fetch(avUrl);
+              if(r.ok) {
+                  const d = await r.json();
+                  const ts = d['Time Series (Daily)'] || {};
+                  const entries = Object.entries(ts)
+                      .sort((a,b) => a[0].localeCompare(b[0]))
+                      .slice(-days);
+                  if (entries.length > 0) {
+                      const ohlc = entries.map(([date, v]) => [
+                          new Date(date).getTime(),
+                          parseFloat(v['1. open']),
+                          parseFloat(v['2. high']),
+                          parseFloat(v['3. low']),
+                          parseFloat(v['4. close']),
+                          parseInt(v['5. volume'])
+                      ]);
+                      return new Response(JSON.stringify(ohlc), { headers: corsHeaders });
+                  }
+              }
+          } catch(e) {
+              console.error('AV OHLC error:', e);
+          }
+      }
+      return new Response(JSON.stringify([]), { headers: corsHeaders });
+  }
+  // existing crypto logic continues below
   try {
     const response = await fetch(
       'https://api.coingecko.com/api/v3/coins/' + coin + '/ohlc?vs_currency=usd&days=' + days,
@@ -379,8 +435,34 @@ async function getStockQuote(url, corsHeaders) {
 }
 
 async function getSectors(corsHeaders) {
-  // FMP sector-performance not available on current plan — use estimated static data
-  // Variance is deterministic (seeded by day-of-week) so values are consistent intra-day
+  if (cache.sectors.data && Date.now() - cache.sectors.timestamp < cache.sectors.ttl) {
+    return new Response(JSON.stringify(cache.sectors.data), { headers: corsHeaders });
+  }
+
+  // Try FMP live sector performance
+  if (FMP_API_KEY) {
+    try {
+      const fmpUrl = `https://financialmodelingprep.com/stable/sector-performance?apikey=${FMP_API_KEY}`;
+      const r = await fetch(fmpUrl);
+      if(r.ok) {
+          const d = await r.json();
+          if(d && d.length > 0) {
+              const sectors = d.map(s => ({
+                  name: s.sector,
+                  change: parseFloat(s.changesPercentage),
+                  direction: parseFloat(s.changesPercentage) >= 0 ? 'up' : 'down',
+                  source: 'fmp'
+              }));
+              cache.sectors = { data: sectors, timestamp: Date.now() };
+              return new Response(JSON.stringify(sectors), { headers: corsHeaders });
+          }
+      }
+    } catch(e) {
+      console.error('FMP sectors error:', e);
+    }
+  }
+
+  // fallback to static with label
   const baseSectors = [
     { sector: 'Technology',        base:  1.2 },
     { sector: 'Consumer Cyclical', base:  0.8 },
@@ -393,17 +475,18 @@ async function getSectors(corsHeaders) {
     { sector: 'Industrials',       base:  0.3 },
     { sector: 'Communication',     base:  0.9 }
   ];
-  const dow = new Date().getDay(); // 0=Sun …6=Sat — consistent intra-day seed
+  const dow = new Date().getDay();
   const results = baseSectors.map(function(s) {
-    // Deterministic ±0.3 variance: combine dow with sector name length
-    var seed = (dow * 7 + s.sector.length * 13) % 60; // 0–59
-    var variance = (seed / 100) - 0.3;                 // -0.30 … +0.29
-    var val = (s.base + variance).toFixed(2);
+    var seed = (dow * 7 + s.sector.length * 13) % 60;
+    var variance = (seed / 100) - 0.3;
+    var val = parseFloat((s.base + variance).toFixed(2));
     return {
-      sector: s.sector,
-      changesPercentage: (parseFloat(val) >= 0 ? '+' : '') + val + '%',
+      name: s.sector,
+      change: val,
+      direction: val >= 0 ? 'up' : 'down',
       source: 'estimated'
     };
   });
+  cache.sectors = { data: results, timestamp: Date.now() };
   return new Response(JSON.stringify(results), { headers: corsHeaders });
 }
