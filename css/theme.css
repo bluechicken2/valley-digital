@@ -90,20 +90,21 @@
         .user-menu-divider { height: 1px; background: var(--border); margin: 4px 0; }
         
         /* Navigation Tabs */
-        .nav-tabs { display: flex; gap: 4px; padding: 12px 20px; background: var(--bg-panel); border-bottom: 1px solid var(--border); overflow-x: auto; }
-        .nav-tab { padding: 8px 16px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 6px; color: var(--text-dim); font-family: 'Orbitron', sans-serif; font-size: 0.75rem; cursor: pointer; transition: all var(--transition); white-space: nowrap; }
+        .nav-tabs { display: flex; gap: 4px; padding: 10px 16px; background: var(--bg-panel); border-bottom: 1px solid var(--border); overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; white-space: nowrap; }
+        .nav-tabs::-webkit-scrollbar { display: none; }
+        .nav-tab { padding: 8px 16px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 6px; color: var(--text-dim); font-family: 'Orbitron', sans-serif; font-size: 0.75rem; cursor: pointer; transition: all var(--transition); white-space: nowrap; min-height: 44px; display: inline-flex; align-items: center; }
         .nav-tab:hover { border-color: var(--cyan); color: var(--cyan); }
         .nav-tab.active { background: var(--cyan); color: var(--bg-void); border-color: var(--cyan); }
         
         /* Main Layout */
         .main { padding: 20px; max-width: 1800px; margin: 0 auto; }
-        .grid { display: grid; gap: 16px; }
+        .grid { display: grid; gap: 16px; align-items: start; }
         .grid-2 { grid-template-columns: 280px 1fr; }
         .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
         .grid-4 { grid-template-columns: repeat(4, 1fr); }
         
         /* Panels */
-        .panel { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+        .panel { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; align-self: start; }
         .panel-header { padding: 12px 14px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
         .panel-title { font-family: 'Orbitron', sans-serif; font-size: 0.7rem; color: var(--text-dim); letter-spacing: 1px; text-transform: uppercase; }
         .panel-badge { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; padding: 3px 8px; border-radius: 4px; background: var(--bg-surface); color: var(--text-dim); }
@@ -243,7 +244,7 @@
         .chart-tools-right { display: flex; gap: 4px; }
         .chart-tool-btn { background: var(--bg-surface); border: 1px solid var(--border); border-radius: 4px; padding: 4px 8px; color: var(--text-dim); font-size: 0.65rem; cursor: pointer; transition: all 0.2s; }
         .chart-tool-btn:hover, .chart-tool-btn.active { background: var(--cyan); color: var(--bg-void); border-color: var(--cyan); }
-        .chart-area { height: 420px; position: relative; background: linear-gradient(180deg, rgba(0,240,255,0.06) 0%, rgba(0,0,0,0.3) 100%); border-radius: 12px; border: 1px solid rgba(0,240,255,0.2); box-shadow: inset 0 0 80px rgba(0,240,255,0.05), 0 0 30px rgba(0,240,255,0.1); overflow: hidden; }
+        .chart-area { height: clamp(260px, 40vh, 420px); position: relative; background: linear-gradient(180deg, rgba(0,240,255,0.06) 0%, rgba(0,0,0,0.3) 100%); border-radius: 12px; border: 1px solid rgba(0,240,255,0.2); box-shadow: inset 0 0 80px rgba(0,240,255,0.05), 0 0 30px rgba(0,240,255,0.1); overflow: hidden; }
         .chart-wrapper { display: flex; height: 100%; }
         .price-axis { width: 60px; background: rgba(0,0,0,0.3); border-left: 1px solid var(--border); display: flex; flex-direction: column; justify-content: space-between; padding: 8px 4px; font-size: 0.6rem; color: var(--text-dim); }
         .price-tick { text-align: right; font-family: 'JetBrains Mono', monospace; }
@@ -445,6 +446,64 @@
         overflow-x: hidden !important;
         max-width: 100% !important;
     }
+
+    /* Nav tabs mobile */
+    .nav-tab { padding: 8px 10px !important; font-size: 0.65rem !important; min-height: 40px !important; }
+
+    /* Chart responsive */
+    .chart-area { height: clamp(220px, 35vh, 320px) !important; }
+    .chart-canvas-container { height: calc(100% - 60px) !important; }
+
+    /* Sector grid 2-col on tablet */
+    .sector-grid { grid-template-columns: repeat(2, 1fr) !important; }
+
+    /* Panel body tighter on mobile */
+    .panel-body { padding: 10px !important; }
+
+    /* Time axis readable */
+    .time-axis { font-size: 0.65rem !important; }
+
+    /* Chart toolbar wrap */
+    .chart-toolbar { flex-direction: column !important; align-items: flex-start !important; gap: 6px !important; }
+    .chart-tools-left, .chart-tools-right { flex-wrap: wrap !important; }
+
+    /* Touch-friendly buttons */
+    .chart-btn { min-height: 36px !important; padding: 6px 10px !important; font-size: 0.7rem !important; }
+    .header-btn { min-height: 36px !important; }
+
+    /* Analytics grid 2-col */
+    .analytics-grid { grid-template-columns: repeat(2, 1fr) !important; }
+
+    /* Correlation matrix scroll */
+    #corr-matrix { overflow-x: auto !important; -webkit-overflow-scrolling: touch !important; }
+
+    /* Portfolio value larger on mobile */
+    .portfolio-value { font-size: 1.8rem !important; }
+
+    /* Asset list easier to tap */
+    .asset { min-height: 52px !important; padding: 10px 8px !important; }
+
+    /* Ind cards readable */
+    .ind-val { font-size: 1rem !important; }
+
+    /* Price axis hide on very small to save space */
+    .price-axis { width: 50px !important; font-size: 0.55rem !important; }
+
+    /* Main padding tighter */
+    .main { padding: 10px !important; }
+
+    /* grid gaps tighter on mobile */
+    .grid { gap: 10px !important; }
+
+    /* Ticker font */
+    .ticker-item { font-size: 0.7rem !important; }
+
+    /* news items */
+    .news-title { font-size: 0.85rem !important; }
+
+    /* calendar tap-friendly */
+    .calendar-item { padding: 10px 8px !important; }
+    .cal-item { padding: 10px 8px !important; }
 }
 
 /* ==========================================
@@ -548,6 +607,44 @@
         font-size: 0.7rem !important;
         padding: 6px 12px !important;
     }
+
+    /* Single column everything */
+    .ind-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 6px !important; }
+    .sector-grid { grid-template-columns: repeat(2, 1fr) !important; }
+    .analytics-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
+
+    /* Chart interval buttons - scrollable row */
+    .chart-btns { overflow-x: auto !important; -webkit-overflow-scrolling: touch !important; flex-wrap: nowrap !important; }
+    .chart-btn { min-width: 36px !important; padding: 5px 8px !important; font-size: 0.65rem !important; }
+
+    /* Smaller chart on tiny screens */
+    .chart-area { height: 220px !important; }
+
+    /* Logo compact */
+    .logo { font-size: 0.75rem !important; }
+
+    /* Hide non-essential header elements */
+    #last-update { display: none !important; }
+
+    /* Panel header compact */
+    .panel-header { padding: 8px 10px !important; }
+    .panel-title { font-size: 0.6rem !important; }
+
+    /* Portfolio value size */
+    .portfolio-value { font-size: 1.5rem !important; }
+
+    /* Grid gap minimal */
+    .grid { gap: 8px !important; }
+    .main { padding: 8px !important; }
+
+    /* AI chat input full width */
+    #ai-input { font-size: 16px !important; } /* prevents iOS zoom on focus */
+
+    /* Ticker speed slower on mobile for readability */
+    .ticker-scroll { animation-duration: 45s !important; }
+
+    /* FIX 9: iOS input zoom prevention */
+    input, select, textarea { font-size: 16px !important; }
 }
 
 /* ==========================================
@@ -2380,11 +2477,10 @@ body.light-theme .panel {
 
 /* Main Dashboard Container */
 #tab-dashboard {
-    display: grid;
-    grid-template-columns: 280px 1fr 300px;
+    display: flex;
+    flex-direction: column;
     gap: 16px;
     padding: 0;
-    align-items: start;
 }
 
 #tab-dashboard > .panel {
@@ -3144,10 +3240,6 @@ body.light-theme .panel {
    ========================================== */
 
 @media (max-width: 1200px) {
-    #tab-dashboard {
-        grid-template-columns: 1fr;
-    }
-    
     .paper-stats {
         grid-template-columns: repeat(2, 1fr);
     }

@@ -1738,17 +1738,19 @@ window.addEventListener('supabase:portfolio-loaded', function(e) {
         showToast('Portfolio synced from cloud ☁️');
     }
 });
-        window.setTf = function(tf) { 
-            // Destroy existing charts immediately
+        window.setTf = function(tf) {
             if(priceCt) { priceCt.destroy(); priceCt = null; }
             if(volCt) { volCt.destroy(); volCt = null; }
-            timeframe=tf; 
-            var btns=document.querySelectorAll('.chart-btn'); 
-            for(var j=0;j<btns.length;j++){btns[j].classList.remove('on');} 
-            if(typeof event!=='undefined' && event.target) event.target.classList.add('on'); 
-            ohlcData={}; 
+            timeframe = tf;
+            // Find and highlight active button by tf value (mobile-safe)
+            var btns = document.querySelectorAll('.chart-btn');
+            for(var j = 0; j < btns.length; j++) {
+                btns[j].classList.remove('on');
+                if(btns[j].textContent.trim() === tf) btns[j].classList.add('on');
+            }
+            ohlcData = {};
             chartRendering = false;
-            renderChart(); 
+            renderChart();
         };
         window.toggleChartType = function() { 
             // Destroy existing charts immediately
