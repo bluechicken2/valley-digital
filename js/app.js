@@ -1787,7 +1787,45 @@ window.addEventListener('supabase:portfolio-loaded', function(e) {
         window.hideAlerts = function() { $('alerts-modal').classList.remove('show'); };
         window.showAddAlert = function() { hideAlerts(); var opts=''; for(var i=0;i<data.length;i++) opts+='<option value="'+data[i].sym+'">'+data[i].sym+'</option>'; $('alert-asset').innerHTML=opts; $('alert-asset').value=sel.sym; $('alert-price').value=''; $('add-alert-modal').classList.add('show'); };
         window.hideAddAlert = function() { $('add-alert-modal').classList.remove('show'); };
-        window.createAlert = function() { var sym=$('alert-asset').value,cond=$('alert-cond').value,price=parseFloat($('alert-price').value); if(!price||price<=0){showToast('Please enter a valid price');return;} alerts.push({sym:sym,cond:cond,price:price,active:true}); localStorage.setItem('tradingai_alerts', JSON.stringify(alerts)); $('alert-count').textContent=alerts.length; hideAddAlert(); showToast('Alert created: '+sym+' '+cond+' $'+fmt(price)); };
+        window.createAlert = async function() { 
+            var sym = $('alert-asset').value, cond = $('alert-cond').value, price = parseFloat($('alert-price').value); 
+            if(!price || price <= 0) { showToast('Please enter a valid price', 'warning'); return; }
+            
+            // Try Supabase first if logged in
+            if(window.supabaseOps && window.supabaseOps.createAlert) {
+                var result = await window.supabaseOps.createAlert(sym, cond, price);
+                if(result && result.success) {
+                    hideAddAlert();
+                    return;
+                }
+                // Fallback to localStorage on error
+            }
+            
+            // LocalStorage fallback
+            alerts.push({sym: sym, cond: cond, price: price, active: true});
+            localStorage.setItem('tradingai_alerts', JSON.stringify(alerts));
+            $('alert-count').textContent = alerts.length;
+            hideAddAlert();
+            showToast('Alert created: ' + sym + ' ' + cond + ' $' + fmt(price));
+        };
+        
+        // Listen for Supabase alerts loaded
+        window.addEventListener('supabase:alerts-loaded', function(e) {
+            if(e.detail && e.detail.length > 0) {
+                alerts = e.detail.map(function(a) {
+                    return {
+                        id: a.id,
+                        sym: a.symbol,
+                        cond: a.condition,
+                        price: a.target_price,
+                        triggered: a.triggered,
+                        active: !a.triggered
+                    };
+                });
+                $('alert-count').textContent = alerts.length;
+                renderAlertsList();
+            }
+        });
         
         function checkAlerts() {
             if(alerts.length === 0) return;
@@ -1817,8 +1855,44 @@ window.addEventListener('supabase:portfolio-loaded', function(e) {
             }
         }
         
-window.deleteAlert = function(idx) { alerts.splice(idx,1); localStorage.setItem('tradingai_alerts', JSON.stringify(alerts)); $('alert-count').textContent=alerts.length; renderAlertsList(); showToast('Alert deleted'); };
-        function renderAlertsList() { var h=''; if(alerts.length===0){h='<div style="text-align:center;padding:20px;color:var(--text-dim)">No alerts</div>';} else{for(var i=0;i<alerts.length;i++){h+='<div class="alert-item"><span class="sym">'+alerts[i].sym+'</span><span>'+(alerts[i].cond==='above'?'>':'<')+'</span><span class="price">$'+fmt(alerts[i].price)+'</span><span style="color:var(--red);cursor:pointer" onclick="deleteAlert('+i+')">X</span></div>';}} $('alerts-list').innerHTML=h; }
+        window.deleteAlert = async function(idx) {
+            var alert = alerts[idx];
+            
+            // Try Supabase first if logged in and alert has ID
+            if(window.supabaseOps && window.supabaseOps.deleteAlert && alert && alert.id) {
+                var result = await window.supabaseOps.deleteAlert(alert.id);
+                if(result && result.success) {
+                    return;
+                }
+                // Fallback to localStorage on error
+            }
+            
+            // LocalStorage fallback
+            alerts.splice(idx, 1);
+            localStorage.setItem('tradingai_alerts', JSON.stringify(alerts));
+            $('alert-count').textContent = alerts.length;
+            renderAlertsList();
+            showToast('Alert deleted');
+        };
+        function renderAlertsList() {
+            var h = '';
+            if(alerts.length === 0) {
+                h = '<div style="text-align:center;padding:20px;color:var(--text-dim)">No alerts yet</div>';
+            } else {
+                for(var i = 0; i < alerts.length; i++) {
+                    var a = alerts[i];
+                    var triggeredClass = a.triggered ? 'triggered' : '';
+                    h += '<div class="alert-item ' + triggeredClass + '">';
+                    h += '<span class="sym">' + a.sym + '</span>';
+                    h += '<span class="cond">' + (a.cond === 'above' ? '>' : '<') + '</span>';
+                    h += '<span class="price">$' + fmt(a.price || a.target_price) + '</span>';
+                    h += '<span class="status">' + (a.triggered ? '✓' : '') + '</span>';
+                    h += '<span class="delete" onclick="deleteAlert(' + i + ')">✕</span>';
+                    h += '</div>';
+                }
+            }
+            $('alerts-list').innerHTML = h;
+        }
         window.showWatchlists = function() { $('user-dropdown').classList.remove('show'); renderWatchlists(); $('watchlists-modal').classList.add('show'); };
         window.hideWatchlists = function() { $('watchlists-modal').classList.remove('show'); };
         function renderWatchlists() { var h=''; for(var i=0;i<watchlists.length;i++){h+='<div class="watchlist-item"><span class="watchlist-name">'+watchlists[i].name+'</span><span class="watchlist-count">'+watchlists[i].symbols.length+' assets</span></div>';} $('watchlists-list').innerHTML=h; }

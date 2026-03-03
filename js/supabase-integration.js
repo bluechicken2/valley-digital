@@ -343,6 +343,7 @@
     }
 
     function updateAlertsUI(alerts) {
+        window.dispatchEvent(new CustomEvent("supabase:alerts-loaded", { detail: alerts || [] }));
         const container = document.getElementById('alerts-list');
         if (!container) return;
         if (!alerts || alerts.length === 0) {
