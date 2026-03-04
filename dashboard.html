@@ -626,15 +626,56 @@
 <script src="js/sidebar.js"></script>
 <script>
 // ================================================
-// GLOBEWATCH - Dashboard Initialisation
-// Stories and Globe are fully INDEPENDENT — one
-// never blocks the other.
+// GLOBEWATCH — Dashboard Init
+// Globe and Stories are fully independent.
+// _onGlobeLoaded MUST be defined BEFORE any await.
 // ================================================
 
 (async function dashboardInit() {
   'use strict';
 
-  // ---- Auth guard (auto-guest if no session) ----
+  // ================================================
+  // GLOBE CALLBACKS — defined immediately, no await
+  // so CDN onload can fire at any time safely
+  // ================================================
+  function initGlobeWhenReady() {
+    if (typeof Globe === 'undefined') {
+      console.warn('[Globe] Globe.gl not available yet');
+      return;
+    }
+    window.GlobeAPI.init('globe-container', function onCountryClick(code, name) {
+      window.NewsFeed.filterByCountry(code);
+      var sel = document.getElementById('country-filter-select');
+      if (sel) sel.value = code;
+      var filtered = window.NewsFeed.getAll().filter(function (s) {
+        return s.country_code === code;
+      });
+      if (window.CountrySidebar) window.CountrySidebar.open(code, name, filtered);
+    });
+    // Feed any already-loaded stories to globe
+    var s = window._globeStories || [];
+    if (s.length) {
+      if (window.GlobeAPI.updatePins)                    window.GlobeAPI.updatePins(s);
+      if (window.GlobeAPI.updateCountryStatsFromStories) window.GlobeAPI.updateCountryStatsFromStories(s);
+      if (window.GlobeAPI.updateArcs)                   window.GlobeAPI.updateArcs(s);
+    }
+    console.log('[Globe] Initialised OK');
+  }
+
+  // This is called by the CDN onload script below
+  window._onGlobeLoaded = function () {
+    console.log('[Globe] CDN loaded — initialising');
+    initGlobeWhenReady();
+  };
+
+  // If globe.gl was already cached and loaded before this ran
+  if (typeof Globe !== 'undefined') {
+    initGlobeWhenReady();
+  }
+
+  // ================================================
+  // AUTH — auto-guest if no session
+  // ================================================
   var session = await initDashboardAuth(true);
   if (!session) { if (window.Loader) Loader.hide(); return; }
 
@@ -643,37 +684,45 @@
     if (window.Loader) Loader.hide();
   }, 8000);
 
-  // ---- Show user info ----
   var emailEl = document.getElementById('user-email-display');
   if (emailEl) emailEl.textContent = session.isGuest ? 'Guest Mode' : (session.user.email || '');
 
   // ================================================
-  // STORIES — load immediately, independent of globe
+  // STORIES — load independently of globe
   // ================================================
   var stories = [];
   try {
     stories = await window.NewsFeed.load();
   } catch (e) {
-    console.error('[Init] Story load failed:', e);
-    // Try loading sample data directly as last resort
+    console.error('[Init] Story load error:', e);
     try {
       var r = await fetch('data/sample-stories.json');
       if (r.ok) {
         stories = await r.json();
-        window.StoryCards.renderAll(stories);
+        if (window.StoryCards) window.StoryCards.renderAll(stories);
       }
-    } catch(e2) { console.error('[Init] Sample fallback failed:', e2); }
+    } catch (e2) { console.error('[Init] Sample fallback failed:', e2); }
   }
 
-  // Mark grid as loaded
+  // Store for globe to pick up whenever it becomes ready
+  window._globeStories = stories;
+
+  // Feed to globe if it already initialised
+  if (window.GlobeAPI && window.GlobeAPI.getInstance && window.GlobeAPI.getInstance()) {
+    if (window.GlobeAPI.updatePins)                    window.GlobeAPI.updatePins(stories);
+    if (window.GlobeAPI.updateCountryStatsFromStories) window.GlobeAPI.updateCountryStatsFromStories(stories);
+    if (window.GlobeAPI.updateArcs)                   window.GlobeAPI.updateArcs(stories);
+  }
+
+  // Mark grid ready
   var grid = document.getElementById('story-grid');
   if (grid) grid.setAttribute('aria-busy', 'false');
 
-  // ---- Loader done (stories are ready) ----
+  // Clear loader — stories are shown
   clearTimeout(loaderTimeout);
   if (window.Loader) Loader.hide();
 
-  // ---- Populate country filter dropdown ----
+  // ---- Country filter dropdown ----
   var ctySel = document.getElementById('country-filter-select');
   if (ctySel && stories.length) {
     var seen = new Map();
@@ -682,7 +731,7 @@
         seen.set(s.country_code, s.country_name || s.country_code);
     });
     Array.from(seen.entries())
-      .sort(function (a, b) { return (a[1] || '').localeCompare(b[1] || ''); })
+      .sort(function (a, b) { return (a[1]||'').localeCompare(b[1]||''); })
       .forEach(function (pair) {
         var opt = document.createElement('option');
         opt.value = pair[0];
@@ -702,89 +751,36 @@
     });
   }
 
-  // ---- UI Controls (sort/filter/category dropdowns) ----
-  // Sort
+  // ---- Sort / Status / Category controls ----
   var sortSel = document.getElementById('sort-select');
-  if (sortSel) {
-    sortSel.addEventListener('change', function (e) {
-      window.NewsFeed.sortStories(e.target.value);
-    });
-  }
-  // Status filter
+  if (sortSel) sortSel.addEventListener('change', function (e) { window.NewsFeed.sortStories(e.target.value); });
+
   var statusSel = document.getElementById('status-filter-select');
-  if (statusSel) {
-    statusSel.addEventListener('change', function (e) {
-      window.NewsFeed.filterByStatus(e.target.value);
-    });
-  }
-  // Category dropdown items
+  if (statusSel) statusSel.addEventListener('change', function (e) { window.NewsFeed.filterByStatus(e.target.value); });
+
   document.querySelectorAll('[data-category]').forEach(function (btn) {
     btn.addEventListener('click', function () {
       var cat = btn.dataset.category;
       window.NewsFeed.filterByCategory(cat === 'all' ? 'all' : cat);
-      // Update active state
-      document.querySelectorAll('[data-category]').forEach(function (b) {
-        b.classList.remove('active');
-      });
+      document.querySelectorAll('[data-category]').forEach(function (b) { b.classList.remove('active'); });
       btn.classList.add('active');
-      // Close dropdown
       var menu = document.getElementById('categories-menu');
       if (menu) menu.classList.remove('open');
     });
   });
 
-  // ---- Live search ----
-  if (window.NewsFeed.setupLiveSearch) window.NewsFeed.setupLiveSearch();
-
-  // ---- Notifications ----
+  // ---- Live search, notifications, realtime ----
+  if (window.NewsFeed.setupLiveSearch)    window.NewsFeed.setupLiveSearch();
   if (window.NewsFeed.setupNotifications) window.NewsFeed.setupNotifications(stories);
+  if (window.NewsFeed.setupRealtime)      window.NewsFeed.setupRealtime();
 
-  // ---- Realtime subscription ----
-  if (window.NewsFeed.setupRealtime) window.NewsFeed.setupRealtime();
-
-  // ---- Globe clear-filter badge wiring ----
+  // ---- Globe clear-filter helper ----
   window.onClearCountryFilter = function () {
     window.NewsFeed.clearCountryFilter();
     var sel = document.getElementById('country-filter-select');
     if (sel) sel.value = 'all';
     if (window.CountrySidebar) window.CountrySidebar.close();
   };
-
-  // ================================================
-  // GLOBE — initialise only after globe.gl CDN loads
-  // (decoupled from story loading above)
-  // ================================================
-  window._globeStories = stories; // store for when globe is ready
-
-  function initGlobeWhenReady() {
-    if (typeof Globe === 'undefined') return; // not loaded yet
-    window.GlobeAPI.init('globe-container', function onCountryClick(code, name) {
-      window.NewsFeed.filterByCountry(code);
-      var sel = document.getElementById('country-filter-select');
-      if (sel) sel.value = code;
-      var filtered = window.NewsFeed.getAll().filter(function (s) {
-        return s.country_code === code;
-      });
-      if (window.CountrySidebar) window.CountrySidebar.open(code, name, filtered);
-    });
-    // Feed stories to globe
-    var s = window._globeStories || [];
-    if (s.length) {
-      window.GlobeAPI.updatePins(s);
-      window.GlobeAPI.updateCountryStatsFromStories(s);
-      if (window.GlobeAPI.updateArcs) window.GlobeAPI.updateArcs(s);
-    }
-  }
-
-  // Called from globe.gl onload below
-  window._onGlobeLoaded = function () {
-    initGlobeWhenReady();
-  };
-
-  // If globe.gl already loaded (fast CDN / cached)
-  if (typeof Globe !== 'undefined') {
-    initGlobeWhenReady();
-  }
 
 })();
 </script>
