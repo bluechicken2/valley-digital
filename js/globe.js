@@ -67,16 +67,35 @@ function initDashboardGlobe(containerId, onCountryClick) {
     return null;
   }
 
-  var g = Globe()
-    .width(el.clientWidth  || window.innerWidth)
-    .height(el.clientHeight || window.innerHeight)
-    .backgroundColor('#080b12')
-    .atmosphereColor('rgba(0,212,255,0.70)')
-    .atmosphereAltitude(0.18)
-    .globeImageUrl(EARTH_IMG);
+  // Use rAF + small delay so CSS layout is fully computed before reading dimensions
+  function _doInit() {
+    try {
+      var rect = el.getBoundingClientRect();
+      var w = Math.max(rect.width  || el.clientWidth  || window.innerWidth,  300);
+      var h = Math.max(rect.height || el.clientHeight || window.innerHeight, 400);
 
-  g(el);
-  globeInst = g;
+      var g = Globe()
+        .width(w)
+        .height(h)
+        .backgroundColor('#080b12')
+        .atmosphereColor('rgba(0,212,255,0.70)')
+        .atmosphereAltitude(0.18)
+        .globeImageUrl(EARTH_IMG);
+
+      g(el);
+      globeInst = g;
+
+      // Hide loading placeholder once globe mounts
+      var placeholder = document.getElementById('globe-placeholder');
+      if (placeholder) placeholder.style.display = 'none';
+
+    } catch(err) {
+      console.error('[Globe] Init failed:', err);
+      el.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:rgba(0,212,255,0.5);flex-direction:column;gap:12px"><span style="font-size:48px">🌍</span><span style="font-family:Orbitron,sans-serif;font-size:11px;letter-spacing:.08em">GLOBE UNAVAILABLE</span></div>';
+      return null;
+    }
+
+    var globeInst_ref = globeInst;
 
   var ctrl = g.controls();
   ctrl.autoRotate      = true;
@@ -97,10 +116,19 @@ function initDashboardGlobe(containerId, onCountryClick) {
     .then(function(data) { geoData = data; _applyPolygons(g, data, onCountryClick); })
     .catch(function(e) { console.warn('[Globe] GeoJSON failed:', e.message); });
 
-  var ro = new ResizeObserver(function() { g.width(el.clientWidth).height(el.clientHeight); });
-  ro.observe(el);
+    var ro = new ResizeObserver(function() {
+      var r = el.getBoundingClientRect();
+      g.width(Math.max(r.width,300)).height(Math.max(r.height,400));
+    });
+    ro.observe(el);
+  } // end _doInit
 
-  return g;
+  // Small delay ensures CSS height is computed before reading dimensions
+  requestAnimationFrame(function() {
+    setTimeout(_doInit, 50);
+  });
+
+  return true; // init scheduled
 }
 
 function _applyPolygons(g, geoJson, onCountryClick) {

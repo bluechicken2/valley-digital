@@ -506,7 +506,12 @@
      GLOBE SECTION
      ================================================ -->
 <section class="globe-section" aria-label="Global story map">
-  <div id="globe-container" role="img" aria-label="Interactive 3D globe showing global news activity"></div>
+  <div id="globe-container" role="img" aria-label="Interactive 3D globe showing global news activity">
+  <div id="globe-placeholder" style="display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:16px;pointer-events:none;">
+    <div style="width:80px;height:80px;border:2px solid rgba(0,212,255,0.3);border-top-color:#00d4ff;border-radius:50%;animation:gwl-spin 1s linear infinite;"></div>
+    <span style="font-family:Orbitron,sans-serif;font-size:11px;color:rgba(0,212,255,0.6);letter-spacing:.1em;">LOADING GLOBE...</span>
+  </div>
+</div>
   <div class="globe-tooltip" id="globe-tooltip" role="tooltip" aria-hidden="true">
     <div class="tooltip-country">COUNTRY</div>
     <div class="tooltip-count">0 stories</div>
