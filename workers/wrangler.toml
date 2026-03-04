@@ -6,7 +6,7 @@ compatibility_flags = ["nodejs_compat"]
 [vars]
 ENVIRONMENT = "production"
 
-# Set secret: wrangler secret put SUPABASE_SERVICE_KEY
+# Secret: wrangler secret put SUPABASE_SERVICE_KEY
 
-[[triggers.crons]]
+[triggers]
 crons = ["*/15 * * * *"]
