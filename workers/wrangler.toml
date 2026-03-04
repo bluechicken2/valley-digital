@@ -1,4 +1,4 @@
-name = "tradingapi-proxy"
+name = "globewatch"
 main = "crypto-proxy.js"
 compatibility_date = "2024-01-01"
 
@@ -14,4 +14,4 @@ ENVIRONMENT = "production"
 # Routes - uncomment and modify after deployment
 # [[routes]]
 # pattern = "api.ottawav.com/*"
-# zone_name = "ottawav.com"
+# zone_name = "globewatch"

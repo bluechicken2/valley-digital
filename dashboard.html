@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="GlobeWatch Dashboard &mdash; Live global truth verification.">
+  <meta name="theme-color" content="#080b12">
+  <title>GlobeWatch | Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="https://unpkg.com/globe.gl"></script>
+</head>
+<body class="dashboard-page">
+
+<!-- ================================================
+     TOP NAVIGATION
+     ================================================ -->
+<nav class="top-nav" role="navigation" aria-label="Main navigation">
+
+  <a href="dashboard.html" class="nav-logo" aria-label="GlobeWatch home">
+    <span class="nav-logo-icon" aria-hidden="true">&#127760;</span>
+    <span class="nav-logo-text">GLOBEWATCH</span>
+  </a>
+
+  <div class="nav-center">
+
+    <!-- Categories dropdown -->
+    <div class="nav-dropdown">
+      <button class="nav-btn" id="categories-btn"
+        aria-haspopup="true" aria-expanded="false" aria-controls="categories-menu">
+        CATEGORIES <span class="dropdown-arrow" aria-hidden="true">&#9660;</span>
+      </button>
+      <div class="dropdown-menu" id="categories-menu" role="menu" aria-label="Categories">
+        <button class="dropdown-item" data-category="all" role="menuitem">&#127760; All Stories</button>
+        <div class="dropdown-divider" role="separator"></div>
+        <button class="dropdown-item" data-category="War &amp; Conflict" role="menuitem">&#9876;&#65039; War &amp; Conflict</button>
+        <button class="dropdown-item" data-category="Politics" role="menuitem">&#127963;&#65039; Politics</button>
+        <button class="dropdown-item" data-category="Weather &amp; Disaster" role="menuitem">&#127786;&#65039; Weather &amp; Disaster</button>
+        <button class="dropdown-item" data-category="Economy" role="menuitem">&#128201; Economy</button>
+        <button class="dropdown-item" data-category="Science &amp; Tech" role="menuitem">&#128300; Science &amp; Tech</button>
+        <button class="dropdown-item" data-category="Health" role="menuitem">&#127973; Health</button>
+        <button class="dropdown-item" data-category="Elections" role="menuitem">&#128499;&#65039; Elections</button>
+        <button class="dropdown-item" data-category="Environment" role="menuitem">&#127807; Environment</button>
+      </div>
+    </div>
+
+    <!-- Search -->
+    <div class="nav-search-wrapper" role="search">
+      <span class="search-icon" aria-hidden="true">&#128269;</span>
+      <input
+        type="search"
+        class="nav-search-input"
+        id="nav-search"
+        placeholder="Search stories&#8230;"
+        autocomplete="off"
+        aria-label="Search stories"
+        aria-autocomplete="list"
+        aria-controls="search-dropdown"
+      >
+      <div class="dropdown-menu search-dropdown" id="search-dropdown"
+        role="listbox" aria-label="Search results"></div>
+    </div>
+
+  </div>
+
+  <div class="nav-right">
+
+    <!-- Live indicator -->
+    <div class="live-indicator" role="status" aria-label="Live feed active">
+      <span class="live-dot" aria-hidden="true"></span>
+      <span class="live-text">LIVE</span>
+    </div>
+
+    <!-- Notifications -->
+    <button class="nav-icon-btn" id="notif-btn" aria-label="Notifications">
+      &#128276;
+      <span class="notif-badge" id="notif-badge" aria-label="3 notifications">3</span>
+    </button>
+
+    <!-- User menu -->
+    <div class="user-menu">
+      <button class="user-avatar-btn" id="user-btn"
+        aria-haspopup="true" aria-expanded="false" aria-controls="user-menu-dropdown">
+        <span class="user-avatar" id="nav-avatar" aria-hidden="true">?</span>
+        <span class="user-name"   id="nav-username">&#8230;</span>
+        <span class="user-chevron" aria-hidden="true">&#9660;</span>
+      </button>
+      <div class="dropdown-menu user-dropdown" id="user-menu-dropdown" role="menu">
+        <div class="dropdown-item user-email" id="user-email-display" role="none"></div>
+        <div class="dropdown-divider" role="separator"></div>
+        <button class="dropdown-item" role="menuitem"
+          onclick="alert('Profile settings coming soon!')">&#128100; Profile</button>
+        <button class="dropdown-item" role="menuitem"
+          onclick="alert('Settings coming soon!')">&#9881;&#65039; Settings</button>
+        <div class="dropdown-divider" role="separator"></div>
+        <button class="dropdown-item danger" id="signout-btn" role="menuitem">&#128682; Sign Out</button>
+      </div>
+    </div>
+
+  </div>
+</nav>
+
+<!-- ================================================
+     BREAKING NEWS TICKER
+     ================================================ -->
+<div class="ticker-bar ticker-breaking" role="marquee" aria-label="Breaking news">
+  <div class="ticker-label breaking-label" aria-hidden="true">&#9889; BREAKING</div>
+  <div class="ticker-wrapper">
+    <div class="ticker-track ticker-ltr" id="ticker-breaking-track">
+      <span class="ticker-item">
+        <span class="ticker-headline">Connecting to live feed&#8230;</span>
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================
+     GLOBE SECTION
+     ================================================ -->
+<section class="globe-section" aria-label="Global story map">
+
+  <!-- Globe render target -->
+  <div id="globe-container" role="img" aria-label="Interactive 3D globe showing global news activity"></div>
+
+  <!-- Tooltip (follows mouse) -->
+  <div class="globe-tooltip" id="globe-tooltip" role="tooltip" aria-hidden="true">
+    <div class="tooltip-country">COUNTRY</div>
+    <div class="tooltip-count">0 stories</div>
+    <div class="tooltip-heat"></div>
+  </div>
+
+  <!-- Overlay mode buttons -->
+  <div class="overlay-controls" role="group" aria-label="Map overlay mode">
+    <button class="overlay-btn active" data-mode="all">All</button>
+    <button class="overlay-btn" data-mode="density">News Density</button>
+    <button class="overlay-btn" data-mode="conflicts">Conflicts</button>
+    <button class="overlay-btn" data-mode="weather">Weather</button>
+    <button class="overlay-btn" data-mode="elections">Elections</button>
+  </div>
+
+  <!-- Active country filter badge -->
+  <div class="country-filter-badge" id="country-filter-badge" role="status">
+    <span id="country-filter-label">Filter</span>
+    <button class="clear-filter-btn" id="clear-filter-btn"
+      aria-label="Clear country filter">&#10005;</button>
+  </div>
+
+  <!-- HUD Stats -->
+  <div class="globe-stats glass" role="status" aria-label="Story statistics">
+    <div class="stat-item">
+      <span class="stat-icon" aria-hidden="true">&#127758;</span>
+      <div class="stat-block">
+        <span class="stat-value" id="stat-total" style="color:var(--accent-cyan)">0</span>
+        <span class="stat-label">Active Stories</span>
+      </div>
+    </div>
+    <div class="stat-divider" aria-hidden="true"></div>
+    <div class="stat-item">
+      <span class="stat-icon" style="color:var(--verified)" aria-hidden="true">&#10003;</span>
+      <div class="stat-block">
+        <span class="stat-value" id="stat-verified" style="color:var(--verified)">0</span>
+        <span class="stat-label">Verified</span>
+      </div>
+    </div>
+    <div class="stat-divider" aria-hidden="true"></div>
+    <div class="stat-item">
+      <span class="stat-icon" style="color:var(--contested)" aria-hidden="true">&#9888;</span>
+      <div class="stat-block">
+        <span class="stat-value" id="stat-pending" style="color:var(--contested)">0</span>
+        <span class="stat-label">Pending</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Heat legend -->
+  <div class="globe-legend glass" role="img" aria-label="Activity level legend">
+    <div class="legend-title">ACTIVITY LEVEL</div>
+    <div class="legend-scale">
+      <div class="legend-item">
+        <div class="legend-swatch" style="background:rgba(0,212,255,0.15)"></div>
+        <span>Low</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-swatch" style="background:rgba(123,47,255,0.30)"></div>
+        <span>Med</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-swatch" style="background:rgba(255,170,0,0.42)"></div>
+        <span>High</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-swatch" style="background:rgba(255,68,68,0.62)"></div>
+        <span>&#128293;</span>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ================================================
+     VERIFIED TICKER
+     ================================================ -->
+<div class="ticker-bar ticker-verified" role="marquee" aria-label="Verified stories">
+  <div class="ticker-label verified-label" aria-hidden="true">&#10003; VERIFIED</div>
+  <div class="ticker-wrapper">
+    <div class="ticker-track ticker-rtl" id="ticker-verified-track">
+      <span class="ticker-item">
+        <span class="ticker-headline">Loading verified stories&#8230;</span>
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================
+     STORIES SECTION
+     ================================================ -->
+<section class="stories-section" aria-label="Latest stories">
+
+  <div class="stories-header">
+    <div class="stories-title">
+      &#128240; Latest Stories
+      <span class="stories-count" id="stories-count" aria-live="polite">Loading&#8230;</span>
+    </div>
+    <div class="stories-controls" role="group" aria-label="Filter and sort controls">
+      <select class="control-select" id="country-filter-select" aria-label="Filter by country">
+        <option value="all">&#127758; All Countries</option>
+      </select>
+      <select class="control-select" id="sort-select" aria-label="Sort stories">
+        <option value="latest">&#8593; Latest</option>
+        <option value="confidence">&#10003; Confidence</option>
+        <option value="sources">&#128225; Most Sources</option>
+        <option value="breaking">&#9889; Breaking First</option>
+      </select>
+      <select class="control-select" id="status-select" aria-label="Filter by status">
+        <option value="all">All Status</option>
+        <option value="verified">&#10003; Verified</option>
+        <option value="unverified">? Unverified</option>
+        <option value="contested">&#9889; Contested</option>
+        <option value="false">&#10007; False</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="story-grid" id="story-grid" role="feed" aria-label="Story cards" aria-busy="true">
+    <div class="loading-stories">
+      <div class="loading-spinner" role="progressbar" aria-label="Loading stories"></div>
+      <span>Loading stories&#8230;</span>
+    </div>
+  </div>
+
+</section>
+
+<!-- ================================================
+     SCRIPTS
+     ================================================ -->
+<script src="js/supabase-config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/globe.js"></script>
+<script src="js/news-feed.js"></script>
+<script src="js/stories.js"></script>
+<script>
+(async function dashboardInit() {
+  'use strict';
+
+  // ---- Auth guard ----
+  var session = await initDashboardAuth();
+  if (!session) return;
+
+  var emailEl = document.getElementById('user-email-display');
+  if (emailEl) emailEl.textContent = session.isGuest ? 'Guest Mode (read-only)' : (session.user.email || '');
+
+  // ---- Globe init ----
+  if (typeof Globe !== 'undefined') {
+    window.GlobeAPI.init('globe-container', function onCountryClick(code, name) {
+      window.NewsFeed.filterByCountry(code);
+      var sel = document.getElementById('country-filter-select');
+      if (sel) sel.value = code;
+    });
+  } else {
+    var gc = document.getElementById('globe-container');
+    if (gc) gc.innerHTML =
+      '<div style="display:flex;align-items:center;justify-content:center;height:100%;' +
+      'color:var(--text-muted);flex-direction:column;gap:14px">' +
+      '<div class="loading-spinner"></div><span>Globe loading&#8230;</span></div>';
+  }
+
+  // ---- Load stories ----
+  var stories = await window.NewsFeed.load();
+  var grid = document.getElementById('story-grid');
+  if (grid) grid.setAttribute('aria-busy', 'false');
+
+  // ---- Populate country select ----
+  var ctySel = document.getElementById('country-filter-select');
+  if (ctySel && stories.length) {
+    var seen = new Map();
+    stories.forEach(function(s) {
+      if (s.country_code && !seen.has(s.country_code))
+        seen.set(s.country_code, s.country_name || s.country_code);
+    });
+    Array.from(seen.entries())
+      .sort(function(a,b){ return (a[1]||'').localeCompare(b[1]||''); })
+      .forEach(function(pair) {
+        var opt = document.createElement('option');
+        opt.value = pair[0];
+        var flag = window.NewsFeed.getCountryFlag(pair[0]);
+        opt.textContent = (flag ? flag + ' ' : '') + pair[1];
+        ctySel.appendChild(opt);
+      });
+    ctySel.addEventListener('change', function(e) {
+      var v = e.target.value;
+      if (v === 'all') {
+        window.NewsFeed.clearCountryFilter();
+        if (window.GlobeAPI) window.GlobeAPI.clearFilter();
+      } else {
+        window.NewsFeed.filterByCountry(v);
+      }
+    });
+  }
+
+  // ---- Realtime subscription ----
+  window.NewsFeed.setupRealtime();
+
+  // ---- Overlay controls ----
+  document.querySelectorAll('.overlay-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.overlay-btn').forEach(function(b) {
+        b.classList.remove('active');
+        b.setAttribute('aria-pressed', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-pressed', 'true');
+      if (window.GlobeAPI) window.GlobeAPI.switchOverlay(btn.dataset.mode);
+    });
+  });
+
+  // ---- Categories dropdown ----
+  var catBtn  = document.getElementById('categories-btn');
+  var catMenu = document.getElementById('categories-menu');
+  if (catBtn && catMenu) {
+    catBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var open = catMenu.classList.toggle('open');
+      catBtn.setAttribute('aria-expanded', String(open));
+    });
+    catMenu.querySelectorAll('[data-category]').forEach(function(item) {
+      item.addEventListener('click', function() {
+        var cat = item.dataset.category;
+        window.NewsFeed.filterByCategory(cat === 'all' ? 'all' : cat);
+        catMenu.classList.remove('open');
+        catBtn.setAttribute('aria-expanded', 'false');
+        var label = cat === 'all' ? 'CATEGORIES' : item.textContent.trim();
+        catBtn.innerHTML = window.NewsFeed.escHtml(label) +
+          ' <span class="dropdown-arrow" aria-hidden="true">&#9660;</span>';
+      });
+    });
+  }
+
+  // ---- Search ----
+  var sInput = document.getElementById('nav-search');
+  var sDrop  = document.getElementById('search-dropdown');
+  if (sInput && sDrop) {
+    var sTimer;
+    sInput.addEventListener('input', function() {
+      clearTimeout(sTimer);
+      sTimer = setTimeout(function() {
+        var q = sInput.value.trim();
+        if (!q) { sDrop.classList.remove('open'); return; }
+        var hits = window.NewsFeed.searchStories(q);
+        if (hits.length) {
+          sDrop.innerHTML = hits.map(function(s) {
+            return '<button class="search-result-item" role="option">'
+              + '<span class="search-result-flag">' + (s.flag || '&#127760;') + '</span>'
+              + '<span class="search-result-text">' + window.NewsFeed.escHtml(s.headline) + '</span>'
+              + '<span class="search-result-meta">' + window.NewsFeed.escHtml(s.country || '') + '</span>'
+              + '</button>';
+          }).join('');
+          sDrop.classList.add('open');
+          sDrop.querySelectorAll('.search-result-item').forEach(function(btn, i) {
+            btn.addEventListener('click', function() {
+              var story = hits[i];
+              window.NewsFeed.filterByCountry(story.country_code);
+              if (ctySel) ctySel.value = story.country_code;
+              sInput.value = '';
+              sDrop.classList.remove('open');
+            });
+          });
+        } else {
+          sDrop.innerHTML = '<div class="dropdown-item" style="cursor:default;color:var(--text-muted)">No results found</div>';
+          sDrop.classList.add('open');
+        }
+      }, 200);
+    });
+    sInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') { sDrop.classList.remove('open'); sInput.value = ''; }
+    });
+  }
+
+  // ---- Sort + Status selects ----
+  var sortSel = document.getElementById('sort-select');
+  if (sortSel) sortSel.addEventListener('change', function(e) {
+    window.NewsFeed.sortStories(e.target.value);
+  });
+  var stSel = document.getElementById('status-select');
+  if (stSel) stSel.addEventListener('change', function(e) {
+    window.NewsFeed.filterByStatus(e.target.value);
+  });
+
+  // ---- Clear country filter badge button ----
+  var clrBtn = document.getElementById('clear-filter-btn');
+  if (clrBtn) clrBtn.addEventListener('click', function() {
+    window.NewsFeed.clearCountryFilter();
+    if (window.GlobeAPI) window.GlobeAPI.clearFilter();
+    if (ctySel) ctySel.value = 'all';
+  });
+  window.onClearCountryFilter = function() {
+    window.NewsFeed.clearCountryFilter();
+    if (ctySel) ctySel.value = 'all';
+  };
+
+  // ---- User menu toggle ----
+  var uBtn  = document.getElementById('user-btn');
+  var uMenu = document.getElementById('user-menu-dropdown');
+  if (uBtn && uMenu) {
+    uBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var open = uMenu.classList.toggle('open');
+      uBtn.setAttribute('aria-expanded', String(open));
+    });
+  }
+
+  // ---- Notifications button ----
+  var nBtn = document.getElementById('notif-btn');
+  if (nBtn) nBtn.addEventListener('click', function() {
+    var b = document.getElementById('notif-badge');
+    if (b) b.textContent = '0';
+    alert('Notifications:\n\u2022 3 new stories added\n\u2022 Realtime feed active\n\u2022 1 story updated to VERIFIED status');
+  });
+
+  // ---- Close dropdowns on outside click ----
+  document.addEventListener('click', function() {
+    document.querySelectorAll('.dropdown-menu.open').forEach(function(m) {
+      m.classList.remove('open');
+    });
+    if (catBtn) catBtn.setAttribute('aria-expanded', 'false');
+    if (uBtn)   uBtn.setAttribute('aria-expanded',   'false');
+  });
+
+  console.log('[GlobeWatch] Dashboard ready. Stories:', stories.length);
+
+})();
+</script>
+
+</body>
+</html>
