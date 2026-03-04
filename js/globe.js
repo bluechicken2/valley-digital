@@ -111,6 +111,9 @@ function initDashboardGlobe(containerId, onCountryClick) {
       var placeholder = document.getElementById('globe-placeholder');
       if (placeholder) placeholder.style.display = 'none';
 
+      // Init moon + satellites
+      setTimeout(_initSpaceElements, 600);
+
     } catch(err) {
       console.error('[Globe] Init failed:', err);
       el.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:rgba(0,212,255,0.5);flex-direction:column;gap:12px"><span style="font-size:48px">🌍</span><span style="font-family:Orbitron,sans-serif;font-size:11px;letter-spacing:.08em">GLOBE UNAVAILABLE</span></div>';
@@ -254,6 +257,7 @@ function updateCountryStatsFromStories(stories) {
   _refreshColors();
   _updateHUD(stories);
   updateStoryArcs(stories);
+  checkSpaceStories(stories);
 }
 
 function _refreshColors() {
@@ -407,7 +411,99 @@ function updateStoryArcs(stories) {
 }
 
 // ------------------------------------------------
-// Public API
+// ================================================
+// Moon + Satellite Visual Feature
+// ================================================
+var _satAnimId   = null;
+var _satStart    = null;
+
+// Orbital params: rx/ry as fraction of section size, speed rad/ms, phase, tilt degrees
+var SAT_ORBITS = [
+  { rx: 0.40, ry: 0.16, speed: 0.000085, phase: 0.0,  tilt: -12 },
+  { rx: 0.33, ry: 0.26, speed: 0.000052, phase: 2.09, tilt:  42 },
+  { rx: 0.46, ry: 0.13, speed: 0.000118, phase: 4.19, tilt:  -6 }
+];
+
+function _initSpaceElements() {
+  var section = document.querySelector('.globe-section');
+  if (!section || document.getElementById('globe-moon')) return;
+
+  // Moon element
+  var moon = document.createElement('div');
+  moon.id        = 'globe-moon';
+  moon.className = 'globe-moon';
+  moon.setAttribute('title', 'Moon');
+  section.appendChild(moon);
+
+  // Satellite elements
+  SAT_ORBITS.forEach(function(_, i) {
+    var sat = document.createElement('div');
+    sat.className = 'globe-satellite';
+    sat.id        = 'globe-sat-' + i;
+    section.appendChild(sat);
+  });
+
+  _animateSatellites();
+}
+
+function _animateSatellites() {
+  var section = document.querySelector('.globe-section');
+  if (!section) return;
+  if (_satAnimId) cancelAnimationFrame(_satAnimId);
+
+  function tick(ts) {
+    if (!_satStart) _satStart = ts;
+    var elapsed = ts - _satStart;
+    var w  = section.offsetWidth  || 800;
+    var h  = section.offsetHeight || 500;
+    var cx = w * 0.5;
+    var cy = h * 0.5;
+
+    SAT_ORBITS.forEach(function(o, i) {
+      var sat = document.getElementById('globe-sat-' + i);
+      if (!sat) return;
+      var angle   = elapsed * o.speed + o.phase;
+      var tiltRad = o.tilt * Math.PI / 180;
+      var x0 = Math.cos(angle) * o.rx * w;
+      var y0 = Math.sin(angle) * o.ry * h;
+      var x  = x0 * Math.cos(tiltRad) - y0 * Math.sin(tiltRad);
+      var y  = x0 * Math.sin(tiltRad) + y0 * Math.cos(tiltRad);
+      sat.style.left = (cx + x - 3) + 'px';
+      sat.style.top  = (cy + y - 3) + 'px';
+    });
+    _satAnimId = requestAnimationFrame(tick);
+  }
+  _satAnimId = requestAnimationFrame(tick);
+}
+
+function checkSpaceStories(stories) {
+  var MOON_KW = ['moon', 'lunar', 'artemis', 'moonshot', 'moon mission', 'moon landing', 'crescent'];
+  var SAT_KW  = ['satellite', 'spacex', ' iss ', 'space station', 'orbit', 'rocket launch',
+                 'space launch', 'starlink', 'nasa', 'space debris', 'spacecraft', 'space probe',
+                 'space telescope', 'hubble', 'james webb'];
+
+  var hasMoon = stories.some(function(s) {
+    var t = ((s.headline || '') + ' ' + (s.summary || '')).toLowerCase();
+    return MOON_KW.some(function(k) { return t.indexOf(k) !== -1; });
+  });
+  var hasSat = stories.some(function(s) {
+    var t = ((s.headline || '') + ' ' + (s.summary || '')).toLowerCase();
+    return SAT_KW.some(function(k) { return t.indexOf(k) !== -1; });
+  });
+
+  var moon = document.getElementById('globe-moon');
+  if (moon) {
+    moon.classList.toggle('moon-active', hasMoon);
+    moon.setAttribute('title', hasMoon ? 'Moon — active story' : 'Moon');
+  }
+  document.querySelectorAll('.globe-satellite').forEach(function(s) {
+    s.classList.toggle('sat-active', hasSat);
+  });
+}
+
+
+
+  // Public API
 // ------------------------------------------------
 window.GlobeAPI = {
   toggleSpin: function() {
@@ -430,5 +526,7 @@ window.GlobeAPI = {
   updateArcs:                    updateStoryArcs,
   switchOverlay:                 switchOverlay,
   clearFilter:                   clearGlobeFilter,
-  getInstance:                   function() { return globeInst; }
+  getInstance:                   function() { return globeInst; },
+    checkSpaceStories:             checkSpaceStories,
+    initSpaceElements:             _initSpaceElements
 };

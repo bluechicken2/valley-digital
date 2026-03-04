@@ -1122,3 +1122,117 @@
 .stories-grid {
   gap: 1rem;
 }
+
+/* ================================================
+   Moon + Satellite Visual Feature
+   ================================================ */
+
+.globe-moon {
+  position: absolute;
+  top: 48px;
+  right: 72px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 38%,
+    #d4cfc7 0%,
+    #b0a99e 35%,
+    #7a7268 65%,
+    #3a3530 100%
+  );
+  box-shadow:
+    inset -6px -4px 12px rgba(0,0,0,0.6),
+    inset 3px 3px 8px rgba(255,255,240,0.15),
+    0 0 8px rgba(180,170,150,0.12);
+  opacity: 0.28;
+  transition: opacity 1.2s ease, box-shadow 1.2s ease, transform 1.2s ease;
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* Surface craters */
+.globe-moon::before {
+  content: '';
+  position: absolute;
+  top: 28%;
+  left: 22%;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.25);
+  box-shadow:
+    12px 6px 0 3px rgba(0,0,0,0.18),
+    4px 14px 0 2px rgba(0,0,0,0.15),
+    16px 14px 0 2px rgba(0,0,0,0.12);
+}
+
+.globe-moon.moon-active {
+  opacity: 0.88;
+  box-shadow:
+    inset -6px -4px 12px rgba(0,0,0,0.5),
+    inset 3px 3px 8px rgba(255,255,240,0.25),
+    0 0 22px rgba(220,210,180,0.55),
+    0 0 50px rgba(200,190,150,0.22);
+  animation: moonPulse 3.5s ease-in-out infinite;
+}
+
+@keyframes moonPulse {
+  0%, 100% { transform: scale(1);   box-shadow: inset -6px -4px 12px rgba(0,0,0,0.5), 0 0 22px rgba(220,210,180,0.55), 0 0 50px rgba(200,190,150,0.22); }
+  50%       { transform: scale(1.06); box-shadow: inset -6px -4px 12px rgba(0,0,0,0.5), 0 0 32px rgba(220,210,180,0.75), 0 0 70px rgba(200,190,150,0.35); }
+}
+
+/* Satellites */
+.globe-satellite {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  pointer-events: none;
+  z-index: 6;
+  opacity: 0.30;
+  transition: opacity 0.8s ease;
+}
+
+/* Main satellite body */
+.globe-satellite::before {
+  content: '';
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  width: 4px;
+  height: 4px;
+  background: #8ecfff;
+  border-radius: 1px;
+  box-shadow: 0 0 3px rgba(142,207,255,0.5);
+}
+
+/* Solar panels — horizontal bar */
+.globe-satellite::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: -4px;
+  width: 14px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #4499cc 20%, #66bbff 50%, #4499cc 80%, transparent);
+  opacity: 0.7;
+}
+
+.globe-satellite.sat-active {
+  opacity: 0.90;
+  animation: satBlink 1.8s ease-in-out infinite;
+}
+
+.globe-satellite.sat-active::before {
+  background: #00d4ff;
+  box-shadow: 0 0 6px rgba(0,212,255,0.9), 0 0 12px rgba(0,212,255,0.5);
+}
+
+.globe-satellite.sat-active::after {
+  background: linear-gradient(90deg, transparent, #00aaff 20%, #00ffff 50%, #00aaff 80%, transparent);
+  opacity: 1;
+}
+
+@keyframes satBlink {
+  0%, 100% { opacity: 0.90; }
+  50%       { opacity: 0.55; }
+}
