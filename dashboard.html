@@ -620,71 +620,72 @@
 <script src="js/modal.js"></script>
 <script src="js/sidebar.js"></script>
 <script>
+// ================================================
+// GLOBEWATCH - Dashboard Initialisation
+// Stories and Globe are fully INDEPENDENT — one
+// never blocks the other.
+// ================================================
+
 (async function dashboardInit() {
   'use strict';
 
-  // ---- Auth guard ----
-  // Auth — permissive: auto-guest if no session (don't redirect)
-  var session = await initDashboardAuth(true); // true = auto-guest mode
-  if (!session) { if(window.Loader)Loader.hide(); return; }
+  // ---- Auth guard (auto-guest if no session) ----
+  var session = await initDashboardAuth(true);
+  if (!session) { if (window.Loader) Loader.hide(); return; }
 
-  // Safety timeout — loader ALWAYS hides after 6s max
-  var loaderTimeout = setTimeout(function() {
+  // Safety: loader always clears after 8s max
+  var loaderTimeout = setTimeout(function () {
     if (window.Loader) Loader.hide();
-  }, 6000);
+  }, 8000);
 
+  // ---- Show user info ----
   var emailEl = document.getElementById('user-email-display');
-  if (emailEl) emailEl.textContent = session.isGuest ? 'Guest Mode (read-only)' : (session.user.email || '');
+  if (emailEl) emailEl.textContent = session.isGuest ? 'Guest Mode' : (session.user.email || '');
 
-  // ---- Globe init ----
-  if (typeof Globe !== 'undefined') {
-    window.GlobeAPI.init('globe-container', function onCountryClick(code, name) {
-      // Filter news feed
-      window.NewsFeed.filterByCountry(code);
-      var sel = document.getElementById('country-filter-select');
-      if (sel) sel.value = code;
-      // Open sidebar with filtered stories
-      var filtered = window.NewsFeed.getAll().filter(function(s){ return s.country_code === code; });
-      if (window.CountrySidebar) window.CountrySidebar.open(code, name, filtered);
-    });
-  } else {
-    var gc = document.getElementById('globe-container');
-    if (gc) gc.innerHTML =
-      '<div style="display:flex;align-items:center;justify-content:center;height:100%;'  +
-      'color:var(--text-muted);flex-direction:column;gap:14px">'  +
-      '<div class="loading-spinner"></div><span>Globe loading&#8230;</span></div>';
+  // ================================================
+  // STORIES — load immediately, independent of globe
+  // ================================================
+  var stories = [];
+  try {
+    stories = await window.NewsFeed.load();
+  } catch (e) {
+    console.error('[Init] Story load failed:', e);
+    // Try loading sample data directly as last resort
+    try {
+      var r = await fetch('data/sample-stories.json');
+      if (r.ok) {
+        stories = await r.json();
+        window.StoryCards.renderAll(stories);
+      }
+    } catch(e2) { console.error('[Init] Sample fallback failed:', e2); }
   }
 
-  // ---- Load stories ----
-  var stories = await window.NewsFeed.load();
+  // Mark grid as loaded
   var grid = document.getElementById('story-grid');
   if (grid) grid.setAttribute('aria-busy', 'false');
 
-  // ---- Loader done ----
+  // ---- Loader done (stories are ready) ----
   clearTimeout(loaderTimeout);
   if (window.Loader) Loader.hide();
 
-  // ---- Globe arcs ----
-  if (window.GlobeAPI && window.GlobeAPI.updateArcs) window.GlobeAPI.updateArcs(stories);
-
-  // ---- Populate country select ----
+  // ---- Populate country filter dropdown ----
   var ctySel = document.getElementById('country-filter-select');
   if (ctySel && stories.length) {
     var seen = new Map();
-    stories.forEach(function(s) {
+    stories.forEach(function (s) {
       if (s.country_code && !seen.has(s.country_code))
         seen.set(s.country_code, s.country_name || s.country_code);
     });
     Array.from(seen.entries())
-      .sort(function(a,b){ return (a[1]||''). localeCompare(b[1]||''); })
-      .forEach(function(pair) {
+      .sort(function (a, b) { return (a[1] || '').localeCompare(b[1] || ''); })
+      .forEach(function (pair) {
         var opt = document.createElement('option');
         opt.value = pair[0];
         var flag = window.NewsFeed.getCountryFlag(pair[0]);
         opt.textContent = (flag ? flag + ' ' : '') + pair[1];
         ctySel.appendChild(opt);
       });
-    ctySel.addEventListener('change', function(e) {
+    ctySel.addEventListener('change', function (e) {
       var v = e.target.value;
       if (v === 'all') {
         window.NewsFeed.clearCountryFilter();
@@ -696,135 +697,107 @@
     });
   }
 
-  // ---- Realtime subscription ----
-  window.NewsFeed.setupRealtime();
-
-  // ---- Live search (Task 4) ----
-  window.NewsFeed.setupLiveSearch();
-
-  // ---- Notifications (Task 7) ----
-  window.NewsFeed.setupNotifications();
-
-  // ---- Overlay controls ----
-  document.querySelectorAll('.overlay-btn').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      document.querySelectorAll('.overlay-btn').forEach(function(b) {
-        b.classList.remove('active'); b.setAttribute('aria-pressed','false');
-      });
-      btn.classList.add('active'); btn.setAttribute('aria-pressed','true');
-      if (window.GlobeAPI) window.GlobeAPI.switchOverlay(btn.dataset.mode);
-    });
-  });
-
-  // ---- Categories dropdown ----
-  var catBtn  = document.getElementById('categories-btn');
-  var catMenu = document.getElementById('categories-menu');
-  if (catBtn && catMenu) {
-    catBtn.addEventListener('click', function(e) {
-      e.stopPropagation();
-      var open = catMenu.classList.toggle('open');
-      catBtn.setAttribute('aria-expanded', String(open));
-    });
-    catMenu.querySelectorAll('[data-category]').forEach(function(item) {
-      item.addEventListener('click', function() {
-        var cat = item.dataset.category;
-        window.NewsFeed.filterByCategory(cat === 'all' ? 'all' : cat);
-        catMenu.classList.remove('open'); catBtn.setAttribute('aria-expanded','false');
-        var label = cat === 'all' ? 'CATEGORIES' : item.textContent.trim();
-        catBtn.innerHTML = window.NewsFeed.escHtml(label) + ' <span class="dropdown-arrow" aria-hidden="true">&#9660;</span>';
-      });
+  // ---- UI Controls (sort/filter/category dropdowns) ----
+  // Sort
+  var sortSel = document.getElementById('sort-select');
+  if (sortSel) {
+    sortSel.addEventListener('change', function (e) {
+      window.NewsFeed.sortStories(e.target.value);
     });
   }
-
-  // ---- Sort + Status selects ----
-  var sortSel = document.getElementById('sort-select');
-  if (sortSel) sortSel.addEventListener('change', function(e) { window.NewsFeed.sortStories(e.target.value); });
-  var stSel = document.getElementById('status-select');
-  if (stSel) stSel.addEventListener('change', function(e) { window.NewsFeed.filterByStatus(e.target.value); });
-
-  // ---- Clear country filter badge button ----
-  var clrBtn = document.getElementById('clear-filter-btn');
-  if (clrBtn) clrBtn.addEventListener('click', function() {
-    window.NewsFeed.clearCountryFilter();
-    if (window.GlobeAPI) window.GlobeAPI.clearFilter();
-    if (ctySel) ctySel.value = 'all';
-    if (window.CountrySidebar) window.CountrySidebar.close();
+  // Status filter
+  var statusSel = document.getElementById('status-filter-select');
+  if (statusSel) {
+    statusSel.addEventListener('change', function (e) {
+      window.NewsFeed.filterByStatus(e.target.value);
+    });
+  }
+  // Category dropdown items
+  document.querySelectorAll('[data-category]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var cat = btn.dataset.category;
+      window.NewsFeed.filterByCategory(cat === 'all' ? 'all' : cat);
+      // Update active state
+      document.querySelectorAll('[data-category]').forEach(function (b) {
+        b.classList.remove('active');
+      });
+      btn.classList.add('active');
+      // Close dropdown
+      var menu = document.getElementById('categories-menu');
+      if (menu) menu.classList.remove('open');
+    });
   });
-  window.onClearCountryFilter = function() {
+
+  // ---- Live search ----
+  if (window.NewsFeed.setupLiveSearch) window.NewsFeed.setupLiveSearch();
+
+  // ---- Notifications ----
+  if (window.NewsFeed.setupNotifications) window.NewsFeed.setupNotifications(stories);
+
+  // ---- Realtime subscription ----
+  if (window.NewsFeed.setupRealtime) window.NewsFeed.setupRealtime();
+
+  // ---- Globe clear-filter badge wiring ----
+  window.onClearCountryFilter = function () {
     window.NewsFeed.clearCountryFilter();
-    if (ctySel) ctySel.value = 'all';
+    var sel = document.getElementById('country-filter-select');
+    if (sel) sel.value = 'all';
     if (window.CountrySidebar) window.CountrySidebar.close();
   };
 
-  // ---- User menu toggle ----
-  var uBtn  = document.getElementById('user-btn');
-  var uMenu = document.getElementById('user-menu-dropdown');
-  if (uBtn && uMenu) {
-    uBtn.addEventListener('click', function(e) {
-      e.stopPropagation();
-      var open = uMenu.classList.toggle('open');
-      uBtn.setAttribute('aria-expanded', String(open));
-    });
-  }
+  // ================================================
+  // GLOBE — initialise only after globe.gl CDN loads
+  // (decoupled from story loading above)
+  // ================================================
+  window._globeStories = stories; // store for when globe is ready
 
-  // ---- Mobile hamburger menu ----
-  var hamburger  = document.getElementById('hamburger-btn');
-  var mobileMenu = document.getElementById('mobile-menu');
-  var mmSearch   = document.getElementById('mm-search');
-  if (hamburger && mobileMenu) {
-    hamburger.addEventListener('click', function(e) {
-      e.stopPropagation();
-      var open = mobileMenu.classList.toggle('mm-open');
-      hamburger.setAttribute('aria-expanded', String(open));
-      hamburger.textContent = open ? '✕' : '☰';
-    });
-    mobileMenu.querySelectorAll('[data-mm-cat]').forEach(function(item) {
-      item.addEventListener('click', function() {
-        var cat = item.dataset.mmCat;
-        window.NewsFeed.filterByCategory(cat);
-        mobileMenu.classList.remove('mm-open');
-        hamburger.setAttribute('aria-expanded','false');
-        hamburger.textContent = '☰';
+  function initGlobeWhenReady() {
+    if (typeof Globe === 'undefined') return; // not loaded yet
+    window.GlobeAPI.init('globe-container', function onCountryClick(code, name) {
+      window.NewsFeed.filterByCountry(code);
+      var sel = document.getElementById('country-filter-select');
+      if (sel) sel.value = code;
+      var filtered = window.NewsFeed.getAll().filter(function (s) {
+        return s.country_code === code;
       });
+      if (window.CountrySidebar) window.CountrySidebar.open(code, name, filtered);
     });
-    if (mmSearch) {
-      var mmTimer;
-      mmSearch.addEventListener('input', function() {
-        clearTimeout(mmTimer);
-        var q = mmSearch.value.trim();
-        mmTimer = setTimeout(function() {
-          if (q) {
-            var hits = window.NewsFeed.searchStories(q);
-            if (hits.length && window.StoryModal) {
-              window.StoryModal.open(hits[0], window.NewsFeed.getAll());
-              mobileMenu.classList.remove('mm-open');
-              hamburger.setAttribute('aria-expanded','false');
-              hamburger.textContent = '☰';
-            }
-          }
-        }, 400);
-      });
+    // Feed stories to globe
+    var s = window._globeStories || [];
+    if (s.length) {
+      window.GlobeAPI.updatePins(s);
+      window.GlobeAPI.updateCountryStatsFromStories(s);
+      if (window.GlobeAPI.updateArcs) window.GlobeAPI.updateArcs(s);
     }
   }
 
-  // ---- Close all dropdowns on outside click ----
-  document.addEventListener('click', function() {
-    document.querySelectorAll('.dropdown-menu.open').forEach(function(m) { m.classList.remove('open'); });
-    if (catBtn) catBtn.setAttribute('aria-expanded','false');
-    if (uBtn)   uBtn.setAttribute('aria-expanded',  'false');
-  });
+  // Called from globe.gl onload below
+  window._onGlobeLoaded = function () {
+    initGlobeWhenReady();
+  };
 
-  console.log('[GlobeWatch] Phase 2 Dashboard ready. Stories:', stories.length);
+  // If globe.gl already loaded (fast CDN / cached)
+  if (typeof Globe !== 'undefined') {
+    initGlobeWhenReady();
+  }
+
 })();
 </script>
 
-  <!-- Load globe.gl async AFTER page renders -->
+  <!-- globe.gl — async, non-blocking -->
   <script>
-    (function() {
+    (function () {
       var s = document.createElement('script');
       s.src = 'https://unpkg.com/globe.gl';
       s.async = true;
-      s.onerror = function() { console.warn('[Globe] CDN failed to load'); };
+      s.onload = function () {
+        if (typeof window._onGlobeLoaded === 'function') window._onGlobeLoaded();
+      };
+      s.onerror = function () {
+        console.warn('[Globe] CDN failed to load');
+        var gc = document.getElementById('globe-container');
+        if (gc) gc.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-muted);flex-direction:column;gap:12px"><span style="font-size:48px">🌍</span><span style="font-family:Orbitron,sans-serif;font-size:12px;letter-spacing:.08em">GLOBE UNAVAILABLE</span></div>';
+      };
       document.head.appendChild(s);
     })();
   </script>
