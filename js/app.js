@@ -2812,16 +2812,23 @@ function setupInfoTooltips() {
 }
 
 async function init() {
-            // Wait for Supabase to initialize first
-            await new Promise(resolve => setTimeout(resolve, 800));
+            try {
+                // Wait for Supabase to initialize first
+                await new Promise(resolve => setTimeout(resolve, 500));
 
-            // Check for existing session (now awaits properly)
-            var hasSession = await checkSession();
-            if(hasSession){
-                showDashboard();
-                setupInfoTooltips();
-            }else{
-                showLogin();
+                // Check for existing session (now awaits properly)
+                var hasSession = await checkSession();
+                if(hasSession){
+                    showDashboard();
+                    setupInfoTooltips();
+                }else{
+                    showLogin();
+                }
+            } catch(e) {
+                console.error('Init error:', e);
+                // Always show login on error - hide loading screen
+                $('loading').style.display='none';
+                $('auth-login').style.display='flex';
             }
         }
         if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
