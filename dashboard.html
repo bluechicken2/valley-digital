@@ -13,8 +13,378 @@
   <link rel="stylesheet" href="css/dashboard.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="https://unpkg.com/globe.gl"></script>
+  <script src="js/loader.js"></script>
+  <script>if(window.Loader)Loader.show();</script>
+  <style>
+  /* ================================================================
+     PHASE 2 — LOADER
+  ================================================================ */
+  #gwl{
+    position:fixed;inset:0;background:#080b12;z-index:9999;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    transition:opacity .6s ease;
+  }
+  #gwl.gwl-out{opacity:0;pointer-events:none;}
+  .gwl-wrap{display:flex;flex-direction:column;align-items:center;gap:18px;}
+  .gwl-globe-rig{
+    position:relative;width:110px;height:110px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .gwl-core{
+    font-size:46px;
+    animation:gwl-pulse 1.4s ease-in-out infinite;
+    filter:drop-shadow(0 0 18px rgba(0,212,255,.8));
+    z-index:1;
+  }
+  @keyframes gwl-pulse{
+    0%,100%{transform:scale(1);filter:drop-shadow(0 0 14px rgba(0,212,255,.7));}
+    50%{transform:scale(1.12);filter:drop-shadow(0 0 32px rgba(0,212,255,1));}
+  }
+  .gwl-orbit{
+    position:absolute;border-radius:50%;border:1px solid rgba(0,212,255,.22);
+    animation:gwl-spin linear infinite;
+  }
+  .gwl-o1{width:72px;height:72px;animation-duration:2.2s;}
+  .gwl-o2{width:92px;height:92px;animation-duration:3.4s;animation-direction:reverse;border-color:rgba(123,47,255,.22);}
+  .gwl-o3{width:112px;height:112px;animation-duration:5s;border-color:rgba(0,212,255,.1);}
+  @keyframes gwl-spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+  .gwl-bead{
+    position:absolute;top:-3px;left:50%;transform:translateX(-50%);
+    width:6px;height:6px;border-radius:50%;background:#00d4ff;
+    box-shadow:0 0 8px #00d4ff;
+  }
+  .gwl-o2 .gwl-bead{background:#7b2fff;box-shadow:0 0 8px #7b2fff;}
+  .gwl-logo{
+    font-family:Orbitron,sans-serif;font-size:30px;font-weight:900;
+    letter-spacing:.16em;color:#fff;
+    text-shadow:0 0 24px rgba(0,212,255,.75),0 0 50px rgba(0,212,255,.3);
+    animation:gwl-fadein .55s ease forwards;
+  }
+  @keyframes gwl-fadein{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:none}}
+  .gwl-tagline{
+    font-family:'Courier New',monospace;color:rgba(0,212,255,.82);
+    font-size:13px;letter-spacing:.05em;min-height:18px;
+  }
+  .gwl-status{display:flex;flex-direction:column;gap:5px;min-height:88px;align-items:flex-start;}
+  .gwl-line{
+    font-family:'Courier New',monospace;font-size:11px;color:#00ff88;
+    opacity:0;transform:translateX(-8px);transition:all .3s ease;
+  }
+  .gwl-line-in{opacity:1;transform:none;}
+  .gwl-prog-track{
+    position:fixed;bottom:0;left:0;right:0;height:3px;
+    background:rgba(0,212,255,.1);
+  }
+  .gwl-prog-fill{
+    height:100%;width:0%;background:linear-gradient(90deg,#7b2fff,#00d4ff);
+    box-shadow:0 0 14px rgba(0,212,255,.8);
+  }
+
+  /* ================================================================
+     PHASE 2 — MODAL
+  ================================================================ */
+  #mdl{display:none;position:fixed;inset:0;z-index:8000;}
+  #mdl.mdl-open{display:block;}
+  .mdl-backdrop{
+    position:absolute;inset:0;
+    background:rgba(8,11,18,.78);backdrop-filter:blur(7px);
+    animation:mdl-bdin .35s ease forwards;
+  }
+  @keyframes mdl-bdin{from{opacity:0}to{opacity:1}}
+  .mdl-sheet{
+    position:absolute;bottom:0;left:50%;transform:translateX(-50%) translateY(100%);
+    width:min(880px,100%);max-height:92vh;overflow-y:auto;
+    background:rgba(11,15,25,.98);
+    border:1px solid rgba(0,212,255,.18);border-bottom:none;
+    border-radius:20px 20px 0 0;
+    backdrop-filter:blur(24px);
+    box-shadow:0 -24px 80px rgba(0,0,0,.65),0 0 70px rgba(0,212,255,.07);
+    animation:mdl-up .4s cubic-bezier(.16,1,.3,1) forwards;
+  }
+  #mdl.mdl-closing .mdl-sheet{animation:mdl-dn .34s ease forwards;}
+  #mdl.mdl-closing .mdl-backdrop{animation:mdl-bdout .34s ease forwards;}
+  @keyframes mdl-up{from{transform:translateX(-50%) translateY(100%)}to{transform:translateX(-50%) translateY(0)}}
+  @keyframes mdl-dn{from{transform:translateX(-50%) translateY(0)}to{transform:translateX(-50%) translateY(100%)}}
+  @keyframes mdl-bdout{from{opacity:1}to{opacity:0}}
+  .mdl-toolbar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:16px 26px;border-bottom:1px solid rgba(0,212,255,.12);
+    position:sticky;top:0;background:rgba(11,15,25,.99);z-index:2;
+    border-radius:20px 20px 0 0;
+  }
+  .mdl-close{
+    background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
+    color:rgba(255,255,255,.6);font-family:Orbitron,sans-serif;
+    font-size:10px;font-weight:700;letter-spacing:.08em;
+    padding:7px 15px;border-radius:6px;cursor:pointer;transition:all .2s;
+  }
+  .mdl-close:hover{background:rgba(255,68,68,.15);border-color:#ff4444;color:#ff4444;}
+  .mdl-nav{display:flex;align-items:center;gap:8px;}
+  .mdl-nav-sep{color:rgba(255,255,255,.18);}
+  .mdl-nav-btn{
+    background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.22);
+    color:#00d4ff;font-family:Orbitron,sans-serif;font-size:10px;font-weight:700;
+    letter-spacing:.06em;padding:7px 15px;border-radius:6px;cursor:pointer;transition:all .2s;
+  }
+  .mdl-nav-btn:hover{background:rgba(0,212,255,.18);}
+  .mdl-body{padding:28px 34px 44px;}
+  .mdl-hero-top{display:flex;flex-direction:column;gap:10px;margin-bottom:24px;}
+  .mdl-country-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .mdl-flag{font-size:26px;}
+  .mdl-country{font-family:Orbitron,sans-serif;font-size:14px;font-weight:800;color:#e8eaf0;letter-spacing:.06em;}
+  .mdl-cat-badge{
+    font-size:10px;font-weight:700;letter-spacing:.06em;padding:3px 11px;border-radius:20px;
+    background:color-mix(in srgb,var(--cc) 16%,transparent);
+    border:1px solid color-mix(in srgb,var(--cc) 40%,transparent);
+    color:var(--cc);
+  }
+  .mdl-breaking{
+    background:rgba(255,68,68,.15);border:1px solid rgba(255,68,68,.4);color:#ff4444;
+    font-size:10px;font-weight:700;letter-spacing:.08em;padding:3px 10px;
+    border-radius:20px;font-family:Orbitron,sans-serif;
+  }
+  .mdl-headline{font-family:Orbitron,sans-serif;font-size:21px;font-weight:800;color:#fff;line-height:1.3;letter-spacing:.02em;margin:0;}
+  .mdl-meta{font-size:11px;color:rgba(255,255,255,.32);letter-spacing:.04em;}
+  .mdl-conf-section{display:flex;align-items:center;gap:32px;margin:24px 0;}
+  .mdl-gauge-wrap{flex-shrink:0;}
+  .mdl-gauge{
+    width:114px;height:114px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .mdl-gauge-inner{
+    width:80px;height:80px;border-radius:50%;background:#0b0f19;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+  }
+  .mdl-gauge-val{font-family:Orbitron,sans-serif;font-size:19px;font-weight:900;}
+  .mdl-gauge-lbl{font-size:7px;font-weight:700;letter-spacing:.1em;color:rgba(255,255,255,.38);margin-top:2px;}
+  .mdl-conf-desc{flex:1;}
+  .mdl-conf-title{font-family:Orbitron,sans-serif;font-size:13px;font-weight:800;letter-spacing:.08em;margin-bottom:6px;}
+  .mdl-conf-sub{font-size:12px;color:rgba(255,255,255,.42);margin-bottom:12px;}
+  .mdl-summary{font-size:14px;color:rgba(232,234,240,.85);line-height:1.68;margin:0;}
+  .mdl-divider{height:1px;background:rgba(0,212,255,.1);margin:24px 0;}
+  .mdl-section{margin-bottom:8px;}
+  .mdl-section-title{font-family:Orbitron,sans-serif;font-size:10px;font-weight:700;letter-spacing:.1em;color:rgba(255,255,255,.35);margin-bottom:14px;}
+  .mdl-src-table{width:100%;border-collapse:separate;border-spacing:8px;}
+  .mdl-src-cell{
+    background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);
+    border-radius:10px;padding:14px 8px;text-align:center;vertical-align:top;
+  }
+  .mdl-src-icon{font-size:18px;margin-bottom:6px;}
+  .mdl-src-lbl{font-size:10px;color:rgba(255,255,255,.4);line-height:1.3;margin-bottom:8px;}
+  .mdl-src-count{font-family:Orbitron,sans-serif;font-size:13px;font-weight:700;color:#fff;}
+  .mdl-src-yes{color:#00ff88;}
+  .mdl-src-no{color:#ff4444;margin-left:4px;}
+  .mdl-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;}
+  .mdl-action-btn{
+    flex:1;min-width:140px;padding:12px 14px;
+    background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.22);
+    color:#00d4ff;font-family:Orbitron,sans-serif;font-size:10px;font-weight:700;
+    letter-spacing:.08em;border-radius:8px;cursor:pointer;transition:all .2s;
+  }
+  .mdl-action-btn:hover{background:rgba(0,212,255,.18);transform:translateY(-1px);}
+  .mdl-no-scroll{overflow:hidden;}
+  @media(max-width:600px){
+    .mdl-sheet{width:100%;max-height:96vh;border-radius:16px 16px 0 0;}
+    .mdl-body{padding:18px 18px 34px;}
+    .mdl-conf-section{flex-direction:column;align-items:flex-start;gap:16px;}
+    .mdl-headline{font-size:16px;}
+  }
+
+  /* ================================================================
+     PHASE 2 — SIDEBAR
+  ================================================================ */
+  #sb{position:fixed;inset:0;z-index:7000;pointer-events:none;}
+  #sb.sb-open{pointer-events:auto;}
+  .sb-overlay{
+    position:absolute;inset:0;background:rgba(8,11,18,.5);
+    opacity:0;transition:opacity .3s ease;pointer-events:none;
+  }
+  #sb.sb-open .sb-overlay{opacity:1;pointer-events:auto;}
+  .sb-panel{
+    position:absolute;top:0;right:0;bottom:0;width:340px;
+    background:rgba(9,13,21,.98);border-left:1px solid rgba(0,212,255,.15);
+    backdrop-filter:blur(22px);
+    transform:translateX(100%);transition:transform .36s cubic-bezier(.16,1,.3,1);
+    display:flex;flex-direction:column;overflow:hidden;
+    box-shadow:-22px 0 65px rgba(0,0,0,.55);
+  }
+  #sb.sb-open .sb-panel{transform:none;}
+  .sb-head{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:20px 20px 16px;border-bottom:1px solid rgba(0,212,255,.1);flex-shrink:0;
+  }
+  .sb-head-info{display:flex;align-items:center;gap:12px;}
+  .sb-flag{font-size:28px;}
+  .sb-name{font-family:Orbitron,sans-serif;font-size:13px;font-weight:800;color:#fff;letter-spacing:.08em;}
+  .sb-sub{font-size:11px;color:rgba(255,255,255,.38);margin-top:2px;}
+  .sb-close{
+    background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+    color:rgba(255,255,255,.5);font-size:14px;width:30px;height:30px;
+    border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;
+  }
+  .sb-close:hover{background:rgba(255,68,68,.15);border-color:#ff4444;color:#ff4444;}
+  .sb-act{padding:12px 20px;flex-shrink:0;}
+  .sb-act-label{font-size:10px;font-weight:700;letter-spacing:.1em;color:rgba(255,255,255,.35);margin-bottom:8px;}
+  .sb-act-bars{display:flex;gap:4px;align-items:flex-end;}
+  .sb-bar{width:14px;height:16px;border-radius:2px 2px 0 0;background:rgba(255,255,255,.1);transition:all .3s;}
+  .sb-bar-on{background:rgba(0,212,255,.55);}
+  .sb-divider{height:1px;background:rgba(0,212,255,.1);margin:0 20px;flex-shrink:0;}
+  .sb-stories-title{
+    font-family:Orbitron,sans-serif;font-size:9px;font-weight:700;letter-spacing:.12em;
+    color:rgba(255,255,255,.28);padding:12px 20px 8px;flex-shrink:0;
+  }
+  .sb-list{flex:1;overflow-y:auto;padding:0 12px 12px;}
+  .sb-card{
+    background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);
+    border-radius:10px;padding:12px;margin-bottom:8px;cursor:pointer;transition:all .2s;
+  }
+  .sb-card:hover{background:rgba(0,212,255,.09);border-color:rgba(0,212,255,.26);transform:translateX(-2px);}
+  .sb-card-top{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+  .sb-cat{font-size:9px;font-weight:700;letter-spacing:.06em;padding:2px 7px;border-radius:10px;border:1px solid;background:transparent;}
+  .sb-brk{font-size:9px;color:#ff4444;font-weight:700;}
+  .sb-card-hl{font-size:12px;color:#e8eaf0;line-height:1.4;margin-bottom:8px;}
+  .sb-card-foot{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+  .sb-dots{display:flex;gap:2px;}
+  .sb-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.1);}
+  .sb-dot-on{background:#00d4ff;}
+  .sb-age,.sb-srcs{font-size:10px;color:rgba(255,255,255,.28);}
+  .sb-empty{padding:24px;text-align:center;color:rgba(255,255,255,.28);font-size:13px;}
+  .sb-foot{padding:12px 20px;border-top:1px solid rgba(0,212,255,.1);flex-shrink:0;}
+  .sb-view-all{
+    width:100%;padding:10px;background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.2);
+    color:#00d4ff;font-family:Orbitron,sans-serif;font-size:9px;font-weight:700;
+    letter-spacing:.07em;border-radius:7px;cursor:pointer;transition:all .2s;
+  }
+  .sb-view-all:hover{background:rgba(0,212,255,.18);}
+  @media(max-width:600px){
+    .sb-panel{width:100%;top:auto;border-left:none;border-top:1px solid rgba(0,212,255,.15);border-radius:16px 16px 0 0;}
+  }
+
+  /* ================================================================
+     PHASE 2 — SEARCH ENHANCED
+  ================================================================ */
+  .srch-item{
+    display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;
+    border-bottom:1px solid rgba(255,255,255,.05);transition:background .15s;
+  }
+  .srch-item:last-child{border-bottom:none;}
+  .srch-item:hover,.srch-item.srch-active{background:rgba(0,212,255,.1);}
+  .srch-flag{font-size:16px;flex-shrink:0;}
+  .srch-hl{flex:1;font-size:13px;color:#e8eaf0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .srch-badge{flex-shrink:0;}
+  .srch-empty{padding:16px;font-size:13px;color:rgba(255,255,255,.38);text-align:center;line-height:1.6;}
+  .srch-hint{font-size:11px;color:rgba(255,255,255,.22);}
+
+  /* ================================================================
+     PHASE 2 — NOTIFICATIONS
+  ================================================================ */
+  .notif-panel{
+    position:absolute;top:calc(100% + 8px);right:0;width:320px;
+    background:rgba(9,13,21,.98);border:1px solid rgba(0,212,255,.18);
+    border-radius:12px;backdrop-filter:blur(22px);
+    box-shadow:0 22px 65px rgba(0,0,0,.65);
+    opacity:0;transform:translateY(-8px) scale(.97);pointer-events:none;
+    transition:all .22s cubic-bezier(.16,1,.3,1);z-index:6000;
+  }
+  .notif-panel.notif-open{opacity:1;transform:none;pointer-events:auto;}
+  .notif-header{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:14px 16px 10px;border-bottom:1px solid rgba(0,212,255,.1);
+  }
+  .notif-title{font-family:Orbitron,sans-serif;font-size:11px;font-weight:700;letter-spacing:.1em;color:#00d4ff;}
+  .notif-clear{
+    background:none;border:none;color:rgba(255,255,255,.32);font-size:11px;
+    cursor:pointer;transition:color .2s;padding:2px 6px;
+  }
+  .notif-clear:hover{color:#00d4ff;}
+  #notif-body{max-height:300px;overflow-y:auto;}
+  .notif-item{
+    display:flex;align-items:flex-start;gap:12px;padding:12px 16px;
+    border-bottom:1px solid rgba(255,255,255,.05);cursor:pointer;transition:background .15s;
+  }
+  .notif-item:last-child{border-bottom:none;}
+  .notif-item:hover{background:rgba(0,212,255,.07);}
+  .notif-item.notif-read .notif-hl{opacity:.45;}
+  .notif-type-icon{font-size:16px;flex-shrink:0;margin-top:1px;}
+  .notif-type-brk{color:#ff4444;}.notif-type-ok{color:#00ff88;}
+  .notif-type-warn{color:#ffaa00;}.notif-type-info{color:#00d4ff;}
+  .notif-detail{flex:1;min-width:0;}
+  .notif-type-lbl{font-size:9px;font-weight:700;letter-spacing:.1em;color:rgba(255,255,255,.32);margin-bottom:3px;}
+  .notif-hl{font-size:12px;color:#e8eaf0;line-height:1.4;transition:opacity .3s;}
+  .notif-age{font-size:10px;color:rgba(255,255,255,.22);margin-top:3px;}
+  .notif-footer{
+    padding:10px 16px;border-top:1px solid rgba(255,255,255,.06);
+    display:flex;gap:10px;
+  }
+  .notif-footer-btn{
+    flex:1;padding:7px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);
+    color:rgba(255,255,255,.45);font-size:11px;border-radius:6px;cursor:pointer;transition:all .2s;
+  }
+  .notif-footer-btn:hover{background:rgba(0,212,255,.1);border-color:rgba(0,212,255,.3);color:#00d4ff;}
+  #notif-badge.hidden{display:none!important;}
+
+  /* ================================================================
+     PHASE 2 — MOBILE HAMBURGER
+  ================================================================ */
+  .nav-hamburger{
+    display:none;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
+    color:rgba(255,255,255,.8);font-size:18px;width:36px;height:36px;
+    border-radius:7px;cursor:pointer;align-items:center;justify-content:center;
+    transition:all .2s;flex-shrink:0;
+  }
+  .nav-hamburger:hover{background:rgba(0,212,255,.12);border-color:rgba(0,212,255,.3);color:#00d4ff;}
+  .mobile-menu{
+    position:fixed;inset:0;top:54px;z-index:5500;
+    background:rgba(8,11,18,.98);backdrop-filter:blur(22px);
+    transform:translateY(-105%);transition:transform .36s cubic-bezier(.16,1,.3,1);
+    display:flex;flex-direction:column;padding:20px 18px;gap:6px;overflow-y:auto;
+  }
+  .mobile-menu.mm-open{transform:none;}
+  .mm-search-input{
+    width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(0,212,255,.22);
+    color:#e8eaf0;font-size:14px;padding:12px 16px;border-radius:10px;outline:none;
+    font-family:Inter,sans-serif;box-sizing:border-box;margin-bottom:10px;
+  }
+  .mm-section-title{
+    font-family:Orbitron,sans-serif;font-size:9px;font-weight:700;letter-spacing:.12em;
+    color:rgba(255,255,255,.28);padding:6px 0 4px;
+  }
+  .mm-cat-item{
+    display:flex;align-items:center;gap:12px;padding:12px 16px;
+    background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);
+    border-radius:10px;cursor:pointer;color:#e8eaf0;font-size:14px;transition:all .2s;
+  }
+  .mm-cat-item:hover{background:rgba(0,212,255,.1);border-color:rgba(0,212,255,.25);}
+  .mm-live{display:flex;align-items:center;gap:10px;padding:14px 16px;margin-top:8px;color:rgba(255,255,255,.5);font-size:13px;}
+  @media(min-width:769px){
+    .nav-hamburger{display:none!important;}
+    .mobile-menu{display:none!important;}
+  }
+  @media(max-width:768px){
+    .nav-center{display:none!important;}
+    .nav-hamburger{display:flex!important;}
+  }
+  </style>
 </head>
 <body class="dashboard-page">
+
+<!-- Mobile menu overlay -->
+<div class="mobile-menu" id="mobile-menu" role="dialog" aria-label="Mobile navigation">
+  <input type="search" class="mm-search-input" placeholder="Search stories&#8230;" id="mm-search" autocomplete="off">
+  <div class="mm-section-title">CATEGORIES</div>
+  <div class="mm-cat-item" data-mm-cat="all">&#127760; All Stories</div>
+  <div class="mm-cat-item" data-mm-cat="War &amp; Conflict">&#9876;&#65039; War &amp; Conflict</div>
+  <div class="mm-cat-item" data-mm-cat="Politics">&#127963;&#65039; Politics</div>
+  <div class="mm-cat-item" data-mm-cat="Weather &amp; Disaster">&#127786;&#65039; Weather &amp; Disaster</div>
+  <div class="mm-cat-item" data-mm-cat="Economy">&#128201; Economy</div>
+  <div class="mm-cat-item" data-mm-cat="Science &amp; Tech">&#128300; Science &amp; Tech</div>
+  <div class="mm-cat-item" data-mm-cat="Health">&#127973; Health</div>
+  <div class="mm-cat-item" data-mm-cat="Elections">&#128499;&#65039; Elections</div>
+  <div class="mm-cat-item" data-mm-cat="Environment">&#127807; Environment</div>
+  <div class="mm-live">
+    <span class="live-dot"></span><span>LIVE FEED ACTIVE</span>
+  </div>
+</div>
 
 <!-- ================================================
      TOP NAVIGATION
@@ -27,7 +397,6 @@
   </a>
 
   <div class="nav-center">
-
     <!-- Categories dropdown -->
     <div class="nav-dropdown">
       <button class="nav-btn" id="categories-btn"
@@ -47,28 +416,19 @@
         <button class="dropdown-item" data-category="Environment" role="menuitem">&#127807; Environment</button>
       </div>
     </div>
-
     <!-- Search -->
     <div class="nav-search-wrapper" role="search">
       <span class="search-icon" aria-hidden="true">&#128269;</span>
-      <input
-        type="search"
-        class="nav-search-input"
-        id="nav-search"
-        placeholder="Search stories&#8230;"
-        autocomplete="off"
-        aria-label="Search stories"
-        aria-autocomplete="list"
-        aria-controls="search-dropdown"
-      >
+      <input type="search" class="nav-search-input" id="nav-search"
+        placeholder="Search stories&#8230;" autocomplete="off"
+        aria-label="Search stories" aria-autocomplete="list"
+        aria-controls="search-dropdown">
       <div class="dropdown-menu search-dropdown" id="search-dropdown"
         role="listbox" aria-label="Search results"></div>
     </div>
-
   </div>
 
   <div class="nav-right">
-
     <!-- Live indicator -->
     <div class="live-indicator" role="status" aria-label="Live feed active">
       <span class="live-dot" aria-hidden="true"></span>
@@ -76,10 +436,32 @@
     </div>
 
     <!-- Notifications -->
-    <button class="nav-icon-btn" id="notif-btn" aria-label="Notifications">
-      &#128276;
-      <span class="notif-badge" id="notif-badge" aria-label="3 notifications">3</span>
-    </button>
+    <div style="position:relative;">
+      <button class="nav-icon-btn" id="notif-btn" aria-label="Notifications" aria-expanded="false" aria-haspopup="true">
+        &#128276;
+        <span class="notif-badge" id="notif-badge" aria-label="notifications">4</span>
+      </button>
+      <!-- Notification panel -->
+      <div class="notif-panel" id="notif-panel" role="menu" aria-label="Notifications">
+        <div class="notif-header">
+          <span class="notif-title">&#128276; NOTIFICATIONS</span>
+          <button class="notif-clear" id="notif-mark-all">Mark all read</button>
+        </div>
+        <div id="notif-body">
+          <div class="notif-item">
+            <span class="notif-type-icon notif-type-brk">&#9889;</span>
+            <div class="notif-detail">
+              <div class="notif-type-lbl">NEW BREAKING STORY</div>
+              <div class="notif-hl">Loading notifications&#8230;</div>
+            </div>
+          </div>
+        </div>
+        <div class="notif-footer">
+          <button class="notif-footer-btn" id="notif-mark-all-2">&#10003; Mark all read</button>
+          <button class="notif-footer-btn" onclick="alert('Notification settings coming soon!');">&#9881;&#65039; Settings</button>
+        </div>
+      </div>
+    </div>
 
     <!-- User menu -->
     <div class="user-menu">
@@ -93,14 +475,16 @@
         <div class="dropdown-item user-email" id="user-email-display" role="none"></div>
         <div class="dropdown-divider" role="separator"></div>
         <button class="dropdown-item" role="menuitem"
-          onclick="alert('Profile settings coming soon!')">&#128100; Profile</button>
+          onclick="alert('Profile settings coming soon!');">&#128100; Profile</button>
         <button class="dropdown-item" role="menuitem"
-          onclick="alert('Settings coming soon!')">&#9881;&#65039; Settings</button>
+          onclick="alert('Settings coming soon!');">&#9881;&#65039; Settings</button>
         <div class="dropdown-divider" role="separator"></div>
         <button class="dropdown-item danger" id="signout-btn" role="menuitem">&#128682; Sign Out</button>
       </div>
     </div>
 
+    <!-- Hamburger (mobile only) -->
+    <button class="nav-hamburger" id="hamburger-btn" aria-label="Open menu" aria-expanded="false">&#9776;</button>
   </div>
 </nav>
 
@@ -122,18 +506,12 @@
      GLOBE SECTION
      ================================================ -->
 <section class="globe-section" aria-label="Global story map">
-
-  <!-- Globe render target -->
   <div id="globe-container" role="img" aria-label="Interactive 3D globe showing global news activity"></div>
-
-  <!-- Tooltip (follows mouse) -->
   <div class="globe-tooltip" id="globe-tooltip" role="tooltip" aria-hidden="true">
     <div class="tooltip-country">COUNTRY</div>
     <div class="tooltip-count">0 stories</div>
     <div class="tooltip-heat"></div>
   </div>
-
-  <!-- Overlay mode buttons -->
   <div class="overlay-controls" role="group" aria-label="Map overlay mode">
     <button class="overlay-btn active" data-mode="all">All</button>
     <button class="overlay-btn" data-mode="density">News Density</button>
@@ -141,15 +519,10 @@
     <button class="overlay-btn" data-mode="weather">Weather</button>
     <button class="overlay-btn" data-mode="elections">Elections</button>
   </div>
-
-  <!-- Active country filter badge -->
   <div class="country-filter-badge" id="country-filter-badge" role="status">
     <span id="country-filter-label">Filter</span>
-    <button class="clear-filter-btn" id="clear-filter-btn"
-      aria-label="Clear country filter">&#10005;</button>
+    <button class="clear-filter-btn" id="clear-filter-btn" aria-label="Clear country filter">&#10005;</button>
   </div>
-
-  <!-- HUD Stats -->
   <div class="globe-stats glass" role="status" aria-label="Story statistics">
     <div class="stat-item">
       <span class="stat-icon" aria-hidden="true">&#127758;</span>
@@ -175,30 +548,15 @@
       </div>
     </div>
   </div>
-
-  <!-- Heat legend -->
   <div class="globe-legend glass" role="img" aria-label="Activity level legend">
     <div class="legend-title">ACTIVITY LEVEL</div>
     <div class="legend-scale">
-      <div class="legend-item">
-        <div class="legend-swatch" style="background:rgba(0,212,255,0.15)"></div>
-        <span>Low</span>
-      </div>
-      <div class="legend-item">
-        <div class="legend-swatch" style="background:rgba(123,47,255,0.30)"></div>
-        <span>Med</span>
-      </div>
-      <div class="legend-item">
-        <div class="legend-swatch" style="background:rgba(255,170,0,0.42)"></div>
-        <span>High</span>
-      </div>
-      <div class="legend-item">
-        <div class="legend-swatch" style="background:rgba(255,68,68,0.62)"></div>
-        <span>&#128293;</span>
-      </div>
+      <div class="legend-item"><div class="legend-swatch" style="background:rgba(0,212,255,0.15)"></div><span>Low</span></div>
+      <div class="legend-item"><div class="legend-swatch" style="background:rgba(123,47,255,0.30)"></div><span>Med</span></div>
+      <div class="legend-item"><div class="legend-swatch" style="background:rgba(255,170,0,0.42)"></div><span>High</span></div>
+      <div class="legend-item"><div class="legend-swatch" style="background:rgba(255,68,68,0.62)"></div><span>&#128293;</span></div>
     </div>
   </div>
-
 </section>
 
 <!-- ================================================
@@ -219,7 +577,6 @@
      STORIES SECTION
      ================================================ -->
 <section class="stories-section" aria-label="Latest stories">
-
   <div class="stories-header">
     <div class="stories-title">
       &#128240; Latest Stories
@@ -244,14 +601,12 @@
       </select>
     </div>
   </div>
-
   <div class="story-grid" id="story-grid" role="feed" aria-label="Story cards" aria-busy="true">
     <div class="loading-stories">
       <div class="loading-spinner" role="progressbar" aria-label="Loading stories"></div>
       <span>Loading stories&#8230;</span>
     </div>
   </div>
-
 </section>
 
 <!-- ================================================
@@ -262,13 +617,15 @@
 <script src="js/globe.js"></script>
 <script src="js/news-feed.js"></script>
 <script src="js/stories.js"></script>
+<script src="js/modal.js"></script>
+<script src="js/sidebar.js"></script>
 <script>
 (async function dashboardInit() {
   'use strict';
 
   // ---- Auth guard ----
   var session = await initDashboardAuth();
-  if (!session) return;
+  if (!session) { if(window.Loader)Loader.hide(); return; }
 
   var emailEl = document.getElementById('user-email-display');
   if (emailEl) emailEl.textContent = session.isGuest ? 'Guest Mode (read-only)' : (session.user.email || '');
@@ -276,15 +633,19 @@
   // ---- Globe init ----
   if (typeof Globe !== 'undefined') {
     window.GlobeAPI.init('globe-container', function onCountryClick(code, name) {
+      // Filter news feed
       window.NewsFeed.filterByCountry(code);
       var sel = document.getElementById('country-filter-select');
       if (sel) sel.value = code;
+      // Open sidebar with filtered stories
+      var filtered = window.NewsFeed.getAll().filter(function(s){ return s.country_code === code; });
+      if (window.CountrySidebar) window.CountrySidebar.open(code, name, filtered);
     });
   } else {
     var gc = document.getElementById('globe-container');
     if (gc) gc.innerHTML =
-      '<div style="display:flex;align-items:center;justify-content:center;height:100%;' +
-      'color:var(--text-muted);flex-direction:column;gap:14px">' +
+      '<div style="display:flex;align-items:center;justify-content:center;height:100%;'  +
+      'color:var(--text-muted);flex-direction:column;gap:14px">'  +
       '<div class="loading-spinner"></div><span>Globe loading&#8230;</span></div>';
   }
 
@@ -292,6 +653,12 @@
   var stories = await window.NewsFeed.load();
   var grid = document.getElementById('story-grid');
   if (grid) grid.setAttribute('aria-busy', 'false');
+
+  // ---- Loader done ----
+  if (window.Loader) Loader.hide();
+
+  // ---- Globe arcs ----
+  if (window.GlobeAPI && window.GlobeAPI.updateArcs) window.GlobeAPI.updateArcs(stories);
 
   // ---- Populate country select ----
   var ctySel = document.getElementById('country-filter-select');
@@ -302,7 +669,7 @@
         seen.set(s.country_code, s.country_name || s.country_code);
     });
     Array.from(seen.entries())
-      .sort(function(a,b){ return (a[1]||'').localeCompare(b[1]||''); })
+      .sort(function(a,b){ return (a[1]||''). localeCompare(b[1]||''); })
       .forEach(function(pair) {
         var opt = document.createElement('option');
         opt.value = pair[0];
@@ -315,6 +682,7 @@
       if (v === 'all') {
         window.NewsFeed.clearCountryFilter();
         if (window.GlobeAPI) window.GlobeAPI.clearFilter();
+        if (window.CountrySidebar) window.CountrySidebar.close();
       } else {
         window.NewsFeed.filterByCountry(v);
       }
@@ -324,15 +692,19 @@
   // ---- Realtime subscription ----
   window.NewsFeed.setupRealtime();
 
+  // ---- Live search (Task 4) ----
+  window.NewsFeed.setupLiveSearch();
+
+  // ---- Notifications (Task 7) ----
+  window.NewsFeed.setupNotifications();
+
   // ---- Overlay controls ----
   document.querySelectorAll('.overlay-btn').forEach(function(btn) {
     btn.addEventListener('click', function() {
       document.querySelectorAll('.overlay-btn').forEach(function(b) {
-        b.classList.remove('active');
-        b.setAttribute('aria-pressed', 'false');
+        b.classList.remove('active'); b.setAttribute('aria-pressed','false');
       });
-      btn.classList.add('active');
-      btn.setAttribute('aria-pressed', 'true');
+      btn.classList.add('active'); btn.setAttribute('aria-pressed','true');
       if (window.GlobeAPI) window.GlobeAPI.switchOverlay(btn.dataset.mode);
     });
   });
@@ -350,64 +722,18 @@
       item.addEventListener('click', function() {
         var cat = item.dataset.category;
         window.NewsFeed.filterByCategory(cat === 'all' ? 'all' : cat);
-        catMenu.classList.remove('open');
-        catBtn.setAttribute('aria-expanded', 'false');
+        catMenu.classList.remove('open'); catBtn.setAttribute('aria-expanded','false');
         var label = cat === 'all' ? 'CATEGORIES' : item.textContent.trim();
-        catBtn.innerHTML = window.NewsFeed.escHtml(label) +
-          ' <span class="dropdown-arrow" aria-hidden="true">&#9660;</span>';
+        catBtn.innerHTML = window.NewsFeed.escHtml(label) + ' <span class="dropdown-arrow" aria-hidden="true">&#9660;</span>';
       });
-    });
-  }
-
-  // ---- Search ----
-  var sInput = document.getElementById('nav-search');
-  var sDrop  = document.getElementById('search-dropdown');
-  if (sInput && sDrop) {
-    var sTimer;
-    sInput.addEventListener('input', function() {
-      clearTimeout(sTimer);
-      sTimer = setTimeout(function() {
-        var q = sInput.value.trim();
-        if (!q) { sDrop.classList.remove('open'); return; }
-        var hits = window.NewsFeed.searchStories(q);
-        if (hits.length) {
-          sDrop.innerHTML = hits.map(function(s) {
-            return '<button class="search-result-item" role="option">'
-              + '<span class="search-result-flag">' + (s.flag || '&#127760;') + '</span>'
-              + '<span class="search-result-text">' + window.NewsFeed.escHtml(s.headline) + '</span>'
-              + '<span class="search-result-meta">' + window.NewsFeed.escHtml(s.country || '') + '</span>'
-              + '</button>';
-          }).join('');
-          sDrop.classList.add('open');
-          sDrop.querySelectorAll('.search-result-item').forEach(function(btn, i) {
-            btn.addEventListener('click', function() {
-              var story = hits[i];
-              window.NewsFeed.filterByCountry(story.country_code);
-              if (ctySel) ctySel.value = story.country_code;
-              sInput.value = '';
-              sDrop.classList.remove('open');
-            });
-          });
-        } else {
-          sDrop.innerHTML = '<div class="dropdown-item" style="cursor:default;color:var(--text-muted)">No results found</div>';
-          sDrop.classList.add('open');
-        }
-      }, 200);
-    });
-    sInput.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape') { sDrop.classList.remove('open'); sInput.value = ''; }
     });
   }
 
   // ---- Sort + Status selects ----
   var sortSel = document.getElementById('sort-select');
-  if (sortSel) sortSel.addEventListener('change', function(e) {
-    window.NewsFeed.sortStories(e.target.value);
-  });
+  if (sortSel) sortSel.addEventListener('change', function(e) { window.NewsFeed.sortStories(e.target.value); });
   var stSel = document.getElementById('status-select');
-  if (stSel) stSel.addEventListener('change', function(e) {
-    window.NewsFeed.filterByStatus(e.target.value);
-  });
+  if (stSel) stSel.addEventListener('change', function(e) { window.NewsFeed.filterByStatus(e.target.value); });
 
   // ---- Clear country filter badge button ----
   var clrBtn = document.getElementById('clear-filter-btn');
@@ -415,10 +741,12 @@
     window.NewsFeed.clearCountryFilter();
     if (window.GlobeAPI) window.GlobeAPI.clearFilter();
     if (ctySel) ctySel.value = 'all';
+    if (window.CountrySidebar) window.CountrySidebar.close();
   });
   window.onClearCountryFilter = function() {
     window.NewsFeed.clearCountryFilter();
     if (ctySel) ctySel.value = 'all';
+    if (window.CountrySidebar) window.CountrySidebar.close();
   };
 
   // ---- User menu toggle ----
@@ -432,25 +760,54 @@
     });
   }
 
-  // ---- Notifications button ----
-  var nBtn = document.getElementById('notif-btn');
-  if (nBtn) nBtn.addEventListener('click', function() {
-    var b = document.getElementById('notif-badge');
-    if (b) b.textContent = '0';
-    alert('Notifications:\n\u2022 3 new stories added\n\u2022 Realtime feed active\n\u2022 1 story updated to VERIFIED status');
-  });
-
-  // ---- Close dropdowns on outside click ----
-  document.addEventListener('click', function() {
-    document.querySelectorAll('.dropdown-menu.open').forEach(function(m) {
-      m.classList.remove('open');
+  // ---- Mobile hamburger menu ----
+  var hamburger  = document.getElementById('hamburger-btn');
+  var mobileMenu = document.getElementById('mobile-menu');
+  var mmSearch   = document.getElementById('mm-search');
+  if (hamburger && mobileMenu) {
+    hamburger.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var open = mobileMenu.classList.toggle('mm-open');
+      hamburger.setAttribute('aria-expanded', String(open));
+      hamburger.textContent = open ? '✕' : '☰';
     });
-    if (catBtn) catBtn.setAttribute('aria-expanded', 'false');
-    if (uBtn)   uBtn.setAttribute('aria-expanded',   'false');
+    mobileMenu.querySelectorAll('[data-mm-cat]').forEach(function(item) {
+      item.addEventListener('click', function() {
+        var cat = item.dataset.mmCat;
+        window.NewsFeed.filterByCategory(cat);
+        mobileMenu.classList.remove('mm-open');
+        hamburger.setAttribute('aria-expanded','false');
+        hamburger.textContent = '☰';
+      });
+    });
+    if (mmSearch) {
+      var mmTimer;
+      mmSearch.addEventListener('input', function() {
+        clearTimeout(mmTimer);
+        var q = mmSearch.value.trim();
+        mmTimer = setTimeout(function() {
+          if (q) {
+            var hits = window.NewsFeed.searchStories(q);
+            if (hits.length && window.StoryModal) {
+              window.StoryModal.open(hits[0], window.NewsFeed.getAll());
+              mobileMenu.classList.remove('mm-open');
+              hamburger.setAttribute('aria-expanded','false');
+              hamburger.textContent = '☰';
+            }
+          }
+        }, 400);
+      });
+    }
+  }
+
+  // ---- Close all dropdowns on outside click ----
+  document.addEventListener('click', function() {
+    document.querySelectorAll('.dropdown-menu.open').forEach(function(m) { m.classList.remove('open'); });
+    if (catBtn) catBtn.setAttribute('aria-expanded','false');
+    if (uBtn)   uBtn.setAttribute('aria-expanded',  'false');
   });
 
-  console.log('[GlobeWatch] Dashboard ready. Stories:', stories.length);
-
+  console.log('[GlobeWatch] Phase 2 Dashboard ready. Stories:', stories.length);
 })();
 </script>
 

@@ -145,19 +145,45 @@ function renderAllCards(stories) {
       });
     }, 80);
   });
-  // Expand buttons
+  // Expand buttons — stop propagation so they don't trigger modal
   grid.querySelectorAll('.card-expand-btn').forEach(function(btn) {
     btn.addEventListener('click', function(e) {
       e.stopPropagation();
       expandCard(btn.dataset.id);
     });
   });
-  // Keyboard nav
+  // Card click → open modal
   grid.querySelectorAll('.story-card').forEach(function(card) {
+    card.addEventListener('click', function(e) {
+      // Don't open modal if clicking expand button or links
+      if (e.target.closest('.card-expand-btn') || e.target.tagName === 'A') return;
+      var id = card.dataset.id;
+      var all = window.NewsFeed ? window.NewsFeed.getAll() : stories;
+      var story = all.find(function(s){ return String(s.id) === String(id); });
+      if (story && window.StoryModal) window.StoryModal.open(story, all);
+    });
+    // Keyboard nav — Enter opens modal, Space still expands
     card.addEventListener('keydown', function(e) {
-      if (e.key==='Enter'||e.key===' ') { e.preventDefault(); expandCard(card.dataset.id); }
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        var id = card.dataset.id;
+        var all = window.NewsFeed ? window.NewsFeed.getAll() : stories;
+        var story = all.find(function(s){ return String(s.id) === String(id); });
+        if (story && window.StoryModal) window.StoryModal.open(story, all);
+      } else if (e.key === ' ') {
+        e.preventDefault();
+        expandCard(card.dataset.id);
+      }
     });
   });
+  // Add pointer cursor hint
+  var style = document.getElementById('story-card-cursor-style');
+  if (!style) {
+    style = document.createElement('style');
+    style.id = 'story-card-cursor-style';
+    style.textContent = '.story-card{cursor:pointer;}.story-card:hover{transform:translateY(-2px);transition:transform 0.18s ease;}';
+    document.head.appendChild(style);
+  }
 }
 
 // ------------------------------------------------

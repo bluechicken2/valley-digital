@@ -19,3 +19,6 @@
 
 /data/*
   Cache-Control: public, max-age=300
+
+/404.html
+  Cache-Control: no-cache

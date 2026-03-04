@@ -211,6 +211,7 @@ function updateCountryStatsFromStories(stories) {
   });
   _refreshColors();
   _updateHUD(stories);
+  updateStoryArcs(stories);
 }
 
 function _refreshColors() {
@@ -218,13 +219,36 @@ function _refreshColors() {
   globeInst.polygonCapColor(getCapColor).polygonSideColor(getSideColor).polygonAltitude(getAltitude);
 }
 
+// ------------------------------------------------
+// Animated counter (Task 6)
+// ------------------------------------------------
+var _counterTimers = {};
+function animateCounter(el, target, duration) {
+  if (!el) return;
+  duration = duration || 1200;
+  var id = el.id || Math.random().toString(36);
+  if (_counterTimers[id]) cancelAnimationFrame(_counterTimers[id]);
+  var start  = parseInt(el.textContent, 10) || 0;
+  var delta  = target - start;
+  var tStart = null;
+  function step(ts) {
+    if (!tStart) tStart = ts;
+    var p = Math.min((ts - tStart) / duration, 1);
+    var e = 1 - Math.pow(1 - p, 3);  // ease-out cubic
+    el.textContent = Math.round(start + delta * e);
+    if (p < 1) { _counterTimers[id] = requestAnimationFrame(step); }
+    else        { el.textContent = target; delete _counterTimers[id]; }
+  }
+  _counterTimers[id] = requestAnimationFrame(step);
+}
+
 function _updateHUD(stories) {
-  var t = document.getElementById('stat-total');
-  var v = document.getElementById('stat-verified');
-  var p = document.getElementById('stat-pending');
-  if (t) t.textContent = stories.length;
-  if (v) v.textContent = stories.filter(function(s){return s.status==='verified';}).length;
-  if (p) p.textContent = stories.filter(function(s){return s.status!=='verified';}).length;
+  var total   = stories.length;
+  var verified= stories.filter(function(s){return s.status==='verified';}).length;
+  var pending = stories.filter(function(s){return s.status!=='verified';}).length;
+  animateCounter(document.getElementById('stat-total'),    total,    1200);
+  animateCounter(document.getElementById('stat-verified'), verified, 1400);
+  animateCounter(document.getElementById('stat-pending'),  pending,  1000);
 }
 
 // ------------------------------------------------
@@ -255,6 +279,91 @@ function clearGlobeFilter() {
   if (typeof window.onClearCountryFilter === 'function') window.onClearCountryFilter();
 }
 
+
+// ------------------------------------------------
+// Arc animations (Task 5)
+// ------------------------------------------------
+var _arcPairs = [
+  ['PL','DE'],['UA','GB'],['US','MX'],['JP','KR'],
+  ['FR','DE'],['RU','UA'],['CN','US'],['IL','EG']
+];
+
+// Country centroid lookup (lat/lng from stories + fallback table)
+var _CENTROIDS = {
+  PL:{lat:52.2,lng:21.0},DE:{lat:52.5,lng:13.4},UA:{lat:48.4,lng:37.8},
+  GB:{lat:51.5,lng:-0.1},US:{lat:38.9,lng:-77.0},MX:{lat:23.6,lng:-102.5},
+  JP:{lat:35.7,lng:139.7},KR:{lat:37.6,lng:127.0},FR:{lat:48.8,lng:2.3},
+  RU:{lat:55.7,lng:37.6},CN:{lat:39.9,lng:116.4},IL:{lat:31.8,lng:35.2},
+  EG:{lat:30.1,lng:31.2},IN:{lat:20.6,lng:78.9},AU:{lat:-25.3,lng:133.8},
+  BR:{lat:-15.8,lng:-47.9},CA:{lat:56.1,lng:-106.3},ZA:{lat:-25.7,lng:28.2},
+  AR:{lat:-34.6,lng:-58.4},ID:{lat:-7.5,lng:110.4},SA:{lat:24.7,lng:46.7},
+  PK:{lat:30.4,lng:71.7},FI:{lat:61.9,lng:25.7},TH:{lat:13.7,lng:100.5},
+  NG:{lat:9.1,lng:7.5}
+};
+
+var CAT_ARC_COLORS = {
+  'War & Conflict':    'rgba(255,68,68,0.75)',
+  'Politics':          'rgba(123,47,255,0.75)',
+  'Weather & Disaster':'rgba(255,170,0,0.75)',
+  'Economy':           'rgba(0,212,255,0.75)',
+  'Science & Tech':    'rgba(0,255,136,0.75)',
+  'Health':            'rgba(255,105,180,0.75)',
+  'Elections':         'rgba(68,136,255,0.75)',
+  'Environment':       'rgba(68,255,136,0.75)'
+};
+
+function updateStoryArcs(stories) {
+  if (!globeInst) return;
+  // Build centroid map from stories
+  stories.forEach(function(s) {
+    if (s.country_code && s.lat != null && s.lng != null) {
+      _CENTROIDS[s.country_code] = { lat: +s.lat, lng: +s.lng };
+    }
+  });
+  // Breaking stories drive arcs
+  var breaking = stories.filter(function(s){ return s.is_breaking; }).slice(0, 8);
+  var arcs = [];
+  breaking.forEach(function(src) {
+    var sc = src.country_code;
+    if (!sc || !_CENTROIDS[sc]) return;
+    // Find pair partner
+    var partner = null;
+    for (var i = 0; i < _arcPairs.length; i++) {
+      if (_arcPairs[i][0] === sc && _CENTROIDS[_arcPairs[i][1]]) { partner = _arcPairs[i][1]; break; }
+      if (_arcPairs[i][1] === sc && _CENTROIDS[_arcPairs[i][0]]) { partner = _arcPairs[i][0]; break; }
+    }
+    // Fallback: pair with first other breaking story country
+    if (!partner) {
+      var other = breaking.find(function(s){ return s.country_code !== sc && _CENTROIDS[s.country_code]; });
+      if (other) partner = other.country_code;
+    }
+    if (!partner) return;
+    arcs.push({
+      startLat: _CENTROIDS[sc].lat,
+      startLng: _CENTROIDS[sc].lng,
+      endLat:   _CENTROIDS[partner].lat,
+      endLng:   _CENTROIDS[partner].lng,
+      color:    CAT_ARC_COLORS[src.category] || 'rgba(0,212,255,0.7)',
+      label:    src.headline
+    });
+  });
+  globeInst
+    .arcsData(arcs)
+    .arcStartLat(function(d){ return d.startLat; })
+    .arcStartLng(function(d){ return d.startLng; })
+    .arcEndLat(function(d){ return d.endLat; })
+    .arcEndLng(function(d){ return d.endLng; })
+    .arcColor(function(d){ return [d.color, d.color]; })
+    .arcStroke(0.4)
+    .arcDashLength(0.4)
+    .arcDashGap(0.2)
+    .arcDashAnimateTime(1500)
+    .arcAltitudeAutoScale(0.35)
+    .arcLabel(function(d){
+      return '<div style="background:rgba(13,17,23,0.92);border:1px solid rgba(0,212,255,0.2);border-radius:8px;padding:6px 10px;font-family:Inter,sans-serif;font-size:11px;color:#e8eaf0;max-width:200px">' + d.label + '</div>';
+    });
+}
+
 // ------------------------------------------------
 // Public API
 // ------------------------------------------------
@@ -262,6 +371,7 @@ window.GlobeAPI = {
   init:                          initDashboardGlobe,
   updatePins:                    updateStoryPins,
   updateCountryStatsFromStories: updateCountryStatsFromStories,
+  updateArcs:                    updateStoryArcs,
   switchOverlay:                 switchOverlay,
   clearFilter:                   clearGlobeFilter,
   getInstance:                   function() { return globeInst; }
