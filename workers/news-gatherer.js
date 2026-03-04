@@ -195,6 +195,24 @@ async function fetchRSS(feedUrl, sourceName) {
   }
 }
 
+
+function isRelevantStory(article) {
+  const t = (article.headline + ' ' + (article.summary || '')).toLowerCase();
+  // Block entertainment, sports, celebrity, TV shows
+  const BLOCK_PATTERNS = [
+    'deadliest catch', 'bachelor', 'bachelorette', 'reality tv', 'reality show',
+    'celebrity', 'kardashian', 'taylor swift', 'beyonce', 'pop star', 'oscar',
+    'grammy', 'emmy', 'academy award', 'box office', 'movie review', 'film review',
+    'nfl draft', 'nba', 'nfl', 'mlb', 'nhl', 'soccer score', 'football score',
+    'super bowl', 'world cup score', 'match result', 'game result',
+    'recipe', 'cooking show', 'food network', 'lifestyle tip',
+    'horoscope', 'zodiac', 'astrology',
+    'fashion week', 'runway', 'beauty tip', 'skincare',
+    'viral video', 'tiktok trend', 'instagram', 'social media influencer'
+  ];
+  return !BLOCK_PATTERNS.some(p => t.includes(p));
+}
+
 function deduplicate(articles) {
   const seen = new Set();
   return articles.filter(a => {
@@ -238,7 +256,7 @@ async function runGather(env, cors) {
       {status:500, headers:{...cors,'Content-Type':'application/json'}}
     );
 
-    const [g, r, b, a] = await Promise.allSettled([
+    const [g, r, b, a, c, sk, aj] = await Promise.allSettled([
       fetchGDELT(),
       fetchRSS('https://feeds.reuters.com/reuters/worldNews', 'Reuters'),
       fetchRSS('https://feeds.bbci.co.uk/news/world/rss.xml', 'BBC News'),
@@ -252,9 +270,12 @@ async function runGather(env, cors) {
       ...(g.status==='fulfilled' ? g.value : []),
       ...(r.status==='fulfilled' ? r.value : []),
       ...(b.status==='fulfilled' ? b.value : []),
-      ...(a.status==='fulfilled' ? a.value : [])
+      ...(a.status==='fulfilled' ? a.value : []),
+      ...(c  && c.status==='fulfilled'  ? c.value  : []),
+      ...(sk && sk.status==='fulfilled' ? sk.value : []),
+      ...(aj && aj.status==='fulfilled' ? aj.value : [])
     ];
-    raw = deduplicate(raw);
+    raw = deduplicate(raw).filter(isRelevantStory);
 
     const stories = raw.map(x => {
       const country    = detectCountry(x.raw_text);
@@ -278,7 +299,14 @@ async function runGather(env, cors) {
       };
     });
 
-    const result = await storeToSupabase(stories, KEY);
+    // Filter out stories with no country or ocean pins (lat:0,lng:0)
+    const validStories = stories.filter(s => {
+      if (s.country_code === 'XX') return false;
+      if (s.lat === 0 && s.lng === 0) return false;
+      return true;
+    });
+
+    const result = await storeToSupabase(validStories, KEY);
 
     return new Response(
       JSON.stringify({success:true, fetched:raw.length, processed:stories.length, ...result, timestamp:new Date().toISOString()}),

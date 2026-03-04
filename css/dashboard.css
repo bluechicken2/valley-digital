@@ -317,8 +317,8 @@
   white-space: nowrap;
   will-change: transform;
 }
-.ticker-ltr { animation: ticker-ltr 110s linear infinite; }
-.ticker-rtl { animation: ticker-rtl 140s linear infinite; }
+.ticker-ltr { animation: ticker-ltr 240s linear infinite; }
+.ticker-rtl { animation: ticker-rtl 320s linear infinite; }
 .ticker-ltr:hover, .ticker-rtl:hover { animation-play-state: paused; }
 
 @keyframes ticker-ltr {
