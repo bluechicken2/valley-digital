@@ -31,16 +31,7 @@ function scheduleSpinResume() {
   if (spinEnabled) spinResumeTimer = setTimeout(resumeSpin, 30000);
 }
 
-function bindSpinInteraction(container) {
-  var canvas = container && container.querySelector('canvas');
-  if (!canvas) return;
-  ['mousedown','touchstart','wheel'].forEach(function(evt) {
-    canvas.addEventListener(evt, function() {
-      pauseSpin();
-      scheduleSpinResume();
-    }, { passive: true });
-  });
-}
+// bindSpinInteraction replaced — using direct el listeners in _doInit
 
 
 // ------------------------------------------------
@@ -109,8 +100,8 @@ function initDashboardGlobe(containerId, onCountryClick) {
         .width(w)
         .height(h)
         .backgroundColor('#080b12')
-        .atmosphereColor('rgba(0,212,255,0.70)')
-        .atmosphereAltitude(0.18)
+        .atmosphereColor('rgba(0,212,255,0.85)')
+        .atmosphereAltitude(0.28)
         .globeImageUrl(EARTH_IMG);
 
       g(el);
@@ -136,10 +127,12 @@ function initDashboardGlobe(containerId, onCountryClick) {
   ctrl.minDistance     = 160;
   ctrl.maxDistance     = 620;
 
-  el.addEventListener('pointerdown', function() {
-    pauseSpin();
-    if (rotateTimer) clearTimeout(rotateTimer);
-    scheduleSpinResume();
+  ['pointerdown','wheel','touchstart'].forEach(function(evt) {
+    el.addEventListener(evt, function() {
+      pauseSpin();
+      if (rotateTimer) clearTimeout(rotateTimer);
+      scheduleSpinResume();
+    }, { passive: true });
   });
 
   fetch(GEOJSON_URL)
@@ -231,7 +224,6 @@ function updateStoryPins(stories) {
         id:    s.id,
         lat:   +s.lat,
         lng:   +s.lng,
-        color: CAT_COLORS[s.category] || '#00d4ff',
         size:  s.is_breaking ? 0.85 : (s.confidence_score >= 71 ? 0.6 : (s.confidence_score >= 41 ? 0.45 : 0.3)),
         color: s.is_breaking ? '#ffffff' : (s.confidence_score >= 71 ? '#00d4ff' : (s.confidence_score >= 41 ? '#ffaa00' : '#ff4444')),
         label: s.headline
@@ -296,9 +288,9 @@ function _updateHUD(stories) {
   var total   = stories.length;
   var verified= stories.filter(function(s){return s.status==='verified';}).length;
   var pending = stories.filter(function(s){return s.status!=='verified';}).length;
-  animateCounter(document.getElementById('stat-total'),    total,    1200);
-  animateCounter(document.getElementById('stat-verified'), verified, 1400);
-  animateCounter(document.getElementById('stat-pending'),  pending,  1000);
+  animateCounter(document.getElementById('hud-total'),    total,    1200);
+  animateCounter(document.getElementById('hud-verified'), verified, 1400);
+  animateCounter(document.getElementById('hud-pending'),  pending,  1000);
 }
 
 // ------------------------------------------------

@@ -264,7 +264,7 @@
   flex-shrink: 0;
 }
 
-.ticker-bar:first-of-type { margin-top: var(--nav-height); }
+.ticker-breaking { margin-top: var(--nav-height); }
 
 .ticker-breaking {
   background: linear-gradient(90deg, rgba(180,0,0,0.25) 0%, rgba(20,10,10,0.95) 120px);
@@ -317,8 +317,8 @@
   white-space: nowrap;
   will-change: transform;
 }
-.ticker-ltr { animation: ticker-ltr 55s linear infinite; }
-.ticker-rtl { animation: ticker-rtl 65s linear infinite; }
+.ticker-ltr { animation: ticker-ltr 110s linear infinite; }
+.ticker-rtl { animation: ticker-rtl 140s linear infinite; }
 .ticker-ltr:hover, .ticker-rtl:hover { animation-play-state: paused; }
 
 @keyframes ticker-ltr {
@@ -1045,4 +1045,80 @@
   background: rgba(0,212,255,0.2);
   border-color: rgba(0,212,255,0.6);
   color: #fff;
+}
+
+/* ---- Dropdown panel z-index fix ---- */
+.dropdown-menu {
+  z-index: 1100 !important;
+}
+.notif-panel {
+  z-index: 1100 !important;
+}
+
+/* ---- Globe visual enhancements ---- */
+.globe-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 70% 60% at 50% 50%,
+    rgba(0,212,255,0.04) 0%,
+    rgba(123,47,255,0.03) 40%,
+    transparent 70%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Starfield behind globe */
+.globe-section::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.6) 0%, transparent 100%),
+    radial-gradient(1px 1px at 25% 40%, rgba(255,255,255,0.4) 0%, transparent 100%),
+    radial-gradient(1px 1px at 40% 10%, rgba(255,255,255,0.5) 0%, transparent 100%),
+    radial-gradient(1px 1px at 60% 70%, rgba(255,255,255,0.5) 0%, transparent 100%),
+    radial-gradient(1px 1px at 75% 25%, rgba(255,255,255,0.4) 0%, transparent 100%),
+    radial-gradient(1px 1px at 85% 55%, rgba(255,255,255,0.6) 0%, transparent 100%),
+    radial-gradient(1px 1px at 90% 80%, rgba(255,255,255,0.3) 0%, transparent 100%),
+    radial-gradient(1px 1px at 15% 80%, rgba(255,255,255,0.4) 0%, transparent 100%),
+    radial-gradient(1px 1px at 50% 50%, rgba(255,255,255,0.2) 0%, transparent 100%),
+    radial-gradient(2px 2px at 35% 60%, rgba(0,212,255,0.3) 0%, transparent 100%),
+    radial-gradient(2px 2px at 70% 20%, rgba(123,47,255,0.3) 0%, transparent 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+#globe-container {
+  position: relative;
+  z-index: 2;
+}
+
+/* Spin toggle improvements */
+.spin-toggle-btn {
+  transition: all 0.25s ease;
+  box-shadow: 0 0 12px rgba(0,212,255,0.15);
+}
+.spin-toggle-btn:hover {
+  box-shadow: 0 0 20px rgba(0,212,255,0.3);
+  transform: scale(1.05);
+}
+.spin-toggle-btn.spin-off {
+  border-color: rgba(255,100,100,0.4) !important;
+  color: rgba(255,100,100,0.8) !important;
+  box-shadow: 0 0 12px rgba(255,100,100,0.15);
+}
+
+/* Card improvements */
+.story-card {
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+}
+.story-card:hover {
+  transform: translateY(-5px) scale(1.01);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,212,255,0.15);
+}
+
+/* Story grid gap tighten */
+.stories-grid {
+  gap: 1rem;
 }
