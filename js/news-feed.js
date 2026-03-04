@@ -146,7 +146,7 @@ function searchStories(q) {
 
 function _highlightMatch(text, query) {
   if (!query || !text) return escHtml(text||'');
-  var re = new RegExp('(' + query.replace(/[.*+?^${}()|[\]\]/g,'\$&') + ')', 'gi');
+  var re = new RegExp('(' + query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
   return escHtml(text).replace(re, '<strong style="color:#00d4ff">$1</strong>');
 }
 
