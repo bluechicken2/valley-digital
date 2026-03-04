@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="css/main.css">
   <link rel="stylesheet" href="css/dashboard.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-  <script src="https://unpkg.com/globe.gl"></script>
+  <!-- globe.gl loaded async in body -->
   <script src="js/loader.js"></script>
   <script>if(window.Loader)Loader.show();</script>
   <style>
@@ -624,8 +624,14 @@
   'use strict';
 
   // ---- Auth guard ----
-  var session = await initDashboardAuth();
+  // Auth — permissive: auto-guest if no session (don't redirect)
+  var session = await initDashboardAuth(true); // true = auto-guest mode
   if (!session) { if(window.Loader)Loader.hide(); return; }
+
+  // Safety timeout — loader ALWAYS hides after 6s max
+  var loaderTimeout = setTimeout(function() {
+    if (window.Loader) Loader.hide();
+  }, 6000);
 
   var emailEl = document.getElementById('user-email-display');
   if (emailEl) emailEl.textContent = session.isGuest ? 'Guest Mode (read-only)' : (session.user.email || '');
@@ -655,6 +661,7 @@
   if (grid) grid.setAttribute('aria-busy', 'false');
 
   // ---- Loader done ----
+  clearTimeout(loaderTimeout);
   if (window.Loader) Loader.hide();
 
   // ---- Globe arcs ----
@@ -811,5 +818,15 @@
 })();
 </script>
 
+  <!-- Load globe.gl async AFTER page renders -->
+  <script>
+    (function() {
+      var s = document.createElement('script');
+      s.src = 'https://unpkg.com/globe.gl';
+      s.async = true;
+      s.onerror = function() { console.warn('[Globe] CDN failed to load'); };
+      document.head.appendChild(s);
+    })();
+  </script>
 </body>
 </html>

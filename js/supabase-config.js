@@ -3,7 +3,7 @@
 // ================================================
 
 var SUPABASE_URL      = 'https://dkxydhuojaspmbpjfyoz.supabase.co';
-var SUPABASE_ANON_KEY = 'sb_publishable_ydepQXbHFjFA-_TIwOYNHg_SwN0m5PL';
+var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRreHlkaHVvamFzcG1icGpmeW96Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4MDE3NTcsImV4cCI6MjA4NzM3Nzc1N30.6jwE5s6aekCDXALnrCK2hA1Lu3h3lbh7WqR9Io0lx8s';
 
 // ------------------------------------------------
 // GlobeWatchDB  — thin wrapper around REST + Realtime

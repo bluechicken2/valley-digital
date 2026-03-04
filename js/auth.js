@@ -4,7 +4,7 @@
 // ================================================
 
 var SUPABASE_URL      = 'https://dkxydhuojaspmbpjfyoz.supabase.co';
-var SUPABASE_ANON_KEY = 'sb_publishable_ydepQXbHFjFA-_TIwOYNHg_SwN0m5PL';
+var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRreHlkaHVvamFzcG1icGpmeW96Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4MDE3NTcsImV4cCI6MjA4NzM3Nzc1N30.6jwE5s6aekCDXALnrCK2hA1Lu3h3lbh7WqR9Io0lx8s';
 var GUEST_FLAG_KEY    = 'gw_guest_mode';
 var _supaClient       = null;
 
@@ -141,8 +141,8 @@ function _setLoading(on) {
 // ------------------------------------------------
 // Dashboard Auth Guard
 // ------------------------------------------------
-async function initDashboardAuth() {
-  // Guest bypass
+async function initDashboardAuth(autoGuest) {
+  // Guest bypass — also auto-grant guest if autoGuest=true and no session
   if (localStorage.getItem(GUEST_FLAG_KEY) === '1') {
     _applyGuestUI();
     return { isGuest: true, user: { email: 'Guest' } };
@@ -156,6 +156,12 @@ async function initDashboardAuth() {
   var res = await client.auth.getSession().catch(function(){ return null; });
   var session = res && res.data && res.data.session ? res.data.session : null;
   if (!session) {
+    if (autoGuest) {
+      // Auto-grant guest access instead of redirecting
+      localStorage.setItem(GUEST_FLAG_KEY, '1');
+      _applyGuestUI();
+      return { isGuest: true, user: { email: 'Guest' } };
+    }
     window.location.href = 'index.html';
     return null;
   }
