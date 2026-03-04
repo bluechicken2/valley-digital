@@ -1,5 +1,5 @@
 // ================================================
-// GLOBEWATCH — Story Detail Modal
+// XRAYNEWS — Story Detail Modal
 // js/modal.js
 // ================================================
 (function () {

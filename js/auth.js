@@ -1,5 +1,5 @@
 // ================================================
-// GLOBEWATCH - Authentication
+// XRAYNEWS - Authentication
 // Uses @supabase/supabase-js v2 loaded from CDN
 // ================================================
 
@@ -64,13 +64,13 @@ function _initLoginPage() {
       isSignUp = !isSignUp;
       if (isSignUp) {
         formTitle.textContent  = 'Create Account';
-        formSub.textContent    = 'Join GlobeWatch — free during beta.';
+        formSub.textContent    = 'Join XrayNews — free during beta.';
         switchTxt.innerHTML    = 'Already have an account? ';
         switchLink.textContent = 'Sign In';
         signinBtn.querySelector('.btn-text').textContent = 'CREATE ACCOUNT';
       } else {
         formTitle.textContent  = 'Welcome Back';
-        formSub.textContent    = 'Sign in to access your GlobeWatch dashboard.';
+        formSub.textContent    = 'Sign in to access your XrayNews dashboard.';
         switchTxt.innerHTML    = 'Don&#39;t have an account? ';
         switchLink.textContent = 'Create Account';
         signinBtn.querySelector('.btn-text').textContent = 'SIGN IN';

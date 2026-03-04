@@ -1,17 +1,12 @@
-name = "globewatch"
-main = "crypto-proxy.js"
-compatibility_date = "2024-01-01"
+name = "xraynews-gatherer"
+main = "news-gatherer.js"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
 
 [vars]
 ENVIRONMENT = "production"
 
-# Secrets (set via: wrangler secret put <NAME>)
-# - FINANCIAL_MODELING_PREP
-# - ALPHA_VANTAGE_API
-# - CRYPTOPANIC_API_KEY  <- NEW: Get from https://cryptopanic.com/api/
-# - VENICE_KEY
+# Set secret: wrangler secret put SUPABASE_SERVICE_KEY
 
-# Routes - uncomment and modify after deployment
-# [[routes]]
-# pattern = "api.ottawav.com/*"
-# zone_name = "globewatch"
+[[triggers.crons]]
+crons = ["*/15 * * * *"]

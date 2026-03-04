@@ -1,5 +1,5 @@
 // ================================================
-// GLOBEWATCH - News Feed Manager
+// XRAYNEWS - News Feed Manager
 // ================================================
 
 var _allStories = [];
@@ -36,8 +36,8 @@ function timeAgo(iso) {
 // ------------------------------------------------
 async function loadStories() {
   var data = null;
-  if (window.GlobeWatchDB) {
-    try { data = await window.GlobeWatchDB.getStories({ limit: 60 }); } catch(e) { data = null; }
+  if (window.XrayNewsDB) {
+    try { data = await window.XrayNewsDB.getStories({ limit: 60 }); } catch(e) { data = null; }
   }
   if (!data || data.length === 0) {
     try {
@@ -308,8 +308,8 @@ function _timeAgoShort(iso) {
 // Realtime
 // ------------------------------------------------
 function setupRealtime() {
-  if (!window.GlobeWatchDB) return;
-  window.GlobeWatchDB.subscribeToStories(function(record, type) {
+  if (!window.XrayNewsDB) return;
+  window.XrayNewsDB.subscribeToStories(function(record, type) {
     if (type==='INSERT') {
       _allStories.unshift(record);
       var badge = document.getElementById('notif-badge');

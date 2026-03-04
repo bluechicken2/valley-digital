@@ -1,5 +1,5 @@
 /* ================================================
-   GLOBEWATCH — dashboard.css
+   XRAYNEWS — dashboard.css
    ================================================ */
 
 /* ---- Page Layout ---- */
@@ -860,3 +860,42 @@
   .globe-legend { display: none; }
   .stories-section { padding: 1rem 0.75rem 1.5rem; }
 }
+
+/* ================================
+   XrayNews — Spin Toggle
+   ================================ */
+.spin-toggle-wrap {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 200;
+}
+.spin-toggle-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 8px;
+  background: rgba(8,11,18,0.75);
+  border: 1px solid rgba(0,212,255,0.25);
+  border-radius: 10px;
+  color: rgba(0,212,255,0.7);
+  font-family: Orbitron, sans-serif;
+  font-size: 9px;
+  letter-spacing: .08em;
+  cursor: pointer;
+  transition: all .2s ease;
+  backdrop-filter: blur(8px);
+}
+.spin-toggle-btn:hover {
+  border-color: rgba(0,212,255,0.6);
+  color: #00d4ff;
+  box-shadow: 0 0 12px rgba(0,212,255,0.2);
+}
+.spin-toggle-btn.spin-off {
+  border-color: rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.3);
+}
+.spin-toggle-btn.spin-off .spin-icon { opacity: 0.3; }
+.spin-icon { font-size: 14px; }

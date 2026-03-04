@@ -1,5 +1,5 @@
 // ================================================
-// GLOBEWATCH - Story Card Renderer
+// XRAYNEWS - Story Card Renderer
 // ================================================
 
 var CAT_COLORS = {
@@ -184,6 +184,11 @@ function renderAllCards(stories) {
     style.textContent = '.story-card{cursor:pointer;}.story-card:hover{transform:translateY(-2px);transition:transform 0.18s ease;}';
     document.head.appendChild(style);
   }
+  // XrayNews — update story count badge
+  (function() {
+    var _scEl = document.getElementById('stories-count');
+    if (_scEl) _scEl.textContent = (stories ? stories.length : 0) + ' stories';
+  })();
 }
 
 // ------------------------------------------------
@@ -209,8 +214,8 @@ async function expandCard(storyId) {
 
   var inner  = panel.querySelector('.expanded-inner');
   var verifs = [];
-  if (window.GlobeWatchDB) {
-    try { verifs = await window.GlobeWatchDB.getVerifications(storyId); } catch(e){}
+  if (window.XrayNewsDB) {
+    try { verifs = await window.XrayNewsDB.getVerifications(storyId); } catch(e){}
   }
   if (!verifs || verifs.length === 0) {
     var story  = window.NewsFeed ? window.NewsFeed.getAll().find(function(s){return s.id==storyId;}) : null;

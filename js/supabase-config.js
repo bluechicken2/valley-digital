@@ -1,14 +1,14 @@
 // ================================================
-// GLOBEWATCH - Supabase Configuration
+// XRAYNEWS - Supabase Configuration
 // ================================================
 
 var SUPABASE_URL      = 'https://dkxydhuojaspmbpjfyoz.supabase.co';
 var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRreHlkaHVvamFzcG1icGpmeW96Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4MDE3NTcsImV4cCI6MjA4NzM3Nzc1N30.6jwE5s6aekCDXALnrCK2hA1Lu3h3lbh7WqR9Io0lx8s';
 
 // ------------------------------------------------
-// GlobeWatchDB  — thin wrapper around REST + Realtime
+// XrayNewsDB  — thin wrapper around REST + Realtime
 // ------------------------------------------------
-class GlobeWatchDB {
+class XrayNewsDB {
   constructor() {
     this.url     = SUPABASE_URL;
     this.key     = SUPABASE_ANON_KEY;
@@ -119,17 +119,17 @@ class GlobeWatchDB {
             self._realtimeCbs.forEach(function(cb) { try { cb(record, msg.event); } catch(err){} });
           }
           if (msg.event === 'phx_reply' && msg.payload && msg.payload.status !== 'ok') {
-            console.warn('[GlobeWatchDB] Realtime join issue:', msg.payload.response);
+            console.warn('[XrayNewsDB] Realtime join issue:', msg.payload.response);
           }
-        } catch(err) { console.warn('[GlobeWatchDB] WS parse error:', err); }
+        } catch(err) { console.warn('[XrayNewsDB] WS parse error:', err); }
       };
-      ws.onerror = function(err) { console.warn('[GlobeWatchDB] WebSocket error', err); };
+      ws.onerror = function(err) { console.warn('[XrayNewsDB] WebSocket error', err); };
       ws.onclose = function() {
         self._realtimeWs = null;
         setTimeout(function() { if (self._realtimeCbs.length) self.subscribeToStories(function(){}); }, 5000);
       };
     } catch(err) {
-      console.warn('[GlobeWatchDB] WebSocket not available:', err.message);
+      console.warn('[XrayNewsDB] WebSocket not available:', err.message);
     }
     return function unsubscribe() {
       self._realtimeCbs = self._realtimeCbs.filter(function(c){return c!==callback;});
@@ -137,4 +137,4 @@ class GlobeWatchDB {
   }
 }
 
-window.GlobeWatchDB = new GlobeWatchDB();
+window.XrayNewsDB = new XrayNewsDB();

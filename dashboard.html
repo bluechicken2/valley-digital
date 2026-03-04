@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="GlobeWatch Dashboard &mdash; Live global truth verification.">
+  <meta name="description" content="XrayNews — Real-time global truth verification and news aggregation">
   <meta name="theme-color" content="#080b12">
-  <title>GlobeWatch | Dashboard</title>
+  <title>XrayNews | Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;900&display=swap" rel="stylesheet">
@@ -391,9 +391,9 @@
      ================================================ -->
 <nav class="top-nav" role="navigation" aria-label="Main navigation">
 
-  <a href="dashboard.html" class="nav-logo" aria-label="GlobeWatch home">
+  <a href="dashboard.html" class="nav-logo" aria-label="XrayNews home">
     <span class="nav-logo-icon" aria-hidden="true">&#127760;</span>
-    <span class="nav-logo-text">GLOBEWATCH</span>
+    <span class="nav-logo-text">XRAYNEWS</span>
   </a>
 
   <div class="nav-center">
@@ -524,6 +524,13 @@
     <button class="overlay-btn" data-mode="weather">Weather</button>
     <button class="overlay-btn" data-mode="elections">Elections</button>
   </div>
+    <!-- XrayNews Spin Toggle -->
+    <div class="spin-toggle-wrap" id="spin-toggle-wrap">
+      <button class="spin-toggle-btn" id="spin-toggle-btn" aria-label="Toggle globe rotation" title="Toggle rotation">
+        <span class="spin-icon">&#9654;</span>
+        <span class="spin-label">SPIN</span>
+      </button>
+    </div>
   <div class="country-filter-badge" id="country-filter-badge" role="status">
     <span id="country-filter-label">Filter</span>
     <button class="clear-filter-btn" id="clear-filter-btn" aria-label="Clear country filter">&#10005;</button>
@@ -626,7 +633,7 @@
 <script src="js/sidebar.js"></script>
 <script>
 // ================================================
-// GLOBEWATCH — Dashboard Init
+// XRAYNEWS — Dashboard Init
 // Globe and Stories are fully independent.
 // _onGlobeLoaded MUST be defined BEFORE any await.
 // ================================================
@@ -645,6 +652,17 @@
     }
     window.GlobeAPI.init('globe-container', function onCountryClick(code, name) {
       window.NewsFeed.filterByCountry(code);
+      // ---- XrayNews Spin Toggle Wire ----
+      (function() {
+        var _sb = document.getElementById('spin-toggle-btn');
+        if (_sb) {
+          _sb.addEventListener('click', function() {
+            if (window.GlobeAPI && window.GlobeAPI.toggleSpin) {
+              window.GlobeAPI.toggleSpin();
+            }
+          });
+        }
+      })();
       var sel = document.getElementById('country-filter-select');
       if (sel) sel.value = code;
       var filtered = window.NewsFeed.getAll().filter(function (s) {

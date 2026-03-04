@@ -1,5 +1,5 @@
 // ================================================
-// GLOBEWATCH — Country Sidebar
+// XRAYNEWS — Country Sidebar
 // js/sidebar.js
 // ================================================
 (function () {

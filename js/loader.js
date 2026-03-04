@@ -1,5 +1,5 @@
 // ================================================
-// GLOBEWATCH — Cinematic Loader
+// XRAYNEWS — Cinematic Loader
 // js/loader.js
 // ================================================
 (function () {
@@ -20,7 +20,7 @@
     var el = document.createElement('div');
     el.id = 'gwl';
     el.setAttribute('role', 'status');
-    el.setAttribute('aria-label', 'Loading GlobeWatch');
+    el.setAttribute('aria-label', 'Loading XrayNews');
     el.innerHTML = [
       '<div class="gwl-wrap">',
         '<div class="gwl-globe-rig">',
@@ -29,7 +29,7 @@
           '<div class="gwl-orbit gwl-o3"><span class="gwl-bead"></span></div>',
           '<div class="gwl-core">&#127760;</div>',
         '</div>',
-        '<div class="gwl-logo">GLOBEWATCH</div>',
+        '<div class="gwl-logo">XRAYNEWS</div>',
         '<div class="gwl-tagline" id="gwl-tagline"></div>',
         '<div class="gwl-status" id="gwl-status"></div>',
       '</div>',

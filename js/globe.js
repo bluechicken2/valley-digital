@@ -1,5 +1,5 @@
 // ================================================
-// GLOBEWATCH - Globe.gl Engine
+// XRAYNEWS - Globe.gl Engine
 // ================================================
 
 var GEOJSON_URL = 'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson';
@@ -11,6 +11,37 @@ var currentOverlay = 'all';
 var selectedCtry   = null;
 var geoData        = null;
 var rotateTimer    = null;
+// ---- XrayNews Spin state management ----
+var spinEnabled = true;
+var spinResumeTimer = null;
+
+function pauseSpin() {
+  if (!globeInst) return;
+  try { globeInst.controls().autoRotate = false; } catch(e) {}
+  clearTimeout(spinResumeTimer);
+}
+
+function resumeSpin() {
+  if (!globeInst || !spinEnabled) return;
+  try { globeInst.controls().autoRotate = true; } catch(e) {}
+}
+
+function scheduleSpinResume() {
+  clearTimeout(spinResumeTimer);
+  if (spinEnabled) spinResumeTimer = setTimeout(resumeSpin, 30000);
+}
+
+function bindSpinInteraction(container) {
+  var canvas = container && container.querySelector('canvas');
+  if (!canvas) return;
+  ['mousedown','touchstart','wheel'].forEach(function(evt) {
+    canvas.addEventListener(evt, function() {
+      pauseSpin();
+      scheduleSpinResume();
+    }, { passive: true });
+  });
+}
+
 
 // ------------------------------------------------
 // Overlay colour schemes
@@ -106,9 +137,9 @@ function initDashboardGlobe(containerId, onCountryClick) {
   ctrl.maxDistance     = 620;
 
   el.addEventListener('pointerdown', function() {
-    ctrl.autoRotate = false;
+    pauseSpin();
     if (rotateTimer) clearTimeout(rotateTimer);
-    rotateTimer = setTimeout(function() { ctrl.autoRotate = true; }, 3000);
+    scheduleSpinResume();
   });
 
   fetch(GEOJSON_URL)
@@ -386,6 +417,20 @@ function updateStoryArcs(stories) {
 // Public API
 // ------------------------------------------------
 window.GlobeAPI = {
+  toggleSpin: function() {
+    spinEnabled = !spinEnabled;
+    var btn = document.getElementById('spin-toggle-btn');
+    if (spinEnabled) {
+      btn && btn.classList.remove('spin-off');
+      resumeSpin();
+    } else {
+      btn && btn.classList.add('spin-off');
+      pauseSpin();
+      clearTimeout(spinResumeTimer);
+    }
+    return spinEnabled;
+  },
+  getSpinState: function() { return spinEnabled; },
   init:                          initDashboardGlobe,
   updatePins:                    updateStoryPins,
   updateCountryStatsFromStories: updateCountryStatsFromStories,

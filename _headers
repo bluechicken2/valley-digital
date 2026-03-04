@@ -3,7 +3,7 @@
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=()
-  Content-Security-Policy: default-src 'self' https://*.supabase.co https://unpkg.com https://cdn.jsdelivr.net https://fonts.googleapis.com https://fonts.gstatic.com https://raw.githubusercontent.com; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https: blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://raw.githubusercontent.com https://unpkg.com;
+  Content-Security-Policy: default-src 'self' https://*.supabase.co https://unpkg.com https://cdn.jsdelivr.net https://fonts.googleapis.com https://fonts.gstatic.com https://raw.githubusercontent.com https://api.gdeltproject.org; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https: blob:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://raw.githubusercontent.com https://unpkg.com https://api.gdeltproject.org https://*.workers.dev;
 
 /index.html
   Cache-Control: no-cache, no-store, must-revalidate
@@ -21,4 +21,7 @@
   Cache-Control: public, max-age=300
 
 /404.html
+  Cache-Control: no-cache
+
+/workers/*
   Cache-Control: no-cache
