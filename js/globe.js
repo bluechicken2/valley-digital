@@ -109,16 +109,6 @@ function _applyPolygons(g, geoJson, onCountryClick) {
    .polygonSideColor(getSideColor)
    .polygonAltitude(getAltitude)
    .polygonStrokeColor(function() { return 'rgba(0,212,255,0.10)'; })
-   .polygonLabel(function(feat) {
-      var code = (feat.properties && feat.properties.ISO_A2) || '';
-      var name = (feat.properties && (feat.properties.ADMIN || feat.properties.NAME)) || code;
-      var heat = (countryMap[code] && countryMap[code].story_count) || 0;
-      return '<div style="background:rgba(13,17,23,0.92);border:1px solid rgba(0,212,255,0.22);border-radius:8px;padding:8px 13px;font-family:Inter,sans-serif">'
-           + '<div style="font-family:Orbitron,sans-serif;font-size:11px;color:#00d4ff;letter-spacing:.07em">' + name.toUpperCase() + '</div>'
-           + '<div style="font-size:11px;color:#8892a4;margin-top:3px">' + heat + ' active ' + (heat===1?'story':'stories') + '</div>'
-           + (heat > 0 ? '<div style="font-size:10px;color:#ffaa00;margin-top:2px">' + _heatLabel(heat) + '</div>' : '')
-           + '</div>';
-   })
    .onPolygonHover(function(feat) {
       var tip = document.getElementById('globe-tooltip');
       if (!tip) return;
