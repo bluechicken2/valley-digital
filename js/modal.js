@@ -146,6 +146,16 @@
 
   // ---- Render ----
   function _render(story) {
+    // Update source link visibility
+    var srcLink = document.getElementById('mdl-source-link');
+    if (srcLink) {
+      if (story.source_url) {
+        srcLink.href = story.source_url;
+        srcLink.style.display = 'inline-flex';
+      } else {
+        srcLink.style.display = 'none';
+      }
+    }
     var sc    = story.confidence_score || 0;
     var col   = confColor(sc);
     var sm    = STATUS_MAP[story.status] || STATUS_MAP.unverified;

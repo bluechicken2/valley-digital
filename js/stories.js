@@ -54,7 +54,7 @@ function getCountryFlag(code) {
 function escHtml(s) {
   return String(s)
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    .replace(/"/g,'&quot;').replace(/\'/g,'&#39;');
 }
 
 function timeAgo(iso) {
@@ -64,6 +64,21 @@ function timeAgo(iso) {
   if (diff < 3600)  return Math.floor(diff/60) + 'm ago';
   if (diff < 86400) return Math.floor(diff/3600) + 'h ago';
   return Math.floor(diff/86400) + 'd ago';
+}
+
+// ------------------------------------------------
+// Resolve display name for story source
+// Falls back to domain extraction from source_url
+// ------------------------------------------------
+function getSourceName(story) {
+  if (story.source_name) return String(story.source_name);
+  if (story.source_url) {
+    try {
+      var u = new URL(story.source_url);
+      return u.hostname.replace(/^www\./, '');
+    } catch(e) {}
+  }
+  return null;
 }
 
 // ------------------------------------------------
@@ -78,6 +93,9 @@ function renderStoryCard(story) {
   var statusBadge = getStatusBadge(story.status);
   var breaking   = story.is_breaking
     ? '<span class="breaking-badge">&#9889; BREAKING</span>' : '';
+  var isFresh    = story.created_at &&
+    (Date.now() - new Date(story.created_at).getTime()) < 60 * 60 * 1000;
+  var freshBadge = isFresh ? '<span class="fresh-badge">&#9679; NEW</span>' : '';
   var age        = timeAgo(story.created_at);
   var flagHtml   = flag ? '<span class="country-flag">' + flag + '</span>' : '';
   var summaryHtml= story.summary
@@ -85,12 +103,16 @@ function renderStoryCard(story) {
   var srcCount   = story.source_count || 1;
   var vfyHtml    = story.verified_count
     ? '<span class="verified-count">&#10003; ' + story.verified_count + ' verified</span>' : '';
+  var srcName    = getSourceName(story);
+  var sourceBadgeHtml = srcName
+    ? '<span class="source-badge">' + escHtml(srcName.slice(0, 24)) + '</span>' : '';
 
   return '<article class="story-card" data-id="' + escHtml(story.id) + '" tabindex="0">'
     + '<div class="card-top">'
       + '<div class="card-meta-row">'
         + '<span class="category-badge" style="--cat-color:' + catColor + '">' + catIcon + ' ' + escHtml(story.category || 'General') + '</span>'
         + breaking
+        + freshBadge
       + '</div>'
       + '<div class="card-country">'
         + flagHtml
@@ -113,6 +135,7 @@ function renderStoryCard(story) {
     + '</div>'
     + '<div class="card-footer">'
       + '<span class="card-sources">&#128225; ' + srcCount + ' ' + (srcCount===1?'source':'sources') + '</span>'
+      + sourceBadgeHtml
       + '<span class="card-time">&#128336; ' + age + '</span>'
       + '<button class="card-expand-btn" data-id="' + escHtml(story.id) + '">&#9654; More</button>'
     + '</div>'
@@ -145,7 +168,7 @@ function renderAllCards(stories) {
       });
     }, 80);
   });
-  // Expand buttons — stop propagation so they don't trigger modal
+  // Expand buttons
   grid.querySelectorAll('.card-expand-btn').forEach(function(btn) {
     btn.addEventListener('click', function(e) {
       e.stopPropagation();
@@ -155,14 +178,12 @@ function renderAllCards(stories) {
   // Card click → open modal
   grid.querySelectorAll('.story-card').forEach(function(card) {
     card.addEventListener('click', function(e) {
-      // Don't open modal if clicking expand button or links
       if (e.target.closest('.card-expand-btn') || e.target.tagName === 'A') return;
       var id = card.dataset.id;
       var all = window.NewsFeed ? window.NewsFeed.getAll() : stories;
       var story = all.find(function(s){ return String(s.id) === String(id); });
       if (story && window.StoryModal) window.StoryModal.open(story, all);
     });
-    // Keyboard nav — Enter opens modal, Space still expands
     card.addEventListener('keydown', function(e) {
       if (e.key === 'Enter') {
         e.preventDefault();
@@ -176,7 +197,6 @@ function renderAllCards(stories) {
       }
     });
   });
-  // Add pointer cursor hint
   var style = document.getElementById('story-card-cursor-style');
   if (!style) {
     style = document.createElement('style');
@@ -184,7 +204,6 @@ function renderAllCards(stories) {
     style.textContent = '.story-card{cursor:pointer;}.story-card:hover{transform:translateY(-2px);transition:transform 0.18s ease;}';
     document.head.appendChild(style);
   }
-  // XrayNews — update story count badge
   (function() {
     var _scEl = document.getElementById('stories-count');
     if (_scEl) _scEl.textContent = (stories ? stories.length : 0) + ' stories';

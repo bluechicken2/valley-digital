@@ -232,7 +232,8 @@ function updateStoryPins(stories) {
         lat:   +s.lat,
         lng:   +s.lng,
         color: CAT_COLORS[s.category] || '#00d4ff',
-        size:  s.is_breaking ? 0.85 : 0.5,
+        size:  s.is_breaking ? 0.85 : (s.confidence_score >= 71 ? 0.6 : (s.confidence_score >= 41 ? 0.45 : 0.3)),
+        color: s.is_breaking ? '#ffffff' : (s.confidence_score >= 71 ? '#00d4ff' : (s.confidence_score >= 41 ? '#ffaa00' : '#ff4444')),
         label: s.headline
       };
     });
@@ -240,7 +241,7 @@ function updateStoryPins(stories) {
     .pointsData(pins)
     .pointLat(function(d) { return d.lat; })
     .pointLng(function(d) { return d.lng; })
-    .pointColor(function(d) { return d.color; })
+    .pointColor(function(d) { return d.color || '#00d4ff'; })
     .pointAltitude(0.015)
     .pointRadius(function(d) { return d.size; })
     .pointLabel(function(d) {

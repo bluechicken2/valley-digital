@@ -15,6 +15,20 @@ const COUNTRY_CENTROIDS = {
   PK:{lat:30.37,lng:69.34}, ID:{lat:-0.78,lng:113.92}, MX:{lat:23.63,lng:-102.55},
   AR:{lat:-38.41,lng:-63.61}, PL:{lat:51.91,lng:19.14}, TR:{lat:38.96,lng:35.24},
   IR:{lat:32.42,lng:53.68}, KP:{lat:40.33,lng:127.51}, TH:{lat:15.87,lng:100.99}
+,
+  IT:{lat:41.87,lng:12.57}, ES:{lat:40.46,lng:-3.75}, NL:{lat:52.13,lng:5.29},
+  ZA:{lat:-30.56,lng:22.94}, AR:{lat:-38.42,lng:-63.62}, CO:{lat:4.57,lng:-74.30},
+  VE:{lat:6.42,lng:-66.59}, TW:{lat:23.70,lng:121.00}, TH:{lat:15.87,lng:100.99},
+  VN:{lat:14.06,lng:108.28}, MM:{lat:21.91,lng:95.96}, AF:{lat:33.93,lng:67.71},
+  ET:{lat:9.15,lng:40.49}, SE:{lat:60.13,lng:18.64}, NO:{lat:60.47,lng:8.47},
+  FI:{lat:61.92,lng:25.75}, CH:{lat:46.82,lng:8.23}, GR:{lat:39.07,lng:21.82},
+  HU:{lat:47.16,lng:19.50}, RO:{lat:45.94,lng:24.97}, RS:{lat:44.02,lng:21.01},
+  SO:{lat:5.15,lng:46.20}, SD:{lat:12.86,lng:30.22}, LY:{lat:26.34,lng:17.23},
+  LB:{lat:33.85,lng:35.86}, SY:{lat:34.80,lng:38.99}, IQ:{lat:33.22,lng:43.68},
+  YE:{lat:15.55,lng:48.52}, KZ:{lat:48.02,lng:66.92}, BY:{lat:53.71,lng:27.95},
+  CL:{lat:-35.68,lng:-71.54}, PE:{lat:-9.19,lng:-75.02}, PH:{lat:12.88,lng:121.77},
+  MY:{lat:4.21,lng:101.98}, KE:{lat:-0.02,lng:37.91}, GH:{lat:7.95,lng:-1.02},
+  TR:{lat:38.96,lng:35.24}, ID:{lat:-0.79,lng:113.92}
 };
 
 const CAT_COLORS = {
@@ -80,7 +94,44 @@ function detectCountry(text) {
     {p:['saudi','riyadh'],iso:'SA',name:'Saudi Arabia'},
     {p:['poland','polish','warsaw'],iso:'PL',name:'Poland'},
     {p:['turkey','turkish','ankara'],iso:'TR',name:'Turkey'},
-    {p:['indonesia','jakarta'],iso:'ID',name:'Indonesia'}
+    {p:['indonesia','jakarta'],iso:'ID',name:'Indonesia'},
+    {p:['italy','italian','rome'],iso:'IT',name:'Italy'},
+    {p:['spain','spanish','madrid'],iso:'ES',name:'Spain'},
+    {p:['netherlands','dutch','amsterdam'],iso:'NL',name:'Netherlands'},
+    {p:['south africa','johannesburg','pretoria'],iso:'ZA',name:'South Africa'},
+    {p:['argentina','buenos aires'],iso:'AR',name:'Argentina'},
+    {p:['colombia','bogota'],iso:'CO',name:'Colombia'},
+    {p:['venezuela','caracas'],iso:'VE',name:'Venezuela'},
+    {p:['taiwan','taipei'],iso:'TW',name:'Taiwan'},
+    {p:['thailand','bangkok'],iso:'TH',name:'Thailand'},
+    {p:['vietnam','hanoi','ho chi minh'],iso:'VN',name:'Vietnam'},
+    {p:['myanmar','yangon','rangoon'],iso:'MM',name:'Myanmar'},
+    {p:['afghanistan','kabul'],iso:'AF',name:'Afghanistan'},
+    {p:['ethiopia','addis ababa'],iso:'ET',name:'Ethiopia'},
+    {p:['sweden','stockholm'],iso:'SE',name:'Sweden'},
+    {p:['norway','oslo'],iso:'NO',name:'Norway'},
+    {p:['finland','helsinki'],iso:'FI',name:'Finland'},
+    {p:['switzerland','bern','zurich','geneva'],iso:'CH',name:'Switzerland'},
+    {p:['greece','athens','greek'],iso:'GR',name:'Greece'},
+    {p:['hungary','budapest'],iso:'HU',name:'Hungary'},
+    {p:['romania','bucharest'],iso:'RO',name:'Romania'},
+    {p:['serbia','belgrade'],iso:'RS',name:'Serbia'},
+    {p:['somalia','mogadishu'],iso:'SO',name:'Somalia'},
+    {p:['sudan','khartoum'],iso:'SD',name:'Sudan'},
+    {p:['libya','tripoli'],iso:'LY',name:'Libya'},
+    {p:['lebanon','beirut'],iso:'LB',name:'Lebanon'},
+    {p:['syria','damascus'],iso:'SY',name:'Syria'},
+    {p:['iraq','baghdad','iraqi'],iso:'IQ',name:'Iraq'},
+    {p:['yemen','sanaa','houthi'],iso:'YE',name:'Yemen'},
+    {p:['kazakhstan','astana'],iso:'KZ',name:'Kazakhstan'},
+    {p:['belarus','minsk'],iso:'BY',name:'Belarus'},
+    {p:['moldova','chisinau'],iso:'MD',name:'Moldova'},
+    {p:['chile','santiago'],iso:'CL',name:'Chile'},
+    {p:['peru','lima'],iso:'PE',name:'Peru'},
+    {p:['philippines','manila'],iso:'PH',name:'Philippines'},
+    {p:['malaysia','kuala lumpur'],iso:'MY',name:'Malaysia'},
+    {p:['kenya','nairobi'],iso:'KE',name:'Kenya'},
+    {p:['ghana','accra'],iso:'GH',name:'Ghana'}
   ];
   for (const c of map) {
     if (c.p.some(pat => t.includes(pat))) return {iso:c.iso, name:c.name};
@@ -191,7 +242,10 @@ async function runGather(env, cors) {
       fetchGDELT(),
       fetchRSS('https://feeds.reuters.com/reuters/worldNews', 'Reuters'),
       fetchRSS('https://feeds.bbci.co.uk/news/world/rss.xml', 'BBC News'),
-      fetchRSS('https://rsshub.app/apnews/world-news', 'AP News')
+      fetchRSS('https://rsshub.app/apnews/world-news', 'AP News'),
+      fetchRSS('https://rss.cnn.com/rss/edition_world.rss', 'CNN'),
+      fetchRSS('https://feeds.skynews.com/feeds/rss/world.xml', 'Sky News'),
+      fetchRSS('https://www.aljazeera.com/xml/rss/all.xml', 'Al Jazeera')
     ]);
 
     let raw = [

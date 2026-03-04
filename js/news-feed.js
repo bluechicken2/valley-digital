@@ -48,6 +48,7 @@ async function loadStories() {
   _allStories = data || [];
   _filtered   = _allStories.slice();
   _applyAll();
+  updateStatsBar(_allStories);
   if (window.GlobeAPI) {
     window.GlobeAPI.updatePins(_allStories);
     window.GlobeAPI.updateCountryStatsFromStories(_allStories);
@@ -307,11 +308,66 @@ function _timeAgoShort(iso) {
 // ------------------------------------------------
 // Realtime
 // ------------------------------------------------
+
+// ------------------------------------------------
+// Toast Notifications
+// ------------------------------------------------
+var _toastContainer = null;
+var _toastQueue = [];
+
+function _getToastContainer() {
+  if (!_toastContainer) {
+    _toastContainer = document.createElement('div');
+    _toastContainer.id = 'toast-container';
+    document.body.appendChild(_toastContainer);
+  }
+  return _toastContainer;
+}
+
+function showBreakingToast(story) {
+  var container = _getToastContainer();
+  if (container.children.length >= 3) {
+    var oldest = container.children[0];
+    oldest.classList.remove('toast-in');
+    oldest.classList.add('toast-out');
+    setTimeout(function() { if (oldest.parentNode) oldest.parentNode.removeChild(oldest); }, 350);
+  }
+  var flag = '';
+  if (story.country_code && story.country_code.length === 2) {
+    var o = 0x1F1E6 - 65;
+    flag = String.fromCodePoint(story.country_code.toUpperCase().charCodeAt(0) + o)
+         + String.fromCodePoint(story.country_code.toUpperCase().charCodeAt(1) + o);
+  }
+  var headline = (story.headline || '').slice(0, 80) + ((story.headline || '').length > 80 ? '…' : '');
+  var toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.innerHTML = '<span class="toast-icon">&#9889;</span>'
+    + '<div class="toast-body">'
+      + '<div class="toast-label">BREAKING NEWS</div>'
+      + '<div class="toast-headline">' + headline.replace(/</g,'&lt;') + '</div>'
+      + '<div class="toast-country">' + flag + ' ' + (story.country_name || 'Global') + '</div>'
+    + '</div>'
+    + '<button class="toast-close" aria-label="Dismiss">&times;</button>';
+  toast.querySelector('.toast-close').addEventListener('click', function() {
+    toast.classList.remove('toast-in');
+    toast.classList.add('toast-out');
+    setTimeout(function() { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 350);
+  });
+  container.appendChild(toast);
+  requestAnimationFrame(function() { toast.classList.add('toast-in'); });
+  setTimeout(function() {
+    toast.classList.remove('toast-in');
+    toast.classList.add('toast-out');
+    setTimeout(function() { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 350);
+  }, 8000);
+}
+
 function setupRealtime() {
   if (!window.XrayNewsDB) return;
   window.XrayNewsDB.subscribeToStories(function(record, type) {
     if (type==='INSERT') {
       _allStories.unshift(record);
+      if (record.is_breaking) showBreakingToast(record);
       var badge = document.getElementById('notif-badge');
       if (badge) { var c=parseInt(badge.textContent)||0; badge.textContent=String(c+1); }
     } else if (type==='UPDATE') {
@@ -321,12 +377,54 @@ function setupRealtime() {
       _allStories = _allStories.filter(function(s){return s.id!==record.id;});
     }
     _applyAll();
+    updateStatsBar(_allStories);
     if (window.GlobeAPI) {
       window.GlobeAPI.updatePins(_allStories);
       window.GlobeAPI.updateCountryStatsFromStories(_allStories);
     }
     populateTickers(_allStories);
   });
+}
+
+
+// ------------------------------------------------
+// Auto-refresh fallback every 5 minutes
+// ------------------------------------------------
+function startAutoRefresh() {
+  setInterval(function() {
+    loadStories();
+  }, 5 * 60 * 1000);
+}
+
+// ------------------------------------------------
+// Stats Bar
+// ------------------------------------------------
+function updateStatsBar(stories) {
+  var total    = stories.length;
+  var verified = stories.filter(function(s) { return s.status === 'verified'; }).length;
+  var countries = {};
+  stories.forEach(function(s) { if (s.country_code) countries[s.country_code] = 1; });
+  var countryCount = Object.keys(countries).length;
+  var newest = stories.reduce(function(latest, s) {
+    return (!latest || new Date(s.created_at) > new Date(latest)) ? s.created_at : latest;
+  }, null);
+  var updatedAgo = newest
+    ? (function() {
+        var d = Math.floor((Date.now() - new Date(newest).getTime()) / 1000);
+        if (d < 60)   return d + 's ago';
+        if (d < 3600) return Math.floor(d/60) + 'm ago';
+        return Math.floor(d/3600) + 'h ago';
+      })()
+    : '--';
+
+  function setEl(id, val) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = val;
+  }
+  setEl('stat-total',    total);
+  setEl('stat-verified', verified);
+  setEl('stat-countries', countryCount);
+  setEl('stat-updated',  updatedAgo);
 }
 
 // ------------------------------------------------
@@ -336,6 +434,9 @@ window.NewsFeed = {
   load:               loadStories,
   populateTickers:    populateTickers,
   setupRealtime:      setupRealtime,
+  startAutoRefresh:   startAutoRefresh,
+  updateStatsBar:     updateStatsBar,
+  showBreakingToast:  showBreakingToast,
   setupLiveSearch:    setupLiveSearch,
   setupNotifications: setupNotifications,
   filterByCountry:    filterByCountry,
