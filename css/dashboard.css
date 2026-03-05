@@ -1231,3 +1231,33 @@
   color: #00d4ff;
   border-color: rgba(0,212,255,0.5);
 }
+
+/* Load More Button */
+.load-more-container {
+  text-align: center;
+  padding: 32px 20px 48px;
+}
+.load-more-btn {
+  background: rgba(0,212,255,0.06);
+  border: 1px solid rgba(0,212,255,0.25);
+  color: #00d4ff;
+  font-family: Orbitron, sans-serif;
+  font-size: 13px;
+  letter-spacing: 1.5px;
+  padding: 14px 40px;
+  border-radius: 40px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+}
+.load-more-btn:hover {
+  background: rgba(0,212,255,0.14);
+  border-color: rgba(0,212,255,0.5);
+  box-shadow: 0 0 20px rgba(0,212,255,0.2);
+  transform: translateY(-2px);
+}
+.load-more-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}

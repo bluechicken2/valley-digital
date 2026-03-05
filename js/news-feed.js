@@ -2,12 +2,16 @@
 // XRAYNEWS - News Feed Manager
 // ================================================
 
-var _allStories = [];
-var _filtered   = [];
-var _country    = null;
-var _category   = 'all';
-var _status     = 'all';
-var _sort       = 'latest';
+var _allStories  = [];
+var _filtered    = [];
+var _country     = null;
+var _category    = 'all';
+var _status      = 'all';
+var _sort        = 'latest';
+var _offset      = 0;
+var _pageSize    = 50;
+var _totalLoaded = 0;
+var _isLoading   = false;
 
 function getCountryFlag(code) {
   if (!code || code.length !== 2) return '';
@@ -34,27 +38,65 @@ function timeAgo(iso) {
 // ------------------------------------------------
 // Load stories (Supabase -> sample fallback)
 // ------------------------------------------------
-async function loadStories() {
+async function loadStories(append) {
+  if (_isLoading) return _allStories;
+  _isLoading = true;
+  _setLoadMoreBtn('loading');
+
+  if (!append) _offset = 0;
+
   var data = null;
   if (window.XrayNewsDB) {
-    try { data = await window.XrayNewsDB.getStories({ limit: 60 }); } catch(e) { data = null; }
+    try {
+      data = await window.XrayNewsDB.getStories({ limit: _pageSize, offset: _offset });
+    } catch(e) { data = null; }
   }
-  if (!data || data.length === 0) {
+
+  // Sample fallback only on first load
+  if (!append && (!data || data.length === 0)) {
     try {
       var r = await fetch('data/sample-stories.json');
       if (r.ok) data = await r.json();
     } catch(e) { console.warn('[Feed] Sample fallback failed:', e.message); }
   }
-  _allStories = data || [];
-  _filtered   = _allStories.slice();
+
+  var rows = data || [];
+
+  if (append) {
+    _allStories = _allStories.concat(rows);
+  } else {
+    _allStories = rows;
+  }
+
+  _offset += rows.length;
+  _isLoading = false;
+
+  // Show/hide load-more button
+  _setLoadMoreBtn(rows.length < _pageSize ? 'hidden' : 'ready');
+
+  _filtered = _allStories.slice();
   _applyAll();
   updateStatsBar(_allStories);
   if (window.GlobeAPI) {
     window.GlobeAPI.updatePins(_allStories);
     window.GlobeAPI.updateCountryStatsFromStories(_allStories);
   }
-  populateTickers(_allStories);
+  if (!append) populateTickers(_allStories);
+  if (window.checkSpaceStories) window.checkSpaceStories(_allStories);
   return _allStories;
+}
+
+function _setLoadMoreBtn(state) {
+  var btn = document.getElementById('load-more-btn');
+  if (!btn) return;
+  if (state === 'hidden')  { btn.style.display = 'none'; return; }
+  btn.style.display = 'block';
+  if (state === 'loading') { btn.textContent = '⏳ Loading...'; btn.disabled = true; }
+  else                     { btn.textContent = '⬇ Load More Stories'; btn.disabled = false; }
+}
+
+function loadMoreStories() {
+  loadStories(true);
 }
 
 // ------------------------------------------------
@@ -449,5 +491,6 @@ window.NewsFeed = {
   escHtml:            escHtml,
   timeAgo:            timeAgo,
   getAll:             function(){ return _allStories; },
-  getFiltered:        function(){ return _filtered; }
+  getFiltered:        function(){ return _filtered; },
+  loadMore:           loadMoreStories
 };

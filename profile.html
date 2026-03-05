@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Profile — XrayNews</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500;600&display=swap">
+  <link rel="stylesheet" href="css/dashboard.css?v=11">
+  <style>
+    .profile-page { max-width: 900px; margin: 0 auto; padding: 100px 24px 60px; }
+    .profile-hero {
+      display: flex; align-items: center; gap: 32px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(0,212,255,0.12);
+      border-radius: 20px; padding: 32px;
+      margin-bottom: 32px;
+      backdrop-filter: blur(12px);
+    }
+    .profile-avatar {
+      width: 90px; height: 90px; border-radius: 50%;
+      background: linear-gradient(135deg, rgba(0,212,255,0.3), rgba(120,80,255,0.3));
+      border: 2px solid rgba(0,212,255,0.4);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 36px; flex-shrink: 0;
+      box-shadow: 0 0 24px rgba(0,212,255,0.2);
+    }
+    .profile-info h2 { font-family: Orbitron, sans-serif; color: #00d4ff; font-size: 22px; margin: 0 0 4px; }
+    .profile-info .profile-email { color: rgba(232,234,240,0.6); font-size: 14px; margin-bottom: 12px; }
+    .profile-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(0,212,255,0.12); border: 1px solid rgba(0,212,255,0.3);
+      border-radius: 20px; padding: 4px 14px; font-size: 12px;
+      color: #00d4ff; font-family: Orbitron, sans-serif; letter-spacing: 1px;
+    }
+    .profile-badge.premium {
+      background: rgba(255,200,0,0.12); border-color: rgba(255,200,0,0.3); color: #ffc800;
+    }
+    .profile-stats-row {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+      margin-bottom: 32px;
+    }
+    .profile-stat-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(0,212,255,0.1);
+      border-radius: 14px; padding: 20px 16px;
+      text-align: center;
+      transition: border-color 0.2s;
+    }
+    .profile-stat-card:hover { border-color: rgba(0,212,255,0.3); }
+    .profile-stat-card .psc-val {
+      font-family: Orbitron, sans-serif; font-size: 28px;
+      color: #00d4ff; display: block; margin-bottom: 4px;
+    }
+    .profile-stat-card .psc-lbl { font-size: 12px; color: rgba(232,234,240,0.5); text-transform: uppercase; letter-spacing: 1px; }
+    .profile-section {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(0,212,255,0.1);
+      border-radius: 16px; padding: 24px;
+      margin-bottom: 24px;
+    }
+    .profile-section h3 {
+      font-family: Orbitron, sans-serif; color: #00d4ff;
+      font-size: 14px; letter-spacing: 2px; text-transform: uppercase;
+      margin: 0 0 20px; padding-bottom: 12px;
+      border-bottom: 1px solid rgba(0,212,255,0.1);
+    }
+    .pref-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .pref-row:last-child { border-bottom: none; }
+    .pref-label { font-size: 14px; color: rgba(232,234,240,0.8); }
+    .pref-label small { display: block; font-size: 12px; color: rgba(232,234,240,0.4); margin-top: 2px; }
+    /* Toggle switch */
+    .toggle-sw { position: relative; width: 44px; height: 24px; cursor: pointer; }
+    .toggle-sw input { opacity: 0; width: 0; height: 0; }
+    .toggle-track {
+      position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(255,255,255,0.1); border-radius: 24px;
+      transition: background 0.3s;
+    }
+    .toggle-track::before {
+      content: ''; position: absolute;
+      height: 18px; width: 18px; left: 3px; bottom: 3px;
+      background: rgba(232,234,240,0.6); border-radius: 50%;
+      transition: transform 0.3s, background 0.3s;
+    }
+    .toggle-sw input:checked + .toggle-track { background: rgba(0,212,255,0.4); }
+    .toggle-sw input:checked + .toggle-track::before {
+      transform: translateX(20px); background: #00d4ff;
+      box-shadow: 0 0 8px rgba(0,212,255,0.6);
+    }
+    /* Saved stories */
+    .saved-story-item {
+      display: flex; align-items: flex-start; gap: 14px;
+      padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.04);
+      cursor: pointer; transition: background 0.2s; border-radius: 8px;
+      padding: 10px;
+    }
+    .saved-story-item:hover { background: rgba(0,212,255,0.05); }
+    .saved-story-item:last-child { border-bottom: none; }
+    .saved-flag { font-size: 22px; flex-shrink: 0; }
+    .saved-hl { font-size: 14px; color: rgba(232,234,240,0.85); line-height: 1.4; margin-bottom: 4px; }
+    .saved-meta { font-size: 11px; color: rgba(232,234,240,0.4); }
+    .saved-conf {
+      margin-left: auto; flex-shrink: 0;
+      font-family: Orbitron, sans-serif; font-size: 11px;
+      padding: 3px 10px; border-radius: 20px;
+      background: rgba(0,212,255,0.1); color: #00d4ff;
+      border: 1px solid rgba(0,212,255,0.2);
+    }
+    .empty-saved {
+      text-align: center; padding: 40px 20px;
+      color: rgba(232,234,240,0.3); font-size: 14px;
+    }
+    .empty-saved .empty-icon { font-size: 40px; display: block; margin-bottom: 12px; }
+    /* Membership card */
+    .membership-card {
+      background: linear-gradient(135deg, rgba(0,212,255,0.08), rgba(120,80,255,0.08));
+      border: 1px solid rgba(0,212,255,0.2);
+      border-radius: 14px; padding: 24px;
+      display: flex; align-items: center; justify-content: space-between; gap: 20px;
+    }
+    .membership-card h4 { font-family: Orbitron, sans-serif; color: #00d4ff; margin: 0 0 6px; font-size: 16px; }
+    .membership-card p { color: rgba(232,234,240,0.6); font-size: 13px; margin: 0; }
+    .btn-upgrade {
+      background: linear-gradient(135deg, rgba(0,212,255,0.2), rgba(120,80,255,0.2));
+      border: 1px solid rgba(0,212,255,0.4); color: #00d4ff;
+      padding: 10px 24px; border-radius: 8px; font-family: Orbitron, sans-serif;
+      font-size: 12px; letter-spacing: 1px; cursor: pointer;
+      transition: all 0.2s; white-space: nowrap;
+    }
+    .btn-upgrade:hover {
+      background: rgba(0,212,255,0.25); box-shadow: 0 0 16px rgba(0,212,255,0.3);
+    }
+    .btn-signout {
+      background: rgba(255,60,60,0.1); border: 1px solid rgba(255,60,60,0.3);
+      color: rgba(255,100,100,0.9); padding: 10px 24px; border-radius: 8px;
+      font-size: 13px; cursor: pointer; transition: all 0.2s; width: 100%;
+      margin-top: 8px;
+    }
+    .btn-signout:hover { background: rgba(255,60,60,0.2); }
+    .edit-field {
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(0,212,255,0.2);
+      border-radius: 8px; padding: 8px 14px; color: #e8eaf0; font-size: 14px;
+      width: 200px; outline: none; transition: border-color 0.2s;
+    }
+    .edit-field:focus { border-color: rgba(0,212,255,0.5); }
+    @media (max-width: 700px) {
+      .profile-hero { flex-direction: column; text-align: center; }
+      .profile-stats-row { grid-template-columns: repeat(2, 1fr); }
+      .membership-card { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Nav -->
+  <nav class="top-nav">
+    <a href="dashboard.html" class="nav-logo">🌍 XRAYNEWS</a>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:12px;">
+      <a href="dashboard.html" class="overlay-btn" style="text-decoration:none">← Back to Globe</a>
+    </div>
+  </nav>
+
+  <div class="profile-page">
+
+    <!-- Hero -->
+    <div class="profile-hero">
+      <div class="profile-avatar" id="profile-avatar">👤</div>
+      <div class="profile-info">
+        <h2 id="profile-name">Loading...</h2>
+        <div class="profile-email" id="profile-email">—</div>
+        <span class="profile-badge" id="membership-badge">⚡ BETA ACCESS — FREE</span>
+      </div>
+      <div style="margin-left:auto;text-align:right;">
+        <div style="font-size:12px;color:rgba(232,234,240,0.4);margin-bottom:4px;">MEMBER SINCE</div>
+        <div style="font-family:Orbitron,sans-serif;color:#00d4ff;font-size:14px;" id="member-since">—</div>
+      </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="profile-stats-row">
+      <div class="profile-stat-card">
+        <span class="psc-val" id="psc-saved">0</span>
+        <span class="psc-lbl">Saved Stories</span>
+      </div>
+      <div class="profile-stat-card">
+        <span class="psc-val" id="psc-read">0</span>
+        <span class="psc-lbl">Stories Read</span>
+      </div>
+      <div class="profile-stat-card">
+        <span class="psc-val" id="psc-countries">0</span>
+        <span class="psc-lbl">Countries Explored</span>
+      </div>
+      <div class="profile-stat-card">
+        <span class="psc-val" id="psc-days">0</span>
+        <span class="psc-lbl">Days Active</span>
+      </div>
+    </div>
+
+    <!-- Saved Stories -->
+    <div class="profile-section">
+      <h3>📌 Saved Stories</h3>
+      <div id="saved-stories-list">
+        <div class="empty-saved">
+          <span class="empty-icon">📭</span>
+          No saved stories yet — bookmark stories from the globe to see them here.
+        </div>
+      </div>
+    </div>
+
+    <!-- Preferences -->
+    <div class="profile-section">
+      <h3>⚙️ Preferences</h3>
+      <div class="pref-row">
+        <div class="pref-label">Breaking News Alerts
+          <small>Show toast notifications for breaking stories</small>
+        </div>
+        <label class="toggle-sw">
+          <input type="checkbox" id="pref-breaking" checked onchange="savePref('breaking', this.checked)">
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <div class="pref-row">
+        <div class="pref-label">Auto-Refresh Stories
+          <small>Refresh stories every 5 minutes automatically</small>
+        </div>
+        <label class="toggle-sw">
+          <input type="checkbox" id="pref-autorefresh" checked onchange="savePref('autorefresh', this.checked)">
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <div class="pref-row">
+        <div class="pref-label">Globe Auto-Spin
+          <small>Earth spins automatically when idle</small>
+        </div>
+        <label class="toggle-sw">
+          <input type="checkbox" id="pref-autospin" checked onchange="savePref('autospin', this.checked)">
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <div class="pref-row">
+        <div class="pref-label">Default Category
+          <small>Filter stories by category on load</small>
+        </div>
+        <select class="edit-field" id="pref-category" onchange="savePref('category', this.value)" style="width:160px">
+          <option value="all">All News</option>
+          <option value="war">War &amp; Conflict</option>
+          <option value="politics">Politics</option>
+          <option value="weather">Weather</option>
+          <option value="economy">Economy</option>
+          <option value="science">Science &amp; Tech</option>
+          <option value="health">Health</option>
+          <option value="elections">Elections</option>
+          <option value="environment">Environment</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Membership -->
+    <div class="profile-section">
+      <h3>💳 Membership</h3>
+      <div class="membership-card">
+        <div>
+          <h4>Free Beta Access</h4>
+          <p>Full access to XrayNews during beta. Premium tier coming soon with API access, advanced filters, and export tools.</p>
+        </div>
+        <button class="btn-upgrade" onclick="alert('Premium membership launching soon! You'll be notified when it's available.')">Upgrade Soon</button>
+      </div>
+    </div>
+
+    <!-- Account -->
+    <div class="profile-section">
+      <h3>🔐 Account</h3>
+      <div class="pref-row">
+        <div class="pref-label">Display Name</div>
+        <input type="text" class="edit-field" id="edit-name" placeholder="Your name" onblur="saveDisplayName(this.value)">
+      </div>
+      <div class="pref-row">
+        <div class="pref-label">Email Address</div>
+        <span id="account-email" style="color:rgba(232,234,240,0.5);font-size:14px">—</span>
+      </div>
+      <button class="btn-signout" onclick="signOut()">🚪 Sign Out</button>
+    </div>
+
+  </div>
+
+  <script src="js/supabase-config.js?v=11"></script>
+  <script src="js/auth.js?v=11"></script>
+  <script>
+    var _prefs = {};
+    var _savedStories = [];
+    var _userId = null;
+
+    // ---- Load profile ----
+    async function initProfile() {
+      // Load prefs from localStorage
+      try { _prefs = JSON.parse(localStorage.getItem('xraynews_prefs') || '{}'); } catch(e) { _prefs = {}; }
+      if (_prefs.breaking    !== undefined) document.getElementById('pref-breaking').checked    = _prefs.breaking;
+      if (_prefs.autorefresh !== undefined) document.getElementById('pref-autorefresh').checked = _prefs.autorefresh;
+      if (_prefs.autospin    !== undefined) document.getElementById('pref-autospin').checked    = _prefs.autospin;
+      if (_prefs.category)                 document.getElementById('pref-category').value       = _prefs.category;
+
+      // Load saved stories from localStorage
+      try { _savedStories = JSON.parse(localStorage.getItem('xraynews_saved') || '[]'); } catch(e) { _savedStories = []; }
+      renderSaved();
+      document.getElementById('psc-saved').textContent = _savedStories.length;
+
+      // Stats from localStorage
+      var read     = parseInt(localStorage.getItem('xraynews_read_count') || '0');
+      var countries= parseInt(localStorage.getItem('xraynews_countries') || '0');
+      var firstVisit = localStorage.getItem('xraynews_first_visit');
+      if (!firstVisit) { firstVisit = new Date().toISOString(); localStorage.setItem('xraynews_first_visit', firstVisit); }
+      var days = Math.max(1, Math.floor((Date.now() - new Date(firstVisit).getTime()) / 86400000));
+      document.getElementById('psc-read').textContent      = read;
+      document.getElementById('psc-countries').textContent = countries;
+      document.getElementById('psc-days').textContent      = days;
+
+      // Auth state
+      try {
+        var session = await window.supabase.auth.getSession();
+        var user = session && session.data && session.data.session && session.data.session.user;
+        if (user) {
+          _userId = user.id;
+          var name = user.user_metadata && user.user_metadata.full_name || 'Anonymous Operative';
+          var email = user.email || '—';
+          document.getElementById('profile-name').textContent = name;
+          document.getElementById('profile-email').textContent = email;
+          document.getElementById('account-email').textContent = email;
+          document.getElementById('edit-name').value = name;
+          document.getElementById('profile-avatar').textContent = name.charAt(0).toUpperCase() || '👤';
+          var memberSince = new Date(user.created_at).toLocaleDateString('en-US', {month:'short',year:'numeric'});
+          document.getElementById('member-since').textContent = memberSince;
+        } else {
+          // Guest
+          document.getElementById('profile-name').textContent = 'Guest Operative';
+          document.getElementById('profile-email').textContent = 'Not signed in';
+          document.getElementById('account-email').textContent = 'Not signed in';
+          document.getElementById('member-since').textContent = 'Beta';
+        }
+      } catch(e) {
+        document.getElementById('profile-name').textContent = 'Guest Operative';
+      }
+    }
+
+    function renderSaved() {
+      var list = document.getElementById('saved-stories-list');
+      if (!_savedStories.length) {
+        list.innerHTML = '<div class="empty-saved"><span class="empty-icon">📭</span>No saved stories yet.</div>';
+        return;
+      }
+      list.innerHTML = _savedStories.map(function(s) {
+        var flag = getFlag(s.country_code);
+        var score = s.confidence_score || 0;
+        var scoreColor = score >= 70 ? '#00ff88' : score >= 40 ? '#ffa500' : '#ff4444';
+        return '<div class="saved-story-item">'  
+          + '<span class="saved-flag">' + (flag || '🌍') + '</span>'  
+          + '<div style="flex:1;min-width:0">'  
+          + '<div class="saved-hl">' + esc(s.headline) + '</div>'  
+          + '<div class="saved-meta">' + (s.country_name||'')+' · ' + (s.category||'')+' · ' + timeAgo(s.created_at) + '</div>'  
+          + '</div>'  
+          + '<span class="saved-conf" style="color:' + scoreColor + '">'  + score + '%</span>'  
+          + '</div>';
+      }).join('');
+    }
+
+    function savePref(key, val) {
+      _prefs[key] = val;
+      localStorage.setItem('xraynews_prefs', JSON.stringify(_prefs));
+    }
+
+    function saveDisplayName(name) {
+      if (!name) return;
+      document.getElementById('profile-name').textContent = name;
+      document.getElementById('profile-avatar').textContent = name.charAt(0).toUpperCase();
+      localStorage.setItem('xraynews_display_name', name);
+    }
+
+    function signOut() {
+      if (confirm('Sign out of XrayNews?')) {
+        try { window.supabase.auth.signOut(); } catch(e) {}
+        window.location.href = 'index.html';
+      }
+    }
+
+    function getFlag(code) {
+      if (!code || code.length !== 2) return '';
+      var o = 0x1F1E6 - 65;
+      return String.fromCodePoint(code.toUpperCase().charCodeAt(0)+o) + String.fromCodePoint(code.toUpperCase().charCodeAt(1)+o);
+    }
+    function esc(s) { return String(s||''').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    function timeAgo(iso) {
+      if (!iso) return '';
+      var d = Math.floor((Date.now()-new Date(iso).getTime())/1000);
+      if (d < 60) return d+'s ago'; if (d < 3600) return Math.floor(d/60)+'m ago';
+      if (d < 86400) return Math.floor(d/3600)+'h ago'; return Math.floor(d/86400)+'d ago';
+    }
+
+    // Init on load
+    window.addEventListener('load', initProfile);
+  </script>
+</body>
+</html>

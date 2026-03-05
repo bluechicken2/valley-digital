@@ -37,13 +37,15 @@ class XrayNewsDB {
   // ---- Stories --------------------------------------------------------
   async getStories(filters) {
     filters = filters || {};
-    var limit  = filters.limit  || 100;
+    var limit  = filters.limit  || 150;
+    var offset = filters.offset || 0;
     var status = filters.status || null;
     var cat    = filters.category || null;
     var params = new URLSearchParams();
     params.set('select', '*');
     params.set('order',  'created_at.desc');
     params.set('limit',  String(limit));
+    if (offset > 0) params.set('offset', String(offset));
     if (status) params.set('status', 'eq.' + status);
     if (cat)    params.set('category', 'eq.' + cat);
     return this._fetch('/stories?' + params.toString());
@@ -109,23 +111,55 @@ class XrayNewsDB {
       var ws = new WebSocket(wsUrl);
       this._realtimeWs = ws;
       ws.onopen = function() {
-        ws.send(JSON.stringify({topic:'realtime:public:stories',event:'phx_join',payload:{},ref:'1'}));
+        // Supabase realtime v2 — must declare postgres_changes in join payload
+        ws.send(JSON.stringify({
+          topic:   'realtime:public:stories',
+          event:   'phx_join',
+          payload: {
+            config: {
+              broadcast:       { self: true },
+              presence:        { key: '' },
+              postgres_changes: [{ event: '*', schema: 'public', table: 'stories' }]
+            }
+          },
+          ref: '1'
+        }));
+        // Keep-alive heartbeat every 25 seconds
+        self._heartbeatInterval = setInterval(function() {
+          if (ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({topic:'phoenix',event:'heartbeat',payload:{},ref:'hb'}));
+          }
+        }, 25000);
       };
       ws.onmessage = function(e) {
         try {
           var msg = JSON.parse(e.data);
+          // Supabase realtime v2: postgres_changes wrapped in payload.data
+          if (msg.event === 'postgres_changes' && msg.payload && msg.payload.data) {
+            var d = msg.payload.data;
+            var record = d.record || d.old_record || {};
+            var evType = (d.type || 'INSERT').toUpperCase();
+            self._realtimeCbs.forEach(function(cb) { try { cb(record, evType); } catch(err){} });
+          }
+          // Legacy v1 format fallback
           if (msg.event === 'INSERT' || msg.event === 'UPDATE' || msg.event === 'DELETE') {
             var record = (msg.payload && msg.payload.record) || (msg.payload && msg.payload.old_record) || {};
             self._realtimeCbs.forEach(function(cb) { try { cb(record, msg.event); } catch(err){} });
           }
-          if (msg.event === 'phx_reply' && msg.payload && msg.payload.status !== 'ok') {
-            console.warn('[XrayNewsDB] Realtime join issue:', msg.payload.response);
+          if (msg.event === 'phx_reply' && msg.payload) {
+            if (msg.payload.status === 'ok') {
+              console.log('[XrayNewsDB] Realtime connected ✓');
+            } else {
+              console.warn('[XrayNewsDB] Realtime join issue:', msg.payload.response);
+            }
           }
         } catch(err) { console.warn('[XrayNewsDB] WS parse error:', err); }
       };
       ws.onerror = function(err) { console.warn('[XrayNewsDB] WebSocket error', err); };
       ws.onclose = function() {
+        if (self._heartbeatInterval) clearInterval(self._heartbeatInterval);
         self._realtimeWs = null;
+        // Reconnect after 5s if callbacks still registered
         setTimeout(function() { if (self._realtimeCbs.length) self.subscribeToStories(function(){}); }, 5000);
       };
     } catch(err) {
