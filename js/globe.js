@@ -641,6 +641,7 @@ function _initSpaceElements() {
 
   _animateSatellites();
   _animateMoonFloat();
+  _startMoonOcclusionLoop(); // start moon-behind-earth occlusion check
 
   // Moon tracks zoom/pan
   try {
@@ -738,7 +739,8 @@ function toggleOutlineMode() {
     globeInst.polygonSideColor(function() { return 'rgba(0,212,255,0.25)'; });
   } else {
     // OUTLINE OFF: restore night-earth texture and full atmosphere
-    globeInst.globeImageUrl(EARTH_IMG);
+    // Append timestamp to force globe.gl to reload texture (cache-busts same URL)
+    globeInst.globeImageUrl(EARTH_IMG + '?t=' + Date.now());
     globeInst.atmosphereAltitude(0.32);
     globeInst.atmosphereColor('rgba(0,212,255,0.9)');
     globeInst.polygonStrokeColor(function() { return 'rgba(0,212,255,0.10)'; });
@@ -752,6 +754,54 @@ function toggleOutlineMode() {
 }
 
 
+
+
+// ---- Moon occlusion: hide moon when earth is in front (JS camera-based) ----
+var _moonOcclusionId = null;
+function _startMoonOcclusionLoop() {
+  if (_moonOcclusionId) return; // already running
+  function _tick() {
+    _moonOcclusionId = requestAnimationFrame(_tick);
+    if (!globeInst) return;
+    var wrap = document.getElementById('globe-moon-wrap');
+    if (!wrap) return;
+    var el  = document.getElementById('globe-container');
+    if (!el)  return;
+    var rect     = el.getBoundingClientRect();
+    var earthCX  = rect.left + rect.width  / 2;
+    var earthCY  = rect.top  + rect.height / 2;
+    // Compute earth apparent radius in screen px using Three.js camera
+    var earthR = rect.height * 0.38; // fallback
+    try {
+      var cam  = globeInst.camera();
+      var dist = cam.position.length();
+      var fovR = (cam.fov * Math.PI / 180) / 2;
+      earthR   = Math.max(30, (100 / dist) * (rect.height / 2) / Math.tan(fovR));
+    } catch(e) {}
+    // Moon screen center
+    var mRect = wrap.getBoundingClientRect();
+    var moonCX = mRect.left + mRect.width  / 2;
+    var moonCY = mRect.top  + mRect.height / 2;
+    var moonR  = mRect.width / 2;
+    var dx     = moonCX - earthCX;
+    var dy     = moonCY - earthCY;
+    var screenDist = Math.sqrt(dx * dx + dy * dy);
+    // Fade zone: start fading when moon edge approaches earth edge
+    var fadeStart = earthR - moonR * 0.5;
+    var fadeEnd   = earthR + moonR * 0.5;
+    var targetOp;
+    if (screenDist < fadeStart) {
+      targetOp = 0;  // fully behind earth
+    } else if (screenDist < fadeEnd) {
+      targetOp = (screenDist - fadeStart) / (fadeEnd - fadeStart); // fade in
+      targetOp = Math.max(0, Math.min(1, targetOp)) * 0.55;
+    } else {
+      targetOp = 0.55; // fully visible
+    }
+    wrap.style.opacity = String(targetOp);
+  }
+  _tick();
+}
 
 // ------------------------------------------------
 // Public API
