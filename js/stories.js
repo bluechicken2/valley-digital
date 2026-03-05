@@ -221,6 +221,7 @@ function renderStoryCard(story) {
       + '<span class="card-time">&#128336; ' + age + '</span>'
       + '<button class="card-expand-btn" data-id="' + escHtml(story.id) + '">&#9654; More</button>'
       + '<button class="card-save-btn" data-id="' + escHtml(story.id) + '"' + ' title="Save story">' + (_isSaved(story.id) ? '&#9733;' : '&#9734;') + '</button>'
+      + '<a class="card-detail-link" href="story.html?id=' + escHtml(story.id) + '" title="Full Xray Analysis">&#128269; Xray</a>'
     + '</div>'
     + '<div class="card-expanded" id="expanded-' + escHtml(story.id) + '" aria-hidden="true">'
       + '<div class="expanded-inner"><div class="expanded-loading">Loading sources&#8230;</div></div>'

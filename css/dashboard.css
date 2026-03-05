@@ -1905,3 +1905,26 @@
     font-size: 13px;
   }
 }
+
+/* Story detail link */
+.card-detail-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 8px;
+  background: rgba(0,212,255,0.1);
+  border: 1px solid rgba(0,212,255,0.3);
+  border-radius: 4px;
+  color: #00d4ff;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-decoration: none;
+  transition: background 0.2s, border-color 0.2s;
+  white-space: nowrap;
+}
+.card-detail-link:hover {
+  background: rgba(0,212,255,0.22);
+  border-color: #00d4ff;
+  color: #fff;
+}

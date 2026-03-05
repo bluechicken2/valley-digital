@@ -152,7 +152,7 @@ class XrayNewsDB {
           }
           if (msg.event === 'phx_reply' && msg.payload) {
             if (msg.payload.status === 'ok') {
-              console.log('[XrayNewsDB] Realtime connected ✓');
+              // console.log('[XrayNewsDB] Realtime connected ✓');
             } else {
               console.warn('[XrayNewsDB] Realtime join issue:', msg.payload.response);
             }
