@@ -1928,3 +1928,25 @@
   border-color: #00d4ff;
   color: #fff;
 }
+
+/* === GLOBE GLOW EFFECT === */
+#globe-container {
+  position: relative;
+}
+
+#globe-container::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 60%;
+  height: 60%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(ellipse at center, rgba(0, 212, 255, 0.15) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+#globe-container canvas {
+  filter: drop-shadow(0 0 30px rgba(0, 212, 255, 0.3));
+}

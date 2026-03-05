@@ -33,67 +33,66 @@ function scheduleSpinResume() {
 // Overlay colour schemes - REFINED CYAN/TEAL THEME
 // ------------------------------------------------
 var OVERLAYS = {
+  // BRIGHT NEON GLOW COLORS - countries actually glow
   all: function(heat) {
-    // Very subtle fill - glow comes from stroke
-    if (heat === 0)  return 'rgba(0,50,60,0.08)';     // inactive - dark base
-    if (heat <= 2)   return 'rgba(0,80,100,0.12)';    // low
-    if (heat <= 6)   return 'rgba(0,100,120,0.15)';   // medium-low
-    if (heat <= 10)  return 'rgba(0,120,140,0.18)';   // medium
-    if (heat <= 14)  return 'rgba(0,140,160,0.20)';   // medium-high
-    return 'rgba(0,160,180,0.22)';                     // high
+    if (heat === 0)  return 'rgba(0,212,255,0.02)';      // inactive - barely visible
+    if (heat <= 2)   return 'rgba(0,255,255,0.35)';      // low - cyan glow
+    if (heat <= 6)   return 'rgba(50,255,255,0.50)';      // medium-low
+    if (heat <= 10)  return 'rgba(100,255,255,0.65)';     // medium - bright cyan
+    if (heat <= 14)  return 'rgba(150,255,255,0.75)';     // medium-high
+    return 'rgba(200,255,255,0.85)';                       // high - white-hot glow
   },
   density: function(heat) {
-    if (heat === 0) return 'rgba(0,30,40,0.08)';
+    if (heat === 0) return 'rgba(0,212,255,0.02)';
     var t = Math.min(heat / 20, 1);
-    return 'rgba(0,80,100,' + (0.08 + t * 0.15) + ')';
+    return 'rgba(0,230,255,' + (0.15 + t * 0.70) + ')';
   },
   conflicts: function(heat, code) {
     var DEEP  = { UA:1,PS:1,IL:1,SY:1,YE:1,SD:1,MM:1,SO:1 };
     var MED   = { RU:1,IR:1,LB:1,IQ:1,LY:1,AF:1,ET:1,CD:1,ML:1,NE:1,AZ:1,PK:1 };
-    if (DEEP[code])  return 'rgba(100,30,40,0.20)';    // dark red base
-    if (MED[code])   return 'rgba(80,30,40,0.15)';
-    return 'rgba(40,30,30,0.06)';
+    if (DEEP[code])  return 'rgba(255,50,80,0.75)';       // bright red glow
+    if (MED[code])   return 'rgba(255,100,120,0.55)';
+    return 'rgba(255,150,160,0.15)';
   },
   weather: function(heat) {
-    if (heat === 0) return 'rgba(30,60,100,0.08)';
+    if (heat === 0) return 'rgba(100,180,255,0.02)';
     var t = Math.min(heat / 15, 1);
-    return 'rgba(30,80,120,' + (0.08 + t * 0.15) + ')';
+    return 'rgba(100,200,255,' + (0.15 + t * 0.70) + ')';
   },
   elections: function(heat) {
-    if (heat === 0) return 'rgba(50,30,80,0.08)';
+    if (heat === 0) return 'rgba(139,92,246,0.02)';
     var t = Math.min(heat / 15, 1);
-    return 'rgba(70,40,100,' + (0.08 + t * 0.15) + ')';
+    return 'rgba(160,110,255,' + (0.15 + t * 0.70) + ')';
   }
 };
 
-// Stroke colors for GLOW effect - these are bright and visible
 var STROKE_COLORS = {
   all: function(heat) {
-    if (heat === 0)  return 'rgba(0,212,255,0.15)';   // inactive - subtle cyan
-    if (heat <= 2)   return 'rgba(0,220,255,0.50)';   // low glow
-    if (heat <= 6)   return 'rgba(40,230,255,0.65)';   // medium-low glow
-    if (heat <= 10)  return 'rgba(80,240,255,0.75)';   // medium glow
-    if (heat <= 14)  return 'rgba(120,250,255,0.85)';  // medium-high glow
-    return 'rgba(150,255,255,0.95)';                   // high - bright glow
+    if (heat === 0)  return 'rgba(0,212,255,0.10)';
+    if (heat <= 2)   return 'rgba(0,255,255,0.60)';
+    if (heat <= 6)   return 'rgba(100,255,255,0.75)';
+    if (heat <= 10)  return 'rgba(150,255,255,0.85)';
+    if (heat <= 14)  return 'rgba(200,255,255,0.90)';
+    return 'rgba(255,255,255,0.95)';
   },
   density: function(heat) {
     var t = Math.min(heat / 20, 1);
-    return 'rgba(0,200,230,' + (0.20 + t * 0.75) + ')';
+    return 'rgba(0,230,255,' + (0.25 + t * 0.70) + ')';
   },
   conflicts: function(heat, code) {
     var DEEP  = { UA:1,PS:1,IL:1,SY:1,YE:1,SD:1,MM:1,SO:1 };
     var MED   = { RU:1,IR:1,LB:1,IQ:1,LY:1,AF:1,ET:1,CD:1,ML:1,NE:1,AZ:1,PK:1 };
-    if (DEEP[code])  return 'rgba(255,80,100,0.95)';   // bright red glow
-    if (MED[code])   return 'rgba(255,120,140,0.70)';  // medium red glow
-    return 'rgba(255,180,190,0.25)';
+    if (DEEP[code])  return 'rgba(255,100,120,0.95)';
+    if (MED[code])   return 'rgba(255,150,170,0.70)';
+    return 'rgba(255,200,210,0.30)';
   },
   weather: function(heat) {
     var t = Math.min(heat / 15, 1);
-    return 'rgba(100,180,255,' + (0.25 + t * 0.70) + ')';
+    return 'rgba(100,200,255,' + (0.25 + t * 0.70) + ')';
   },
   elections: function(heat) {
     var t = Math.min(heat / 15, 1);
-    return 'rgba(139,92,246,' + (0.25 + t * 0.70) + ')';
+    return 'rgba(160,110,255,' + (0.25 + t * 0.70) + ')';
   }
 };
 
