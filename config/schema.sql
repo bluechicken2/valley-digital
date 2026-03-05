@@ -212,3 +212,35 @@ ALTER TABLE stories ADD COLUMN IF NOT EXISTS source_name TEXT;
 ALTER TABLE stories ADD CONSTRAINT stories_external_url_unique UNIQUE (external_url);
 
 CREATE INDEX IF NOT EXISTS idx_stories_source ON stories(source_name);
+
+-- ================================================
+-- SCHEMA MIGRATION v4 — Saved Stories (Bookmarks)
+-- ================================================
+
+-- Saved stories table for user bookmarks
+CREATE TABLE IF NOT EXISTS saved_stories (
+    id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id    UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    story_id   UUID NOT NULL REFERENCES stories(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(user_id, story_id)
+);
+
+-- Index for fast user lookups
+CREATE INDEX IF NOT EXISTS idx_saved_stories_user    ON saved_stories(user_id);
+CREATE INDEX IF NOT EXISTS idx_saved_stories_story   ON saved_stories(story_id);
+CREATE INDEX IF NOT EXISTS idx_saved_stories_created ON saved_stories(created_at DESC);
+
+-- RLS for saved_stories
+ALTER TABLE saved_stories ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users read own saved stories"     ON saved_stories;
+DROP POLICY IF EXISTS "Users insert own saved stories"   ON saved_stories;
+DROP POLICY IF EXISTS "Users delete own saved stories"   ON saved_stories;
+
+CREATE POLICY "Users read own saved stories"     ON saved_stories FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users insert own saved stories"   ON saved_stories FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users delete own saved stories"   ON saved_stories FOR DELETE USING (auth.uid() = user_id);
+
+-- Enable realtime for saved_stories (optional, for live sync)
+ALTER PUBLICATION supabase_realtime ADD TABLE saved_stories;

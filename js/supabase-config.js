@@ -172,3 +172,282 @@ class XrayNewsDB {
 }
 
 window.XrayNewsDB = new XrayNewsDB();
+
+// ================================================
+// XrayNewsSaved — Bookmark sync for logged-in users
+// Falls back to localStorage for anonymous users
+// ================================================
+
+var XrayNewsSaved = (function() {
+  var LOCAL_KEY = 'xraynews_saved';
+  
+  // Get Supabase client (from auth.js)
+  function _getClient() {
+    if (typeof window._getClient === 'function') return window._getClient();
+    if (window._supaClient) return window._supaClient;
+    return null;
+  }
+  
+  // Check if user is logged in
+  async function _getCurrentUser() {
+    var client = _getClient();
+    if (!client) return null;
+    try {
+      var res = await client.auth.getUser();
+      return res.data && res.data.user ? res.data.user : null;
+    } catch(e) {
+      return null;
+    }
+  }
+  
+  // LocalStorage helpers (fallback)
+  function _getLocalSaved() {
+    try {
+      return JSON.parse(localStorage.getItem(LOCAL_KEY) || '[]');
+    } catch(e) {
+      return [];
+    }
+  }
+  
+  function _setLocalSaved(arr) {
+    try {
+      localStorage.setItem(LOCAL_KEY, JSON.stringify(arr.slice(0, 100)));
+    } catch(e) {}
+  }
+  
+  // ---- Public API ----
+  
+  // Check if a story is saved
+  async function isStorySaved(storyId) {
+    var user = await _getCurrentUser();
+    if (!user) {
+      // Anonymous: check localStorage
+      return _getLocalSaved().some(function(s) { return String(s.id) === String(storyId); });
+    }
+    
+    // Logged in: check Supabase
+    var client = _getClient();
+    if (!client) return false;
+    
+    try {
+      var resp = await client
+        .from('saved_stories')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('story_id', storyId)
+        .limit(1);
+      return resp.data && resp.data.length > 0;
+    } catch(e) {
+      console.warn('[XrayNewsSaved] isStorySaved error:', e);
+      return false;
+    }
+  }
+  
+  // Save a story
+  async function saveStory(storyId, storyMeta) {
+    var user = await _getCurrentUser();
+    
+    if (!user) {
+      // Anonymous: save to localStorage
+      var saved = _getLocalSaved();
+      var idx = saved.findIndex(function(s) { return String(s.id) === String(storyId); });
+      if (idx < 0) {
+        var meta = storyMeta || { id: storyId };
+        meta.saved_at = new Date().toISOString();
+        saved.unshift(meta);
+        _setLocalSaved(saved);
+      }
+      return { success: true, source: 'localStorage' };
+    }
+    
+    // Logged in: save to Supabase
+    var client = _getClient();
+    if (!client) return { success: false, error: 'No client' };
+    
+    try {
+      var resp = await client
+        .from('saved_stories')
+        .insert({ user_id: user.id, story_id: storyId });
+      
+      if (resp.error) {
+        // Ignore duplicate key error (already saved)
+        if (resp.error.code === '23505') {
+          return { success: true, source: 'supabase', alreadyExists: true };
+        }
+        throw resp.error;
+      }
+      
+      // Also update localStorage for offline access
+      var saved = _getLocalSaved();
+      var idx = saved.findIndex(function(s) { return String(s.id) === String(storyId); });
+      if (idx < 0) {
+        var meta = storyMeta || { id: storyId };
+        meta.saved_at = new Date().toISOString();
+        saved.unshift(meta);
+        _setLocalSaved(saved);
+      }
+      
+      return { success: true, source: 'supabase' };
+    } catch(e) {
+      console.warn('[XrayNewsSaved] saveStory error:', e);
+      return { success: false, error: e.message || 'Unknown error' };
+    }
+  }
+  
+  // Unsave a story
+  async function unsaveStory(storyId) {
+    var user = await _getCurrentUser();
+    
+    // Always remove from localStorage
+    var saved = _getLocalSaved();
+    var idx = saved.findIndex(function(s) { return String(s.id) === String(storyId); });
+    if (idx >= 0) {
+      saved.splice(idx, 1);
+      _setLocalSaved(saved);
+    }
+    
+    if (!user) {
+      return { success: true, source: 'localStorage' };
+    }
+    
+    // Logged in: remove from Supabase
+    var client = _getClient();
+    if (!client) return { success: true, source: 'localStorage' };
+    
+    try {
+      var resp = await client
+        .from('saved_stories')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('story_id', storyId);
+      
+      if (resp.error) throw resp.error;
+      
+      return { success: true, source: 'supabase' };
+    } catch(e) {
+      console.warn('[XrayNewsSaved] unsaveStory error:', e);
+      return { success: true, source: 'localStorage', supabaseError: e.message };
+    }
+  }
+  
+  // Get all saved stories
+  async function getSavedStories() {
+    var user = await _getCurrentUser();
+    
+    if (!user) {
+      // Anonymous: return from localStorage
+      return { stories: _getLocalSaved(), source: 'localStorage' };
+    }
+    
+    // Logged in: fetch from Supabase with story details
+    var client = _getClient();
+    if (!client) return { stories: _getLocalSaved(), source: 'localStorage' };
+    
+    try {
+      var resp = await client
+        .from('saved_stories')
+        .select(`
+          id,
+          created_at,
+          story_id,
+          stories (
+            id,
+            headline,
+            summary,
+            country_code,
+            country_name,
+            category,
+            xray_score,
+            status,
+            created_at
+          )
+        `)
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(100);
+      
+      if (resp.error) throw resp.error;
+      
+      // Flatten the structure
+      var stories = (resp.data || []).map(function(row) {
+        var s = row.stories || {};
+        return {
+          id: s.id || row.story_id,
+          headline: s.headline,
+          summary: s.summary,
+          country_code: s.country_code,
+          country_name: s.country_name,
+          category: s.category,
+          xray_score: s.xray_score,
+          status: s.status,
+          saved_at: row.created_at
+        };
+      }).filter(function(s) { return s.id; });
+      
+      // Sync to localStorage for offline access
+      _setLocalSaved(stories);
+      
+      return { stories: stories, source: 'supabase' };
+    } catch(e) {
+      console.warn('[XrayNewsSaved] getSavedStories error:', e);
+      return { stories: _getLocalSaved(), source: 'localStorage', error: e.message };
+    }
+  }
+  
+  // Toggle save state - returns new state (true = saved, false = unsaved)
+  async function toggleSaveStory(storyId, storyMeta) {
+    var isSaved = await isStorySaved(storyId);
+    if (isSaved) {
+      await unsaveStory(storyId);
+      return false;
+    } else {
+      await saveStory(storyId, storyMeta);
+      return true;
+    }
+  }
+  
+  // Sync localStorage to Supabase (call after login)
+  async function syncToCloud() {
+    var user = await _getCurrentUser();
+    if (!user) return { synced: 0, error: 'Not logged in' };
+    
+    var local = _getLocalSaved();
+    if (local.length === 0) return { synced: 0 };
+    
+    var client = _getClient();
+    if (!client) return { synced: 0, error: 'No client' };
+    
+    var synced = 0;
+    for (var i = 0; i < local.length; i++) {
+      var s = local[i];
+      if (!s.id) continue;
+      try {
+        var resp = await client
+          .from('saved_stories')
+          .insert({ user_id: user.id, story_id: s.id })
+          .select();
+        if (!resp.error) synced++;
+      } catch(e) {
+        // Ignore duplicates
+      }
+    }
+    
+    return { synced: synced };
+  }
+  
+  return {
+    isStorySaved: isStorySaved,
+    saveStory: saveStory,
+    unsaveStory: unsaveStory,
+    getSavedStories: getSavedStories,
+    toggleSaveStory: toggleSaveStory,
+    syncToCloud: syncToCloud,
+    // Sync access for backwards compat
+    _getLocalSaved: _getLocalSaved,
+    _isSavedLocal: function(id) {
+      return _getLocalSaved().some(function(s) { return String(s.id) === String(id); });
+    }
+  };
+})();
+
+window.XrayNewsSaved = XrayNewsSaved;

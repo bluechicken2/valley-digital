@@ -3,12 +3,27 @@
 // ================================================
 
 // ---- Save/Bookmark helpers ----
+// NOTE: These are kept for backwards compat and sync access during render
+// The actual save operations now use XrayNewsSaved (Supabase + localStorage fallback)
+
 function _getSaved() {
+  // Use XrayNewsSaved if available, otherwise direct localStorage
+  if (window.XrayNewsSaved) {
+    return window.XrayNewsSaved._getLocalSaved();
+  }
   try { return JSON.parse(localStorage.getItem('xraynews_saved') || '[]'); } catch(e) { return []; }
 }
+
 function _isSaved(id) {
+  // Sync check - uses localStorage cache for fast render
+  // For async check with Supabase, use XrayNewsSaved.isStorySaved(id)
+  if (window.XrayNewsSaved) {
+    return window.XrayNewsSaved._isSavedLocal(id);
+  }
   return _getSaved().some(function(s){ return String(s.id) === String(id); });
 }
+
+// Legacy sync toggle - kept for backwards compat, but prefer async version below
 function toggleSaveStory(story) {
   var saved = _getSaved();
   var idx = saved.findIndex(function(s){ return String(s.id) === String(story.id); });
@@ -22,6 +37,25 @@ function toggleSaveStory(story) {
     localStorage.setItem('xraynews_saved', JSON.stringify(saved));
     return true;
   }
+}
+
+// Async toggle for Supabase-backed saves - USE THIS for button handlers
+async function toggleSaveStoryAsync(story) {
+  if (window.XrayNewsSaved) {
+    var storyMeta = {
+      id: story.id,
+      headline: story.headline,
+      summary: story.summary,
+      country_code: story.country_code,
+      country_name: story.country_name,
+      category: story.category,
+      xray_score: story.xray_score,
+      status: story.status
+    };
+    return await window.XrayNewsSaved.toggleSaveStory(story.id, storyMeta);
+  }
+  // Fallback to sync version
+  return toggleSaveStory(story);
 }
 
 var CAT_COLORS = {
@@ -200,18 +234,33 @@ function renderAllCards(stories) {
       expandCard(btn.dataset.id);
     });
   });
-  // ── Save/bookmark button handlers ────────────────────
+  // ── Save/bookmark button handlers (ASYNC with Supabase) ────────────────────
   grid.querySelectorAll('.card-save-btn').forEach(function(btn) {
-    btn.addEventListener('click', function(e) {
+    btn.addEventListener('click', async function(e) {
       e.stopPropagation(); // prevent modal open
       var id    = btn.dataset.id;
       var pool  = window.NewsFeed ? window.NewsFeed.getAll() : (stories || []);
       var story = pool.find(function(s){ return String(s.id) === String(id); });
       if (!story) return;
-      var nowSaved = toggleSaveStory(story);
-      btn.innerHTML   = nowSaved ? '&#9733;' : '&#9734;';
-      btn.style.color = nowSaved ? '#ffd700' : '';
-      btn.title       = nowSaved ? 'Saved ✓' : 'Save story';
+      
+      // Show loading state
+      var origHtml = btn.innerHTML;
+      btn.disabled = true;
+      btn.style.opacity = '0.6';
+      
+      try {
+        // Use async toggle (Supabase + localStorage fallback)
+        var nowSaved = await toggleSaveStoryAsync(story);
+        btn.innerHTML   = nowSaved ? '&#9733;' : '&#9734;';
+        btn.style.color = nowSaved ? '#ffd700' : '';
+        btn.title       = nowSaved ? 'Saved ✓' : 'Save story';
+      } catch(err) {
+        console.warn('[StoryCards] Save error:', err);
+        btn.innerHTML = origHtml; // restore on error
+      } finally {
+        btn.disabled = false;
+        btn.style.opacity = '';
+      }
     });
   });
     // Card click → open modal
@@ -244,6 +293,23 @@ function renderAllCards(stories) {
     document.head.appendChild(style);
   }
   // stories-count managed by news-feed.js _applyAll()
+  
+  // Background: Refresh save states from Supabase (non-blocking)
+  if (window.XrayNewsSaved) {
+    window.XrayNewsSaved.getSavedStories().then(function(result) {
+      if (result.source === 'supabase') {
+        // Update button states based on fresh data
+        result.stories.forEach(function(savedStory) {
+          var btn = grid.querySelector('.card-save-btn[data-id="' + savedStory.id + '"]');
+          if (btn) {
+            btn.innerHTML = '&#9733;';
+            btn.style.color = '#ffd700';
+            btn.title = 'Saved ✓';
+          }
+        });
+      }
+    }).catch(function(){}); // silent fail
+  }
 }
 
 // ------------------------------------------------
@@ -310,5 +376,14 @@ window.StoryCards = {
   getStatusBadge:     getStatusBadge,
   getConfidenceColor: getConfidenceColor,
   getCategoryIcon:    getCategoryIcon,
-  getCountryFlag:     getCountryFlag
+  getCountryFlag:     getCountryFlag,
+  // Expose async save function
+  toggleSaveStoryAsync: toggleSaveStoryAsync,
+  // Expose for external refresh of save states
+  refreshSaveStates: function() {
+    if (window.XrayNewsSaved) {
+      return window.XrayNewsSaved.getSavedStories();
+    }
+    return Promise.resolve({ stories: _getSaved(), source: 'localStorage' });
+  }
 };

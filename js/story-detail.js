@@ -51,7 +51,7 @@
       contested: '⚡ CONTESTED',
       false: '✗ FALSE'
     };
-    return `<span class="xray-status-badge status-${status}">${icons[status] || status.toUpperCase()}</span>`;
+    return '<span class="xray-status-badge status-' + status + '">' + (icons[status] || status.toUpperCase()) + '</span>';
   }
   
   // Get source type icon and class
@@ -123,22 +123,22 @@
     // Category badge
     const catEl = document.getElementById('story-category');
     const catColor = story.category_color || '#00d4ff';
-    catEl.innerHTML = `${story.category_icon || '📰'} ${escHtml(story.category || 'News')}`;
+    catEl.innerHTML = (story.category_icon || '📰') + ' ' + escHtml(story.category || 'News');
     catEl.style.background = catColor + '22';
     catEl.style.color = catColor;
     
     // Country
     const flag = getCountryFlag(story.country_code);
-    document.getElementById('story-country').innerHTML = 
-      flag ? `${flag} ${escHtml(story.country_name || '')}` : '';
+    document.getElementById('story-country').innerHTML =
+      flag ? flag + ' ' + escHtml(story.country_name || '') : '';
     
     // Source
     if (story.source_name) {
-      document.getElementById('story-source').innerHTML = `📰 ${escHtml(story.source_name)}`;
+      document.getElementById('story-source').innerHTML = '📰 ' + escHtml(story.source_name);
     }
     
     // Time
-    document.getElementById('story-time').innerHTML = `🕐 ${timeAgo(story.created_at)}`;
+    document.getElementById('story-time').innerHTML = '🕐 ' + timeAgo(story.created_at);
     
     // Headline & Summary
     document.getElementById('story-headline').textContent = story.headline || '';
@@ -149,8 +149,8 @@
     const scoreColor = getScoreColor(score);
     
     document.getElementById('xray-score-value').textContent = score;
-    document.getElementById('xray-score-circle').style.background = 
-      `conic-gradient(${scoreColor} ${score * 3.6}deg, rgba(255,255,255,0.1) 0deg)`;
+    document.getElementById('xray-score-circle').style.background =
+      'conic-gradient(' + scoreColor + ' ' + (score * 3.6) + 'deg, rgba(255,255,255,0.1) 0deg)';
     document.getElementById('xray-score-circle').style.color = scoreColor;
     
     // Verdict
@@ -175,9 +175,9 @@
     }
     
     // Page title
-    document.title = `${story.headline?.slice(0, 50) || 'Story'} - XrayNews`;
+    document.title = (story.headline?.slice(0, 50) || 'Story') + ' - XrayNews';
     
-    // Save button
+    // Save button - NOW USES SUPABASE
     setupSaveButton(story);
     
     // Share button
@@ -202,15 +202,15 @@
       { label: 'Status Bonus', value: statusScore, max: 20, color: statusScore >= 0 ? '#00ff88' : '#ff4444' }
     ];
     
-    container.innerHTML = breakdown.map(item => `
-      <div class="breakdown-item">
-        <span class="breakdown-label">${item.label}</span>
-        <div class="breakdown-bar">
-          <div class="breakdown-fill" style="width:${Math.max(0, (item.value / item.max) * 100)}%;background:${item.color}"></div>
-        </div>
-        <span class="breakdown-value" style="color:${item.color}">${item.value >= 0 ? '+' : ''}${item.value}</span>
-      </div>
-    `).join('');
+    container.innerHTML = breakdown.map(function(item) {
+      return '<div class="breakdown-item">'
+        + '<span class="breakdown-label">' + escHtml(item.label) + '</span>'
+        + '<div class="breakdown-bar">'
+          + '<div class="breakdown-fill" style="width:' + Math.max(0, (item.value / item.max) * 100) + '%;background:' + item.color + '"></div>'
+        + '</div>'
+        + '<span class="breakdown-value" style="color:' + item.color + '">' + (item.value >= 0 ? '+' : '') + item.value + '</span>'
+      + '</div>';
+    }).join('');
   }
   
   // Render verification sources
@@ -220,36 +220,33 @@
     // If no verifications from DB, show the main source
     if (!verifications || verifications.length === 0) {
       const typeInfo = getSourceTypeInfo('legacy');
-      container.innerHTML = `
-        <div class="source-item">
-          <div class="source-icon ${typeInfo.class}">${typeInfo.icon}</div>
-          <div class="source-info">
-            <div class="source-name">${escHtml(story.source_name || 'Primary Source')}</div>
-            <div class="source-type">${typeInfo.label}</div>
-          </div>
-          <span class="source-agree" style="color:#00ff88">✓</span>
-          ${story.external_url ? `<a href="${escHtml(story.external_url)}" target="_blank" class="source-link">🔗</a>` : ''}
-        </div>
-      `;
+      container.innerHTML =
+        '<div class="source-item">'
+          + '<div class="source-icon ' + typeInfo.class + '">' + typeInfo.icon + '</div>'
+          + '<div class="source-info">'
+            + '<div class="source-name">' + escHtml(story.source_name || 'Primary Source') + '</div>'
+            + '<div class="source-type">' + typeInfo.label + '</div>'
+          + '</div>'
+          + '<span class="source-agree" style="color:#00ff88">✓</span>'
+          + (story.external_url ? '<a href="' + escHtml(story.external_url) + '" target="_blank" class="source-link">🔗</a>' : '')
+        + '</div>';
       return;
     }
     
-    container.innerHTML = verifications.map(v => {
+    container.innerHTML = verifications.map(function(v) {
       const typeInfo = getSourceTypeInfo(v.source_type);
       const agreeIcon = v.agrees !== false ? '✓' : '✗';
       const agreeColor = v.agrees !== false ? '#00ff88' : '#ff4444';
       
-      return `
-        <div class="source-item">
-          <div class="source-icon ${typeInfo.class}">${typeInfo.icon}</div>
-          <div class="source-info">
-            <div class="source-name">${escHtml(v.source_name || 'Unknown')}</div>
-            <div class="source-type">${typeInfo.label}</div>
-          </div>
-          <span class="source-agree" style="color:${agreeColor}">${agreeIcon}</span>
-          ${v.source_url ? `<a href="${escHtml(v.source_url)}" target="_blank" class="source-link">🔗</a>` : ''}
-        </div>
-      `;
+      return '<div class="source-item">'
+        + '<div class="source-icon ' + typeInfo.class + '">' + typeInfo.icon + '</div>'
+        + '<div class="source-info">'
+          + '<div class="source-name">' + escHtml(v.source_name || 'Unknown') + '</div>'
+          + '<div class="source-type">' + typeInfo.label + '</div>'
+        + '</div>'
+        + '<span class="source-agree" style="color:' + agreeColor + '">' + agreeIcon + '</span>'
+        + (v.source_url ? '<a href="' + escHtml(v.source_url) + '" target="_blank" class="source-link">🔗</a>' : '')
+      + '</div>';
     }).join('');
   }
   
@@ -264,8 +261,8 @@
       },
       {
         time: story.xray_score ? story.updated_at || story.created_at : null,
-        event: story.xray_score 
-          ? `Truth Engine analysis complete — Score: ${story.xray_score}`
+        event: story.xray_score
+          ? 'Truth Engine analysis complete — Score: ' + story.xray_score
           : 'Pending Truth Engine analysis'
       }
     ];
@@ -274,19 +271,19 @@
     if (story.status === 'verified') {
       events.push({
         time: story.updated_at || story.created_at,
-        event: `Status changed to ${story.status.toUpperCase()}`
+        event: 'Status changed to ' + story.status.toUpperCase()
       });
     }
     
     container.innerHTML = events
-      .filter(e => e.time)
-      .sort((a, b) => new Date(b.time) - new Date(a.time))
-      .map(e => `
-        <div class="timeline-item">
-          <div class="timeline-time">${timeAgo(e.time)}</div>
-          <div class="timeline-event">${escHtml(e.event)}</div>
-        </div>
-      `).join('');
+      .filter(function(e) { return e.time; })
+      .sort(function(a, b) { return new Date(b.time) - new Date(a.time); })
+      .map(function(e) {
+        return '<div class="timeline-item">'
+          + '<div class="timeline-time">' + timeAgo(e.time) + '</div>'
+          + '<div class="timeline-event">' + escHtml(e.event) + '</div>'
+        + '</div>';
+      }).join('');
   }
   
   // Load related stories
@@ -299,8 +296,8 @@
       
       // Filter to related (same country OR category, exclude current)
       const related = allStories
-        .filter(s => s.id !== story.id)
-        .filter(s => s.country_code === story.country_code || s.category === story.category)
+        .filter(function(s) { return s.id !== story.id; })
+        .filter(function(s) { return s.country_code === story.country_code || s.category === story.category; })
         .slice(0, 4);
       
       if (related.length === 0) {
@@ -308,17 +305,15 @@
         return;
       }
       
-      container.innerHTML = related.map(s => {
+      container.innerHTML = related.map(function(s) {
         const score = s.xray_score || s.confidence_score || 0;
         const scoreColor = getScoreColor(score);
         
-        return `
-          <a href="story.html?id=${s.id}" class="related-item">
-            <div class="related-score" style="background:${scoreColor}22;color:${scoreColor}">${score}</div>
-            <div class="related-headline">${escHtml(s.headline)}</div>
-            <span style="color:#666">→</span>
-          </a>
-        `;
+        return '<a href="story.html?id=' + s.id + '" class="related-item">'
+          + '<div class="related-score" style="background:' + scoreColor + '22;color:' + scoreColor + '">' + score + '</div>'
+          + '<div class="related-headline">' + escHtml(s.headline) + '</div>'
+          + '<span style="color:#666">→</span>'
+        + '</a>';
       }).join('');
       
     } catch(err) {
@@ -327,42 +322,77 @@
     }
   }
   
-  // Setup save button
-  function setupSaveButton(story) {
+  // Setup save button - UPDATED TO USE SUPABASE
+  async function setupSaveButton(story) {
     const btn = document.getElementById('save-btn');
     
-    // Check if already saved
-    let saved = [];
-    try {
-      saved = JSON.parse(localStorage.getItem('xraynews_saved') || '[]');
-    } catch(e) {}
+    // Check if already saved using XrayNewsSaved (async with Supabase)
+    let isSaved = false;
+    if (window.XrayNewsSaved) {
+      isSaved = await window.XrayNewsSaved.isStorySaved(story.id);
+    } else {
+      // Fallback to localStorage
+      try {
+        const saved = JSON.parse(localStorage.getItem('xraynews_saved') || '[]');
+        isSaved = saved.some(function(s) { return s.id === story.id; });
+      } catch(e) {}
+    }
     
-    const isSaved = saved.some(s => s.id === story.id);
     btn.innerHTML = isSaved ? '⭐ Saved' : '☆ Save Story';
     
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', async function() {
+      // Show loading state
+      btn.disabled = true;
+      btn.style.opacity = '0.6';
+      
       try {
-        saved = JSON.parse(localStorage.getItem('xraynews_saved') || '[]');
-      } catch(e) {}
-      
-      const idx = saved.findIndex(s => s.id === story.id);
-      if (idx >= 0) {
-        saved.splice(idx, 1);
-        btn.innerHTML = '☆ Save Story';
-      } else {
-        saved.unshift({
-          id: story.id,
-          headline: story.headline,
-          country_code: story.country_code,
-          country_name: story.country_name,
-          xray_score: story.xray_score,
-          status: story.status,
-          saved_at: new Date().toISOString()
-        });
-        btn.innerHTML = '⭐ Saved';
+        if (window.XrayNewsSaved) {
+          // Use Supabase-backed save
+          const storyMeta = {
+            id: story.id,
+            headline: story.headline,
+            summary: story.summary,
+            country_code: story.country_code,
+            country_name: story.country_name,
+            category: story.category,
+            xray_score: story.xray_score,
+            status: story.status
+          };
+          
+          const nowSaved = await window.XrayNewsSaved.toggleSaveStory(story.id, storyMeta);
+          btn.innerHTML = nowSaved ? '⭐ Saved' : '☆ Save Story';
+        } else {
+          // Fallback to localStorage
+          let saved = [];
+          try {
+            saved = JSON.parse(localStorage.getItem('xraynews_saved') || '[]');
+          } catch(e) {}
+          
+          const idx = saved.findIndex(function(s) { return s.id === story.id; });
+          if (idx >= 0) {
+            saved.splice(idx, 1);
+            btn.innerHTML = '☆ Save Story';
+          } else {
+            saved.unshift({
+              id: story.id,
+              headline: story.headline,
+              country_code: story.country_code,
+              country_name: story.country_name,
+              xray_score: story.xray_score,
+              status: story.status,
+              saved_at: new Date().toISOString()
+            });
+            btn.innerHTML = '⭐ Saved';
+          }
+          
+          localStorage.setItem('xraynews_saved', JSON.stringify(saved.slice(0, 100)));
+        }
+      } catch(err) {
+        console.error('[StoryDetail] Save error:', err);
+      } finally {
+        btn.disabled = false;
+        btn.style.opacity = '';
       }
-      
-      localStorage.setItem('xraynews_saved', JSON.stringify(saved.slice(0, 100)));
     });
   }
   
@@ -370,7 +400,7 @@
   function setupShareButton(story) {
     const btn = document.getElementById('share-btn');
     
-    btn.addEventListener('click', async () => {
+    btn.addEventListener('click', async function() {
       const shareData = {
         title: story.headline,
         text: story.summary || story.headline,
@@ -388,7 +418,7 @@
         try {
           await navigator.clipboard.writeText(window.location.href);
           btn.innerHTML = '✓ Copied!';
-          setTimeout(() => { btn.innerHTML = '📤 Share Story'; }, 2000);
+          setTimeout(function() { btn.innerHTML = '📤 Share Story'; }, 2000);
         } catch(err) {
           console.error('Could not copy:', err);
         }
