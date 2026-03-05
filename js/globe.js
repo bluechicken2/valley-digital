@@ -30,35 +30,45 @@ function scheduleSpinResume() {
 }
 
 // ------------------------------------------------
-// Overlay colour schemes
+// Overlay colour schemes - REFINED CYAN/TEAL THEME
 // ------------------------------------------------
 var OVERLAYS = {
   all: function(heat) {
-    if (heat === 0)  return 'rgba(255,255,255,0.018)';  // inactive
-    if (heat <= 2)   return 'rgba(140,40,255,0.28)';   // purple — low
-    if (heat <= 6)   return 'rgba(255,210,0,0.42)';    // yellow — medium
-    if (heat <= 14)  return 'rgba(255,120,0,0.55)';    // orange — high
-    return 'rgba(255,45,45,0.72)';                      // red — max
+    // Smooth cyan gradient from subtle to intense
+    if (heat === 0)  return 'rgba(0,212,255,0.02)';     // inactive - barely visible
+    if (heat <= 2)   return 'rgba(0,180,220,0.15)';     // low - subtle
+    if (heat <= 6)   return 'rgba(0,200,240,0.28)';     // medium-low
+    if (heat <= 10)  return 'rgba(0,212,255,0.40)';     // medium
+    if (heat <= 14)  return 'rgba(40,220,255,0.52)';    // medium-high
+    return 'rgba(80,230,255,0.65)';                      // high - bright cyan
   },
   density: function(heat) {
+    // Darker, more subtle density view
     if (heat === 0) return 'rgba(0,0,0,0.02)';
     var t = Math.min(heat / 20, 1);
-    return 'rgba(' + Math.round(t*255) + ',' + Math.round((1-t)*120) + ',' + Math.round((1-t)*255) + ',' + (0.15+t*0.5) + ')';
+    return 'rgba(0,180,220,' + (0.03 + t * 0.45) + ')';
   },
   conflicts: function(heat, code) {
     // Tier 1 — active warzone (brightest red)
     var DEEP  = { UA:1,PS:1,IL:1,SY:1,YE:1,SD:1,MM:1,SO:1 };
     // Tier 2 — heavily involved / adjacent (medium red)
     var MED   = { RU:1,IR:1,LB:1,IQ:1,LY:1,AF:1,ET:1,CD:1,ML:1,NE:1,AZ:1,PK:1 };
-    if (DEEP[code])  return 'rgba(255,55,55,0.75)';
-    if (MED[code])   return 'rgba(255,100,60,0.40)';
-    return 'rgba(255,255,255,0.015)';
+    // Refined red for conflicts but more muted
+    if (DEEP[code])  return 'rgba(255,80,100,0.70)';
+    if (MED[code])   return 'rgba(255,100,80,0.38)';
+    return 'rgba(255,255,255,0.012)';
   },
   weather: function(heat) {
-    return heat === 0 ? 'rgba(0,150,255,0.05)' : 'rgba(0,180,255,' + (0.08+Math.min(heat/15,1)*0.42) + ')';
+    // Blue for weather - refined single hue
+    if (heat === 0) return 'rgba(100,180,255,0.05)';
+    var t = Math.min(heat / 15, 1);
+    return 'rgba(100,180,255,' + (0.05 + t * 0.50) + ')';
   },
   elections: function(heat) {
-    return heat === 0 ? 'rgba(123,47,255,0.04)' : 'rgba(123,47,255,' + (0.08+Math.min(heat/15,1)*0.5) + ')';
+    // Purple for elections (site uses purple accent)
+    if (heat === 0) return 'rgba(139,92,246,0.04)';
+    var t = Math.min(heat / 15, 1);
+    return 'rgba(139,92,246,' + (0.05 + t * 0.50) + ')';
   }
 };
 
@@ -70,12 +80,14 @@ function getCapColor(feat) {
 function getSideColor(feat) {
   var code = (feat.properties && feat.properties.ISO_A2) || '';
   var heat = (countryMap[code] && countryMap[code].story_count) || 0;
-  return heat > 0 ? 'rgba(0,212,255,0.12)' : 'rgba(255,255,255,0.04)';
+  // Darker, more elegant country sides
+  return heat > 0 ? 'rgba(0,60,80,0.35)' : 'rgba(10,15,25,0.25)';
 }
 function getAltitude(feat) {
   var code = (feat.properties && feat.properties.ISO_A2) || '';
   var heat = (countryMap[code] && countryMap[code].story_count) || 0;
-  return 0.001 + Math.min(heat/20, 1) * 0.01;
+  // Slightly lower extrusion for more refined look
+  return 0.001 + Math.min(heat/25, 1) * 0.008;
 }
 
 // ------------------------------------------------
@@ -109,8 +121,8 @@ function initDashboardGlobe(containerId, onCountryClick) {
         .width(w)
         .height(h)
         .backgroundColor('rgba(0,0,0,0)')
-        .atmosphereColor('rgba(0,212,255,0.9)')
-        .atmosphereAltitude(0.32)
+        .atmosphereColor('rgba(0,200,255,0.6)')
+        .atmosphereAltitude(0.25)
         .globeImageUrl(EARTH_IMG);
 
       g(el);
@@ -200,7 +212,7 @@ function _applyPolygons(g, geoJson, onCountryClick) {
    .polygonCapColor(getCapColor)
    .polygonSideColor(getSideColor)
    .polygonAltitude(getAltitude)
-   .polygonStrokeColor(function() { return 'rgba(0,212,255,0.10)'; })
+   .polygonStrokeColor(function() { return 'rgba(0,212,255,0.06)'; })
    .onPolygonHover(function(feat) {
       var tip = document.getElementById('globe-tooltip');
       if (!tip) return;
@@ -256,8 +268,8 @@ function updateStoryPins(stories) {
         id:    s.id,
         lat:   +s.lat,
         lng:   +s.lng,
-        size:  s.is_breaking ? 0.85 : (s.confidence_score >= 71 ? 0.60 : (s.confidence_score >= 41 ? 0.45 : 0.30)),
-        color: s.is_breaking ? '#ffffff' : (s.confidence_score >= 71 ? '#00d4ff' : (s.confidence_score >= 41 ? '#ffaa00' : '#ff4444')),
+        size:  s.is_breaking ? 0.85 : (s.confidence_score >= 71 ? 0.60 : (s.confidence_score >= 51 ? 0.45 : (s.confidence_score >= 31 ? 0.35 : 0.25))),
+        color: s.is_breaking ? '#ffffff' : (s.confidence_score >= 71 ? '#00ff88' : (s.confidence_score >= 51 ? '#00d4ff' : (s.confidence_score >= 31 ? '#ffaa00' : '#ff6b6b'))),
         label: s.headline
       };
     });
@@ -770,9 +782,9 @@ function toggleOutlineMode() {
       mat.opacity = 1;
       mat.needsUpdate = true;
     }
-    globeInst.atmosphereAltitude(0.32);
-    globeInst.atmosphereColor('rgba(0,212,255,0.9)');
-    globeInst.polygonStrokeColor(function() { return 'rgba(0,212,255,0.10)'; });
+    globeInst.atmosphereAltitude(0.25);
+    globeInst.atmosphereColor('rgba(0,200,255,0.6)');
+    globeInst.polygonStrokeColor(function() { return 'rgba(0,212,255,0.06)'; });
     globeInst.polygonCapColor(getCapColor);
     globeInst.polygonSideColor(getSideColor);
     globeInst.polygonAltitude(getAltitude);
