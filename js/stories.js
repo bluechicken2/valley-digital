@@ -110,8 +110,10 @@ function renderStoryCard(story) {
   var flag       = getCountryFlag(story.country_code);
   var catIcon    = getCategoryIcon(story.category);
   var catColor   = getCategoryColor(story.category);
-  var confColor  = getConfidenceColor(story.confidence_score || 0);
-  var score      = story.confidence_score || 0;
+  var confColor  = getConfidenceColor(story.xray_score || story.confidence_score || 0);
+  var score      = story.xray_score || story.confidence_score || 0;
+  var verdict    = story.xray_verdict || '';
+  var xrayBadge  = story.xray_score ? '<span class="xray-badge" title="Scored by Xray Truth Engine">🤖 XRAY</span>' : '';
   var statusBadge = getStatusBadge(story.status);
   var breaking   = story.is_breaking
     ? '<span class="breaking-badge">&#9889; BREAKING</span>' : '';
@@ -147,11 +149,11 @@ function renderStoryCard(story) {
     + '</div>'
     + '<div class="confidence-wrap">'
       + '<div class="confidence-label-row">'
-        + '<span class="confidence-label">CONFIDENCE</span>'
+        + '<span class="confidence-label">CONFIDENCE</span>' + xrayBadge
         + '<span class="confidence-score" style="color:' + confColor + '">' + score + '%</span>'
       + '</div>'
       + '<div class="confidence-track">'
-        + '<div class="confidence-fill" data-target="' + score + '" style="background:' + confColor + ';width:0%"></div>'
+        + '<div class="confidence-fill" data-target="' + score + '" style="background:' + confColor + ';width:0%" title="' + escHtml(verdict) + '"></div>'
       + '</div>'
       + '<div class="confidence-footer">' + statusBadge + vfyHtml + '</div>'
     + '</div>'

@@ -382,13 +382,13 @@ async function gatherNews(env) {
   // Score confidence
   const toInsert = enriched.map(story => {
     const score = scoreConfidence(story, allRawItems);
-    const { sourceName, sourceTier, ...clean } = story; // strip temp fields
+    const { sourceName, sourceTier, ...clean } = { ...story, source_name: story.sourceName }; // preserve source_name before strip
     return { ...clean, confidence_score: score };
   });
 
   // Insert to Supabase
   // Base columns always present in schema
-  const BASE_COLS = ['headline','summary','country_code','country_name','lat','lng',
+  const BASE_COLS = ['headline','summary','country_code','country_name','lat','lng','source_name',
     'category','category_icon','category_color','confidence_score','is_breaking',
     'source_count','status'];
   // Extended columns (added in migration v2) — included if present in schema

@@ -1603,3 +1603,21 @@
 .legend-med    { background: rgba(255,210,0,0.8); }
 .legend-high   { background: rgba(255,120,0,0.8); }
 .legend-max    { background: rgba(255,45,45,0.9); }
+
+/* Xray Badge */
+.xray-badge {
+  font-size: 9px;
+  font-weight: 600;
+  color: #00ff88;
+  background: rgba(0,255,136,0.15);
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: help;
+}
+.xray-badge:hover {
+  background: rgba(0,255,136,0.25);
+}
+
