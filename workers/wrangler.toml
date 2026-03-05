@@ -9,4 +9,4 @@ ENVIRONMENT = "production"
 # Secret: wrangler secret put SUPABASE_SERVICE_KEY
 
 [triggers]
-crons = ["*/15 * * * *"]
+crons = ["*/5 * * * *"]

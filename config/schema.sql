@@ -165,3 +165,25 @@ CREATE TRIGGER on_auth_user_created
 -- Enable realtime
 ALTER PUBLICATION supabase_realtime ADD TABLE stories;
 ALTER PUBLICATION supabase_realtime ADD TABLE country_stats;
+
+-- ================================================
+-- SCHEMA MIGRATION v2 — Xray Intelligence Columns
+-- Run in Supabase SQL editor after initial schema
+-- ================================================
+
+-- Add article fetching + Xray verdict columns to stories
+ALTER TABLE stories
+  ADD COLUMN IF NOT EXISTS external_url     TEXT,
+  ADD COLUMN IF NOT EXISTS full_text        TEXT,
+  ADD COLUMN IF NOT EXISTS xray_verdict     TEXT,
+  ADD COLUMN IF NOT EXISTS xray_score       INTEGER DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS story_thread_id  TEXT,
+  ADD COLUMN IF NOT EXISTS article_fetched  BOOLEAN DEFAULT false;
+
+-- Indexes for Xray queries
+CREATE INDEX IF NOT EXISTS idx_stories_article_fetched ON stories(article_fetched);
+CREATE INDEX IF NOT EXISTS idx_stories_thread         ON stories(story_thread_id);
+CREATE INDEX IF NOT EXISTS idx_stories_xray_score     ON stories(xray_score DESC);
+
+-- Xray can write verdicts (service role bypasses RLS)
+-- Dashboard reads verdicts via existing public read policy
