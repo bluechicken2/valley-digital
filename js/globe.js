@@ -120,6 +120,14 @@ function initDashboardGlobe(containerId, onCountryClick) {
       ctrl.minDistance     = 160;
       ctrl.maxDistance     = 620;
 
+      // Fix render quality on high-DPI screens
+      try {
+        var renderer = g.renderer();
+        if (renderer && renderer.setPixelRatio) {
+          renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        }
+      } catch(e) { console.warn('[Globe] pixelRatio fix failed:', e.message); }
+
       // Pause spin on user interaction
       ['pointerdown','wheel','touchstart'].forEach(function(evt) {
         el.addEventListener(evt, function() {
@@ -414,31 +422,162 @@ function updateStoryArcs(stories) {
     });
 }
 
+
 // ================================================
-// Moon + Satellite Visual Feature
+// Moon + Satellite + Starfield v2
 // ================================================
-var _satAnimId = null;
-var _satStart  = null;
+var _satAnimId  = null;
+var _satStart   = null;
+var _moonFloat  = null;
+var _outlineMode = false;
+
 var SAT_ORBITS = [
-  { rx: 0.40, ry: 0.14, speed: 0.000085, phase: 0.0,  tilt: -15 },
-  { rx: 0.35, ry: 0.24, speed: 0.000052, phase: 2.09, tilt:  40 },
-  { rx: 0.44, ry: 0.11, speed: 0.000120, phase: 4.19, tilt:  -8 }
+  { rx: 0.42, ry: 0.15, speed: 0.000082, phase: 0.0,  tilt: -18 },
+  { rx: 0.36, ry: 0.25, speed: 0.000051, phase: 2.09, tilt:  38 },
+  { rx: 0.46, ry: 0.12, speed: 0.000115, phase: 4.19, tilt:  -9 }
 ];
+
+// ---- Starfield on body (behind everything) ----
+function _initBodyStarfield() {
+  if (document.getElementById('xray-starfield')) return;
+  var canvas = document.createElement('canvas');
+  canvas.id = 'xray-starfield';
+  canvas.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100vw;pointer-events:none;z-index:0;opacity:1;';
+  document.body.insertBefore(canvas, document.body.firstChild);
+
+  function draw() {
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+    var ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // 180 stars of varying sizes and brightness
+    for (var i = 0; i < 180; i++) {
+      var x = Math.random() * canvas.width;
+      var y = Math.random() * canvas.height;
+      var r = Math.random() < 0.15 ? (Math.random() * 1.8 + 0.8) : (Math.random() * 0.9 + 0.2);
+      var a = Math.random() * 0.75 + 0.15;
+      var rand = Math.random();
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      if (rand > 0.96)       ctx.fillStyle = 'rgba(0,212,255,'  + a + ')';
+      else if (rand > 0.92)  ctx.fillStyle = 'rgba(180,130,255,'+ a + ')';
+      else if (rand > 0.89)  ctx.fillStyle = 'rgba(255,220,180,'+ a + ')';
+      else                   ctx.fillStyle = 'rgba(255,255,255,'+ a + ')';
+      ctx.fill();
+      // Tiny cross-spike on larger stars
+      if (r > 1.2) {
+        ctx.strokeStyle = 'rgba(255,255,255,' + (a * 0.4) + ')';
+        ctx.lineWidth = 0.5;
+        ctx.beginPath(); ctx.moveTo(x-r*2.5,y); ctx.lineTo(x+r*2.5,y); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(x,y-r*2.5); ctx.lineTo(x,y+r*2.5); ctx.stroke();
+      }
+    }
+  }
+  draw();
+  window.addEventListener('resize', draw);
+}
+
+// ---- Canvas-rendered realistic Moon ----
+function _drawMoon(canvas, active) {
+  var ctx = canvas.getContext('2d');
+  var s = canvas.width;
+  var cx = s / 2, cy = s / 2, r = s / 2 - 2;
+  ctx.clearRect(0, 0, s, s);
+
+  // Base sphere — off-axis light source upper-left
+  var base = ctx.createRadialGradient(cx - r*0.28, cy - r*0.28, r*0.04, cx, cy, r);
+  base.addColorStop(0.0,  '#f2ede4');
+  base.addColorStop(0.25, '#d8d2c6');
+  base.addColorStop(0.55, '#a89e94');
+  base.addColorStop(0.80, '#706560');
+  base.addColorStop(1.0,  '#1a1814');
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2);
+  ctx.fillStyle = base; ctx.fill();
+
+  // Mare (dark plains) — subtle ellipses
+  var mares = [
+    {ox:-0.05, oy:-0.08, rx:0.28, ry:0.22, a:0.30},
+    {ox: 0.18, oy: 0.10, rx:0.16, ry:0.13, a:0.25},
+    {ox:-0.18, oy: 0.18, rx:0.12, ry:0.09, a:0.22}
+  ];
+  mares.forEach(function(m) {
+    ctx.save();
+    ctx.translate(cx + m.ox*r*1.6, cy + m.oy*r*1.6);
+    ctx.scale(m.rx * r, m.ry * r);
+    var mg = ctx.createRadialGradient(0,0,0,0,0,1);
+    mg.addColorStop(0,   'rgba(30,26,22,' + m.a + ')');
+    mg.addColorStop(0.7, 'rgba(30,26,22,' + (m.a*0.6) + ')');
+    mg.addColorStop(1,   'rgba(30,26,22,0)');
+    ctx.beginPath(); ctx.arc(0, 0, 1, 0, Math.PI*2);
+    ctx.fillStyle = mg; ctx.fill();
+    ctx.restore();
+  });
+
+  // Craters — rim highlight + dark floor
+  [
+    [0.30, 0.26, 0.075], [0.62, 0.32, 0.055],
+    [0.44, 0.66, 0.085], [0.70, 0.55, 0.042],
+    [0.20, 0.52, 0.062], [0.55, 0.72, 0.038]
+  ].forEach(function(c) {
+    var px = cx + (c[0]-0.5)*1.7*r;
+    var py = cy + (c[1]-0.5)*1.7*r;
+    var cr = c[2] * r;
+    if (Math.sqrt((px-cx)*(px-cx)+(py-cy)*(py-cy)) + cr > r*0.93) return;
+    // Shadow (lower-right)
+    ctx.beginPath(); ctx.arc(px+cr*0.15, py+cr*0.15, cr, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(0,0,0,0.28)'; ctx.fill();
+    // Floor
+    ctx.beginPath(); ctx.arc(px, py, cr*0.72, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(0,0,0,0.20)'; ctx.fill();
+    // Rim highlight (upper-left)
+    ctx.beginPath(); ctx.arc(px-cr*0.18, py-cr*0.18, cr, 0, Math.PI*2);
+    ctx.strokeStyle = 'rgba(255,255,255,0.16)'; ctx.lineWidth = 1; ctx.stroke();
+  });
+
+  // Terminator (day/night boundary)
+  var term = ctx.createLinearGradient(cx - r*0.4, cy, cx + r, cy);
+  term.addColorStop(0,    'rgba(0,0,0,0)');
+  term.addColorStop(0.58, 'rgba(0,0,0,0)');
+  term.addColorStop(0.80, 'rgba(0,0,0,0.50)');
+  term.addColorStop(1,    'rgba(0,0,0,0.88)');
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2);
+  ctx.fillStyle = term; ctx.fill();
+
+  // Atmosphere halo (when active)
+  if (active) {
+    var halo = ctx.createRadialGradient(cx, cy, r*0.85, cx, cy, r*1.22);
+    halo.addColorStop(0, 'rgba(210,205,190,0)');
+    halo.addColorStop(0.5, 'rgba(210,205,190,0.14)');
+    halo.addColorStop(1, 'rgba(210,205,190,0)');
+    ctx.beginPath(); ctx.arc(cx, cy, r*1.22, 0, Math.PI*2);
+    ctx.fillStyle = halo; ctx.fill();
+  }
+}
 
 function _initSpaceElements() {
   var section = document.querySelector('.globe-section');
   if (!section) return;
-  // Ensure position relative so absolute children work
-  section.style.position = 'relative';
   section.style.overflow = 'visible';
-  if (document.getElementById('globe-moon')) return; // already done
 
-  var moon = document.createElement('div');
-  moon.id        = 'globe-moon';
-  moon.className = 'globe-moon';
-  moon.title     = 'Moon';
-  section.appendChild(moon);
+  _initBodyStarfield();
 
+  if (document.getElementById('globe-moon-wrap')) return;
+
+  // Moon wrapper (for float animation)
+  var wrap = document.createElement('div');
+  wrap.id    = 'globe-moon-wrap';
+  wrap.style.cssText = 'position:absolute;top:52px;right:80px;width:54px;height:54px;pointer-events:none;z-index:8;animation:moonFloat 7s ease-in-out infinite;';
+
+  // Moon canvas
+  var mc = document.createElement('canvas');
+  mc.id     = 'globe-moon';
+  mc.width  = mc.height = 108; // 2x for retina
+  mc.style.cssText = 'width:54px;height:54px;opacity:0.55;transition:opacity 1.4s ease,filter 1.4s ease;border-radius:50%;box-shadow:0 0 10px rgba(180,170,150,0.08);';
+  _drawMoon(mc, false);
+  wrap.appendChild(mc);
+  section.appendChild(wrap);
+
+  // Satellites
   SAT_ORBITS.forEach(function(_, i) {
     var sat = document.createElement('div');
     sat.className = 'globe-satellite';
@@ -447,45 +586,23 @@ function _initSpaceElements() {
     section.appendChild(sat);
   });
 
-  // Starfield canvas
-  _initStarfield(section);
-
   _animateSatellites();
-  console.log('[Globe] Space elements initialized');
+  _animateMoonFloat();
+  console.log('[Globe] Space elements v2 initialized');
 }
 
-function _initStarfield(section) {
-  if (document.getElementById('globe-stars')) return;
-  var canvas = document.createElement('canvas');
-  canvas.id = 'globe-stars';
-  canvas.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1;opacity:0.7;';
-  section.insertBefore(canvas, section.firstChild);
-
-  function drawStars() {
-    canvas.width  = section.offsetWidth  || 800;
-    canvas.height = section.offsetHeight || 500;
-    var ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    // 120 stars
-    for (var i = 0; i < 120; i++) {
-      var x = Math.random() * canvas.width;
-      var y = Math.random() * canvas.height;
-      var r = Math.random() * 1.4 + 0.2;
-      var a = Math.random() * 0.7 + 0.2;
-      // Avoid center (globe area)
-      var cx = canvas.width/2, cy = canvas.height/2;
-      var distFromCenter = Math.sqrt(Math.pow(x-cx,2) + Math.pow(y-cy,2));
-      if (distFromCenter < Math.min(canvas.width,canvas.height) * 0.38) continue;
-      ctx.beginPath();
-      ctx.arc(x, y, r, 0, Math.PI*2);
-      // Occasionally cyan/purple tinted
-      var rand = Math.random();
-      ctx.fillStyle = rand > 0.9 ? 'rgba(0,212,255,'+a+')' : (rand > 0.8 ? 'rgba(180,120,255,'+a+')' : 'rgba(255,255,255,'+a+')');
-      ctx.fill();
-    }
+var _moonFloatY = 0;
+function _animateMoonFloat() {
+  // Subtle vertical drift
+  var wrap = document.getElementById('globe-moon-wrap');
+  if (!wrap) return;
+  // CSS keyframe handles it — just ensure the keyframe is injected
+  if (!document.getElementById('moonFloatStyle')) {
+    var s = document.createElement('style');
+    s.id = 'moonFloatStyle';
+    s.textContent = '@keyframes moonFloat{0%,100%{transform:translateY(0) rotate(-2deg);}50%{transform:translateY(-9px) rotate(2deg);}}';
+    document.head.appendChild(s);
   }
-  drawStars();
-  window.addEventListener('resize', drawStars);
 }
 
 function _animateSatellites() {
@@ -509,8 +626,8 @@ function _animateSatellites() {
       var y0 = Math.sin(angle) * o.ry * h;
       var x  = x0 * Math.cos(tiltRad) - y0 * Math.sin(tiltRad);
       var y  = x0 * Math.sin(tiltRad) + y0 * Math.cos(tiltRad);
-      sat.style.left = (cx + x - 4) + 'px';
-      sat.style.top  = (cy + y - 4) + 'px';
+      sat.style.left = (cx + x - 5) + 'px';
+      sat.style.top  = (cy + y - 5) + 'px';
     });
     _satAnimId = requestAnimationFrame(tick);
   }
@@ -530,15 +647,39 @@ function checkSpaceStories(stories) {
     var t = ((s.headline||'')+' '+(s.summary||'')).toLowerCase();
     return SAT_KW.some(function(k){ return t.indexOf(k) !== -1; });
   });
-  var moon = document.getElementById('globe-moon');
-  if (moon) {
-    moon.classList.toggle('moon-active', hasMoon);
-    moon.title = hasMoon ? 'Moon - Active Story' : 'Moon';
+  var mc = document.getElementById('globe-moon');
+  if (mc) {
+    mc.style.opacity = hasMoon ? '0.92' : '0.55';
+    mc.style.filter  = hasMoon ? 'drop-shadow(0 0 14px rgba(220,210,175,0.7)) drop-shadow(0 0 30px rgba(200,190,150,0.4))' : 'none';
+    _drawMoon(mc, hasMoon);
   }
   document.querySelectorAll('.globe-satellite').forEach(function(s){
     s.classList.toggle('sat-active', hasSat);
   });
 }
+
+// ---- Outline mode toggle ----
+function toggleOutlineMode() {
+  _outlineMode = !_outlineMode;
+  if (!globeInst) return _outlineMode;
+  if (_outlineMode) {
+    globeInst.globeImageUrl('');
+    globeInst.backgroundColor('rgba(8,11,18,1)');
+    globeInst.atmosphereAltitude(0.05);
+    globeInst.atmosphereColor('rgba(0,212,255,0.3)');
+    globeInst.polygonStrokeColor(function() { return 'rgba(0,212,255,0.55)'; });
+  } else {
+    globeInst.globeImageUrl('https://unpkg.com/three-globe/example/img/earth-night.jpg');
+    globeInst.atmosphereAltitude(0.32);
+    globeInst.atmosphereColor('rgba(0,212,255,0.9)');
+    globeInst.polygonStrokeColor(function() { return 'rgba(0,212,255,0.10)'; });
+  }
+  var btn = document.getElementById('outline-mode-btn');
+  if (btn) btn.classList.toggle('active', _outlineMode);
+  return _outlineMode;
+}
+
+
 
 // ------------------------------------------------
 // Public API
@@ -565,5 +706,7 @@ window.GlobeAPI = {
     }
     return spinEnabled;
   },
-  getSpinState: function() { return spinEnabled; }
+  getSpinState:    function() { return spinEnabled; },
+  toggleOutline:   toggleOutlineMode,
+  isOutlineMode:   function() { return _outlineMode; }
 };

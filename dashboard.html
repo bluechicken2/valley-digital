@@ -9,11 +9,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/main.css?v=8">
-  <link rel="stylesheet" href="css/dashboard.css?v=8">
+  <link rel="stylesheet" href="css/main.css?v=9">
+  <link rel="stylesheet" href="css/dashboard.css?v=9">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <!-- globe.gl loaded async in body -->
-  <script src="js/loader.js?v=8"></script>
+  <script src="js/loader.js?v=9"></script>
   <script>if(window.Loader)Loader.show();</script>
   <style>
   /* ================================================================
@@ -523,6 +523,7 @@
     <button class="overlay-btn" data-mode="conflicts">Conflicts</button>
     <button class="overlay-btn" data-mode="weather">Weather</button>
     <button class="overlay-btn" data-mode="elections">Elections</button>
+    <button class="overlay-btn outline-btn" id="outline-mode-btn" title="Toggle outline/texture mode" onclick="if(window.GlobeAPI&&window.GlobeAPI.toggleOutline)window.GlobeAPI.toggleOutline();">&#9711; Outline</button>
   </div>
     <!-- XrayNews Spin Toggle -->
     <div class="spin-toggle-wrap" id="spin-toggle-wrap">
@@ -645,13 +646,13 @@
 <!-- ================================================
      SCRIPTS
      ================================================ -->
-<script src="js/supabase-config.js?v=8"></script>
-<script src="js/auth.js?v=8"></script>
-<script src="js/globe.js?v=8"></script>
-<script src="js/news-feed.js?v=8"></script>
-<script src="js/stories.js?v=8"></script>
-<script src="js/modal.js?v=8"></script>
-<script src="js/sidebar.js?v=8"></script>
+<script src="js/supabase-config.js?v=9"></script>
+<script src="js/auth.js?v=9"></script>
+<script src="js/globe.js?v=9"></script>
+<script src="js/news-feed.js?v=9"></script>
+<script src="js/stories.js?v=9"></script>
+<script src="js/modal.js?v=9"></script>
+<script src="js/sidebar.js?v=9"></script>
 <script>
 // ================================================
 // XRAYNEWS — Dashboard Init
