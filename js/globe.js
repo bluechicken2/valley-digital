@@ -35,18 +35,18 @@ function scheduleSpinResume() {
 var OVERLAYS = {
   all: function(heat) {
     // Smooth cyan gradient from subtle to intense
-    if (heat === 0)  return 'rgba(0,212,255,0.02)';     // inactive - barely visible
-    if (heat <= 2)   return 'rgba(0,180,220,0.15)';     // low - subtle
-    if (heat <= 6)   return 'rgba(0,200,240,0.28)';     // medium-low
-    if (heat <= 10)  return 'rgba(0,212,255,0.40)';     // medium
-    if (heat <= 14)  return 'rgba(40,220,255,0.52)';    // medium-high
-    return 'rgba(80,230,255,0.65)';                      // high - bright cyan
+    if (heat === 0)  return 'rgba(0,212,255,0.08)';     // inactive - barely visible
+    if (heat <= 2)   return 'rgba(0,200,230,0.55)';     // low - subtle
+    if (heat <= 6)   return 'rgba(0,210,240,0.68)';     // medium-low
+    if (heat <= 10)  return 'rgba(20,220,250,0.78)';     // medium
+    if (heat <= 14)  return 'rgba(40,230,255,0.85)';    // medium-high
+    return 'rgba(60,240,255,0.92)';                      // high - bright cyan
   },
   density: function(heat) {
     // Darker, more subtle density view
-    if (heat === 0) return 'rgba(0,0,0,0.02)';
+    if (heat === 0) return 'rgba(0,30,40,0.15)';
     var t = Math.min(heat / 20, 1);
-    return 'rgba(0,180,220,' + (0.03 + t * 0.45) + ')';
+    return 'rgba(0,180,220,' + (0.25 + t * 0.65) + ')';
   },
   conflicts: function(heat, code) {
     // Tier 1 — active warzone (brightest red)
@@ -54,21 +54,21 @@ var OVERLAYS = {
     // Tier 2 — heavily involved / adjacent (medium red)
     var MED   = { RU:1,IR:1,LB:1,IQ:1,LY:1,AF:1,ET:1,CD:1,ML:1,NE:1,AZ:1,PK:1 };
     // Refined red for conflicts but more muted
-    if (DEEP[code])  return 'rgba(255,80,100,0.70)';
-    if (MED[code])   return 'rgba(255,100,80,0.38)';
-    return 'rgba(255,255,255,0.012)';
+    if (DEEP[code])  return 'rgba(255,80,100,0.88)';
+    if (MED[code])   return 'rgba(255,120,100,0.65)';
+    return 'rgba(255,200,200,0.08)';
   },
   weather: function(heat) {
     // Blue for weather - refined single hue
-    if (heat === 0) return 'rgba(100,180,255,0.05)';
+    if (heat === 0) return 'rgba(80,160,255,0.10)';
     var t = Math.min(heat / 15, 1);
-    return 'rgba(100,180,255,' + (0.05 + t * 0.50) + ')';
+    return 'rgba(100,180,255,' + (0.30 + t * 0.60) + ')';
   },
   elections: function(heat) {
     // Purple for elections (site uses purple accent)
-    if (heat === 0) return 'rgba(139,92,246,0.04)';
+    if (heat === 0) return 'rgba(139,92,246,0.10)';
     var t = Math.min(heat / 15, 1);
-    return 'rgba(139,92,246,' + (0.05 + t * 0.50) + ')';
+    return 'rgba(139,92,246,' + (0.30 + t * 0.60) + ')';
   }
 };
 
@@ -81,7 +81,7 @@ function getSideColor(feat) {
   var code = (feat.properties && feat.properties.ISO_A2) || '';
   var heat = (countryMap[code] && countryMap[code].story_count) || 0;
   // Darker, more elegant country sides
-  return heat > 0 ? 'rgba(0,60,80,0.35)' : 'rgba(10,15,25,0.25)';
+  return heat > 0 ? 'rgba(0,80,100,0.70)' : 'rgba(15,25,35,0.50)';
 }
 function getAltitude(feat) {
   var code = (feat.properties && feat.properties.ISO_A2) || '';
