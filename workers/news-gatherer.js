@@ -112,22 +112,22 @@ const COUNTRY_MAP = {
 
 // ---- Category Detection ------------------------------------------------
 const CATEGORY_MAP = [
-  { name: "War & Conflict",     icon: "⚔️",  color: "#ff4444",
-    terms: [/(war|attack|strike|military|troops|bomb|missile|killed|wounded|ceasefire|invasion|offensive|drone|airstrike|casualties|shelling|frontline|combat|battle|siege|sniper|artillery|armored|munitions)/i] },
-  { name: "Elections",          icon: "🗳️",  color: "#4488ff",
-    terms: [/(election|vote|ballot|polling|candidate|president|parliament|congress|senate|referendum|campaign|inauguration|primary|runoff|democracy|electoral)/i] },
-  { name: "Weather & Disaster", icon: "🌊",  color: "#ffaa00",
-    terms: [/(hurricane|typhoon|earthquake|flood|tornado|wildfire|tsunami|drought|volcano|storm|disaster|cyclone|blizzard|avalanche|landslide|magnitude|tremor)/i] },
-  { name: "Economy",            icon: "📈",  color: "#00d4ff",
-    terms: [/(gdp|inflation|recession|trade|tariff|sanctions|bank|currency|markets|stocks|bonds|interest rate|imf|world bank|economic|deficit|surplus|debt|unemployment|fed|central bank)/i] },
-  { name: "Science & Tech",     icon: "🔬",  color: "#00ff88",
-    terms: [/(nasa|spacex|satellite|rocket|iss|orbit|launch|climate|ai|artificial intelligence|nuclear|quantum|genome|vaccine|research|discovery|asteroid|probe|telescope)/i] },
-  { name: "Health",             icon: "🏥",  color: "#ff69b4",
-    terms: [/(pandemic|outbreak|virus|disease|epidemic|who|health|hospital|medical|vaccine|treatment|pathogen|quarantine|mortality|infection|variant|mpox|covid|ebola)/i] },
-  { name: "Politics",           icon: "🏛️",  color: "#7b2fff",
-    terms: [/(president|prime minister|government|parliament|minister|diplomacy|treaty|summit|sanctions|protest|coup|overthrow|assassination|rally|opposition|regime)/i] },
-  { name: "Environment",        icon: "🌿",  color: "#44ff88",
-    terms: [/(climate change|deforestation|pollution|carbon|emissions|biodiversity|species|coral|glacier|arctic|amazon|fossil fuel|renewable|solar|wind energy|cop[0-9])/i] },
+  { name: "War & Conflict", icon: "⚔️", color: "#ff4444",
+    terms: [/(war|attack|strike|military|troops|bomb|missile|killed|wounded|ceasefire|invasion|offensive|drone|airstrike|casualties|shelling|frontline|combat|battle|siege|sniper|artillery|armored|munitions|forces|conflict|headquarters|rebels|fighters|army|navy|air force|terrorist|militia|explosion|destroyed|captured|retreat|advanc|defend|weapon|soldier|gunfire|ambush|raid|hostage|prisoner|detainee|camp|base|operation)/i] },
+  { name: "Elections", icon: "🗳️", color: "#4488ff",
+    terms: [/(election|vote|ballot|polling|candidate|president|parliament|congress|senate|referendum|campaign|inauguration|primary|runoff|democracy|electoral|poll|polls|voter|voting|conservative|liberal|republican|democrat|tory|labour|moderate|leftist|right-wing|politician|lawmaker|governor|mayor|minister|chancellor)/i] },
+  { name: "Weather & Disaster", icon: "🌊", color: "#ffaa00",
+    terms: [/(hurricane|typhoon|earthquake|flood|tornado|wildfire|tsunami|drought|volcano|storm|disaster|cyclone|blizzard|avalanche|landslide|magnitude|tremor|rain|snow|hail|heatwave|cold|freeze|wildfire|fire|burning|blackout|power outage|emergency|evacuat|rescue|collapse|crash|accident|wreck|casualties|dead|injured)/i] },
+  { name: "Economy", icon: "📈", color: "#00d4ff",
+    terms: [/(gdp|inflation|recession|trade|tariff|sanctions|bank|currency|markets|stocks|bonds|interest rate|imf|world bank|economic|deficit|surplus|debt|unemployment|fed|central bank|growth|economy|financial|revenue|profit|loss|invest|investor|stock|share|price|cost|wage|salary|tax|budget|spending|consumer|retail|manufacturing|industry|production|export|import|deal|merger|acquisition|layoff|jobs|employment)/i] },
+  { name: "Science & Tech", icon: "🔬", color: "#00ff88",
+    terms: [/(nasa|spacex|satellite|rocket|iss|orbit|launch|climate|ai|artificial intelligence|nuclear|quantum|genome|vaccine|research|discovery|asteroid|probe|telescope|technology|tech|digital|cyber|software|hardware|computer|data|algorithm|robot|automation|innovation|startup|biotech|medical breakthrough|study|scientist|experiment|physics|chemistry|biology|mars|moon|space)/i] },
+  { name: "Health", icon: "🏥", color: "#ff69b4",
+    terms: [/(pandemic|outbreak|virus|disease|epidemic|who|health|hospital|medical|vaccine|treatment|pathogen|quarantine|mortality|infection|variant|mpox|covid|ebola|doctor|nurse|patient|medicine|drug|fda|clinical|trial|symptom|diagnosis|cancer|heart|surgery|mental health|therapy|addiction|overdose|opioid)/i] },
+  { name: "Politics", icon: "🏛️", color: "#7b2fff",
+    terms: [/(diplomacy|treaty|summit|protest|coup|overthrow|assassination|rally|opposition|regime|impeach|scandal|corrupt|bribe|lobby|policy|legislation|bill|law|court|judge|supreme|justice|attorney|lawsuit|trial|verdict|convict|acquit|pardon|amnesty|exile|asylum|refugee|immigration|border|deport|visa|citizenship|passport|diplomat|embassy|ambassador|foreign|ministry|secretary)/i] },
+  { name: "Environment", icon: "🌿", color: "#44ff88",
+    terms: [/(climate change|deforestation|pollution|carbon|emissions|biodiversity|species|coral|glacier|arctic|amazon|fossil fuel|renewable|solar|wind energy|cop[0-9]|environment|ecosystem|wildlife|endangered|extinct|conservation|preserve|protect|habitat|forest|ocean|sea|river|lake|wetland|drought|famine|water|air quality|waste|recycle|plastic|green|sustainable)/i] },
 ];
 
 // ---- Source Reputation -------------------------------------------------
