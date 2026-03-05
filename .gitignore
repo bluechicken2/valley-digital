@@ -38,3 +38,8 @@ logs/
 # Config with potential secrets
 config/secrets.js
 config/local-*.js
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
