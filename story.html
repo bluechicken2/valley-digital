@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Story - XrayNews</title>
+  <link rel="stylesheet" href="css/main.css?v=20">
+  <link rel="stylesheet" href="css/dashboard.css?v=20">
+  <style>
+    /* Story Detail Page Styles */
+    .story-detail-container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+    
+    .story-back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #888;
+      text-decoration: none;
+      font-size: 14px;
+      margin-bottom: 24px;
+      transition: color 0.2s;
+    }
+    .story-back-btn:hover { color: #00d4ff; }
+    
+    .story-header {
+      margin-bottom: 32px;
+    }
+    
+    .story-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    
+    .story-category {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    
+    .story-country {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+      color: #888;
+    }
+    
+    .story-headline {
+      font-size: 32px;
+      font-weight: 700;
+      line-height: 1.3;
+      margin-bottom: 16px;
+      color: #fff;
+    }
+    
+    .story-summary {
+      font-size: 18px;
+      color: #aaa;
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+    
+    /* Xray Score Panel */
+    .xray-panel {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 32px;
+    }
+    
+    .xray-panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    
+    .xray-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 18px;
+      font-weight: 600;
+    }
+    
+    .xray-badge-large {
+      background: linear-gradient(135deg, #00ff88 0%, #00d4ff 100%);
+      color: #000;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    
+    .xray-score-display {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+    
+    .xray-score-circle {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      position: relative;
+    }
+    
+    .xray-score-circle .score-value {
+      font-size: 36px;
+      line-height: 1;
+    }
+    
+    .xray-score-circle .score-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      opacity: 0.7;
+    }
+    
+    .xray-verdict {
+      flex: 1;
+    }
+    
+    .xray-verdict-label {
+      font-size: 12px;
+      color: #888;
+      margin-bottom: 4px;
+    }
+    
+    .xray-verdict-text {
+      font-size: 16px;
+      color: #fff;
+    }
+    
+    .xray-status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-top: 12px;
+    }
+    
+    .status-verified { background: rgba(0,255,136,0.15); color: #00ff88; }
+    .status-unverified { background: rgba(255,170,0,0.15); color: #ffaa00; }
+    .status-contested { background: rgba(255,68,68,0.15); color: #ff4444; }
+    .status-false { background: rgba(255,68,68,0.25); color: #ff4444; }
+    
+    /* Score Breakdown */
+    .score-breakdown {
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+    
+    .breakdown-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: #888;
+    }
+    
+    .breakdown-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    
+    .breakdown-label {
+      width: 140px;
+      font-size: 13px;
+      color: #888;
+    }
+    
+    .breakdown-bar {
+      flex: 1;
+      height: 6px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    
+    .breakdown-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.5s ease;
+    }
+    
+    .breakdown-value {
+      width: 40px;
+      text-align: right;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    
+    /* Sources Section */
+    .sources-section {
+      margin-bottom: 32px;
+    }
+    
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .sources-list {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    
+    .source-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    
+    .source-item:last-child {
+      border-bottom: none;
+    }
+    
+    .source-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+    
+    .source-legacy { background: rgba(0,212,255,0.15); color: #00d4ff; }
+    .source-official { background: rgba(0,255,136,0.15); color: #00ff88; }
+    .source-social { background: rgba(255,170,0,0.15); color: #ffaa00; }
+    .source-independent { background: rgba(123,47,255,0.15); color: #7b2fff; }
+    
+    .source-info {
+      flex: 1;
+    }
+    
+    .source-name {
+      font-weight: 500;
+      margin-bottom: 2px;
+    }
+    
+    .source-type {
+      font-size: 12px;
+      color: #666;
+    }
+    
+    .source-agree {
+      font-size: 18px;
+    }
+    
+    .source-link {
+      color: #00d4ff;
+      text-decoration: none;
+      font-size: 18px;
+    }
+    .source-link:hover { color: #00ff88; }
+    
+    /* Timeline Section */
+    .timeline-section {
+      margin-bottom: 32px;
+    }
+    
+    .timeline {
+      position: relative;
+      padding-left: 24px;
+    }
+    
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 7px;
+      top: 8px;
+      bottom: 8px;
+      width: 2px;
+      background: rgba(255,255,255,0.1);
+    }
+    
+    .timeline-item {
+      position: relative;
+      padding: 12px 0;
+      padding-left: 20px;
+    }
+    
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -20px;
+      top: 18px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #00d4ff;
+      border: 2px solid #0a0a0f;
+    }
+    
+    .timeline-time {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 4px;
+    }
+    
+    .timeline-event {
+      font-size: 14px;
+    }
+    
+    /* Related Stories */
+    .related-section {
+      margin-bottom: 32px;
+    }
+    
+    .related-list {
+      display: grid;
+      gap: 12px;
+    }
+    
+    .related-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 8px;
+      text-decoration: none;
+      color: inherit;
+      transition: background 0.2s;
+    }
+    
+    .related-item:hover {
+      background: rgba(255,255,255,0.05);
+    }
+    
+    .related-score {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+    }
+    
+    .related-headline {
+      flex: 1;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    
+    /* Actions */
+    .story-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 32px;
+    }
+    
+    .action-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+    
+    .action-primary {
+      background: linear-gradient(135deg, #00d4ff 0%, #00ff88 100%);
+      color: #000;
+    }
+    
+    .action-secondary {
+      background: rgba(255,255,255,0.05);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .action-secondary:hover {
+      background: rgba(255,255,255,0.1);
+    }
+    
+    /* Loading State */
+    .story-loading {
+      text-align: center;
+      padding: 100px 20px;
+      color: #666;
+    }
+    
+    .story-loading .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(255,255,255,0.1);
+      border-top-color: #00d4ff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Error State */
+    .story-error {
+      text-align: center;
+      padding: 100px 20px;
+    }
+    
+    .story-error h2 {
+      color: #ff4444;
+      margin-bottom: 12px;
+    }
+    
+    .story-error p {
+      color: #888;
+      margin-bottom: 24px;
+    }
+  </style>
+</head>
+<body class="story-page">
+  <div class="story-detail-container">
+    <!-- Loading State -->
+    <div id="story-loading" class="story-loading">
+      <div class="spinner"></div>
+      <p>Loading story...</p>
+    </div>
+    
+    <!-- Error State -->
+    <div id="story-error" class="story-error" style="display:none">
+      <h2>⚠️ Story Not Found</h2>
+      <p>The story you're looking for doesn't exist or has been removed.</p>
+      <a href="dashboard.html" class="action-btn action-primary">← Back to Dashboard</a>
+    </div>
+    
+    <!-- Story Content -->
+    <div id="story-content" style="display:none">
+      <a href="dashboard.html" class="story-back-btn">
+        ← Back to Dashboard
+      </a>
+      
+      <!-- Header -->
+      <div class="story-header">
+        <div class="story-meta">
+          <span id="story-category" class="story-category"></span>
+          <span id="story-country" class="story-country"></span>
+          <span id="story-source" class="story-country"></span>
+          <span id="story-time" class="story-country"></span>
+        </div>
+        <h1 id="story-headline" class="story-headline"></h1>
+        <p id="story-summary" class="story-summary"></p>
+      </div>
+      
+      <!-- Xray Panel -->
+      <div class="xray-panel">
+        <div class="xray-panel-header">
+          <div class="xray-title">
+            <span>🤖</span>
+            <span>Xray Truth Engine Analysis</span>
+            <span class="xray-badge-large">VERIFIED</span>
+          </div>
+        </div>
+        
+        <div class="xray-score-display">
+          <div id="xray-score-circle" class="xray-score-circle">
+            <span id="xray-score-value" class="score-value">--</span>
+            <span class="score-label">Score</span>
+          </div>
+          <div class="xray-verdict">
+            <div class="xray-verdict-label">VERDICT</div>
+            <div id="xray-verdict-text" class="xray-verdict-text"></div>
+            <div id="xray-status-badge" class="xray-status-badge"></div>
+          </div>
+        </div>
+        
+        <div class="score-breakdown">
+          <div class="breakdown-title">SCORE BREAKDOWN</div>
+          <div id="breakdown-list"></div>
+        </div>
+      </div>
+      
+      <!-- Sources Section -->
+      <div class="sources-section">
+        <h2 class="section-title">📰 Verification Sources</h2>
+        <div id="sources-list" class="sources-list"></div>
+      </div>
+      
+      <!-- Timeline Section -->
+      <div class="timeline-section">
+        <h2 class="section-title">📈 Story Timeline</h2>
+        <div id="story-timeline" class="timeline"></div>
+      </div>
+      
+      <!-- Related Stories -->
+      <div class="related-section">
+        <h2 class="section-title">🔗 Related Stories</h2>
+        <div id="related-list" class="related-list"></div>
+      </div>
+      
+      <!-- Actions -->
+      <div class="story-actions">
+        <a id="external-link" href="#" target="_blank" class="action-btn action-primary">
+          🔗 Read Original Article
+        </a>
+        <button id="share-btn" class="action-btn action-secondary">
+          📤 Share Story
+        </button>
+        <button id="save-btn" class="action-btn action-secondary">
+          ⭐ Save Story
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <script src="js/supabase-config.js?v=20"></script>
+  <script src="js/story-detail.js?v=20"></script>
+</body>
+</html>

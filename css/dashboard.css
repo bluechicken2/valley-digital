@@ -1621,3 +1621,14 @@
   background: rgba(0,255,136,0.25);
 }
 
+
+/* Primary action button in modal */
+.mdl-action-primary {
+  background: linear-gradient(135deg, #00d4ff 0%, #00ff88 100%) !important;
+  color: #000 !important;
+  text-decoration: none !important;
+}
+.mdl-action-primary:hover {
+  opacity: 0.9;
+}
+
