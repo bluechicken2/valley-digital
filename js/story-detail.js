@@ -171,7 +171,7 @@
     document.getElementById('xray-score-value').textContent = score;
     document.getElementById('xray-score-circle').style.background =
       'conic-gradient(' + scoreColor + ' ' + (score * 3.6) + 'deg, rgba(255,255,255,0.1) 0deg)';
-    document.getElementById('xray-score-circle').style.color = scoreColor;
+    document.getElementById('xray-score-circle').style.color = '#ffffff';
     
     // Verdict
     const verdict = story.xray_verdict || 'Pending verification by Truth Engine';
