@@ -9,11 +9,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/main.css?v=18">
-  <link rel="stylesheet" href="css/dashboard.css?v=18">
+  <link rel="stylesheet" href="css/main.css?v=19">
+  <link rel="stylesheet" href="css/dashboard.css?v=19">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <!-- globe.gl loaded async in body -->
-  <script src="js/loader.js?v=18"></script>
+  <script src="js/loader.js?v=19"></script>
   <script>if(window.Loader)Loader.show();</script>
   <style>
   /* ================================================================
@@ -640,13 +640,13 @@
 <!-- ================================================
      SCRIPTS
      ================================================ -->
-<script src="js/supabase-config.js?v=18"></script>
-<script src="js/auth.js?v=18"></script>
-<script src="js/globe.js?v=18"></script>
-<script src="js/news-feed.js?v=18"></script>
-<script src="js/stories.js?v=18"></script>
-<script src="js/modal.js?v=18"></script>
-<script src="js/sidebar.js?v=18"></script>
+<script src="js/supabase-config.js?v=19"></script>
+<script src="js/auth.js?v=19"></script>
+<script src="js/globe.js?v=19"></script>
+<script src="js/news-feed.js?v=19"></script>
+<script src="js/stories.js?v=19"></script>
+<script src="js/modal.js?v=19"></script>
+<script src="js/sidebar.js?v=19"></script>
 <script>
 // ================================================
 // XRAYNEWS — Dashboard Init
@@ -847,6 +847,61 @@
     });
   })();
 
+
+  // ============================================
+  // MOBILE MENU — Category clicks
+  // ============================================
+  (function wireMobileMenu() {
+    var mm = document.getElementById('mobile-menu');
+    var hamburger = document.getElementById('hamburger-btn');
+    var mmSearch = document.getElementById('mm-search');
+
+    // Category item clicks
+    document.querySelectorAll('[data-mm-cat]').forEach(function(item) {
+      item.addEventListener('click', function() {
+        var cat = item.dataset.mmCat || item.getAttribute('data-mm-cat');
+        if (window.NewsFeed) {
+          window.NewsFeed.filterByCategory(cat === 'all' ? 'all' : cat);
+        }
+        // Close mobile menu
+        if (mm) mm.classList.remove('mm-open');
+        if (hamburger) hamburger.setAttribute('aria-expanded','false');
+      });
+    });
+
+    // Mobile search
+    if (mmSearch) {
+      var mmTimer;
+      mmSearch.addEventListener('input', function() {
+        clearTimeout(mmTimer);
+        var q = mmSearch.value.trim();
+        mmTimer = setTimeout(function() {
+          if (!q) { if (window.NewsFeed) window.NewsFeed.filterByCategory('all'); return; }
+          // Filter cards by search query
+          if (window.NewsFeed) {
+            var hits = window.NewsFeed.searchStories(q);
+            if (window.StoryCards && hits.length) window.StoryCards.renderAll(hits);
+          }
+        }, 250);
+      });
+    }
+
+    // Hamburger toggle
+    if (hamburger && mm) {
+      hamburger.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var open = mm.classList.toggle('mm-open');
+        hamburger.setAttribute('aria-expanded', String(open));
+      });
+      // Close on outside click
+      document.addEventListener('click', function(e) {
+        if (mm.classList.contains('mm-open') && !mm.contains(e.target) && e.target !== hamburger) {
+          mm.classList.remove('mm-open');
+          hamburger.setAttribute('aria-expanded','false');
+        }
+      });
+    }
+  })();
   // ============================================
   // OVERLAY / MAP MODE BUTTONS
   // ============================================

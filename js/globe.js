@@ -1,5 +1,5 @@
 // ================================================
-// XRAYNEWS - Globe.gl Engine v2
+// XRAYNEWS - Globe.gl Engine v2 — audited & patched
 // ================================================
 
 var GEOJSON_URL = 'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson';
@@ -447,7 +447,8 @@ function updateStoryArcs(stories) {
 var _satAnimId  = null;
 var _satStart   = null;
 var _moonFloat  = null;
-var _outlineMode = false;
+var _outlineMode    = false;
+var _moonMaxOpacity = 0.55;  // updated by checkSpaceStories
 
 var SAT_ORBITS = [
   { rx: 0.42, ry: 0.15, speed: 0.000082, phase: 0.0,  tilt: -18 },
@@ -499,7 +500,8 @@ function _initBodyStarfield() {
     }
   }
   draw();
-  window.addEventListener('resize', draw);
+  var _sfRszT;
+  window.addEventListener('resize', function() { clearTimeout(_sfRszT); _sfRszT = setTimeout(draw, 200); });
 }
 
 // ---- Canvas-rendered realistic Moon ----
@@ -670,7 +672,6 @@ function _initSpaceElements() {
   console.log('[Globe] Space elements v2 initialized');
 }
 
-var _moonFloatY = 0;
 function _animateMoonFloat() {
   // Subtle vertical drift
   var wrap = document.getElementById('globe-moon-wrap');
@@ -728,7 +729,7 @@ function checkSpaceStories(stories) {
   });
   var mc = document.getElementById('globe-moon');
   if (mc) {
-    mc.style.opacity = hasMoon ? '0.92' : '0.55';
+    _moonMaxOpacity = hasMoon ? 0.92 : 0.55;  // occlusion loop reads this
     mc.style.filter  = hasMoon ? 'drop-shadow(0 0 14px rgba(220,210,175,0.7)) drop-shadow(0 0 30px rgba(200,190,150,0.4))' : 'none';
     _drawMoon(mc, hasMoon);
   }
@@ -831,9 +832,9 @@ function _startMoonOcclusionLoop() {
       targetOp = 0;  // fully behind earth
     } else if (screenDist < fadeEnd) {
       targetOp = (screenDist - fadeStart) / (fadeEnd - fadeStart); // fade in
-      targetOp = Math.max(0, Math.min(1, targetOp)) * 0.55;
+      targetOp = Math.max(0, Math.min(1, targetOp)) * _moonMaxOpacity;
     } else {
-      targetOp = 0.55; // fully visible
+      targetOp = _moonMaxOpacity; // respects checkSpaceStories active state
     }
     wrap.style.opacity = String(targetOp);
   }
