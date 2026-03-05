@@ -133,14 +133,14 @@ const COUNTRIES = [
 
 // ---- Category detection ----
 const CATEGORIES = [
-  { name: 'elections',    keys: ['election','vote','ballot','polling','referendum','campaign','political party','primary','candidate','democracy'] },
-  { name: 'war',          keys: ['war','attack','missile','airstrike','troops','military','bomb','invasion','occupation','ceasefire','offensive','killed','wounded','combat','soldier','artillery','drone strike'] },
-  { name: 'weather',      keys: ['hurricane','earthquake','flood','tornado','typhoon','cyclone','tsunami','drought','wildfire','storm','blizzard','heatwave','disaster','eruption'] },
-  { name: 'economy',      keys: ['economy','gdp','inflation','recession','trade','tariff','sanction','market','stock','oil price','interest rate','unemployment','bank','currency','imf','debt'] },
-  { name: 'politics',     keys: ['president','prime minister','parliament','government','summit','diplomatic','treaty','sanctions','senate','minister','chancellor'] },
-  { name: 'health',       keys: ['pandemic','outbreak','virus','vaccine','epidemic','who','health','disease','hospital','death toll','medical'] },
-  { name: 'science',      keys: ['nasa','space','climate','ai ','artificial intelligence','nuclear','technology','satellite','launch','research','discovery'] },
-  { name: 'environment',  keys: ['climate change','emissions','carbon','deforestation','coral reef','arctic','glacier','pollution','renewable','solar','wind farm'] },
+  { name: 'War & Conflict',     keys: ['war','attack','missile','airstrike','troops','military','bomb','invasion','occupation','ceasefire','offensive','killed','wounded','combat','soldier','artillery','drone strike','battlefield','siege','frontline'] },
+  { name: 'Elections',          keys: ['election','vote','ballot','polling','referendum','campaign','political party','primary','candidate','democracy','voter','recount','inauguration'] },
+  { name: 'Weather & Disaster', keys: ['hurricane','earthquake','flood','tornado','typhoon','cyclone','tsunami','drought','wildfire','storm','blizzard','heatwave','disaster','eruption','avalanche','landslide'] },
+  { name: 'Economy',            keys: ['economy','gdp','inflation','recession','trade','tariff','sanction','market','stock','oil price','interest rate','unemployment','bank','currency','imf','debt','fed rate','trade war','financial'] },
+  { name: 'Politics',           keys: ['president','prime minister','parliament','government','summit','diplomatic','treaty','sanctions','senate','minister','chancellor','congress','legislation','policy','diplomat'] },
+  { name: 'Health',             keys: ['pandemic','outbreak','virus','vaccine','epidemic','who','health','disease','hospital','death toll','medical','variant','pathogen','quarantine','public health'] },
+  { name: 'Science & Tech',     keys: ['nasa','space','climate','artificial intelligence','nuclear','technology','satellite','launch','research','discovery','rocket','spacecraft','ai model','quantum','genome','cern'] },
+  { name: 'Environment',        keys: ['climate change','emissions','carbon','deforestation','coral reef','arctic','glacier','pollution','renewable','solar','wind farm','net zero','species','biodiversity','plastic'] },
 ];
 
 // ---- Content filter (block junk) ----

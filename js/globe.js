@@ -622,7 +622,7 @@ function _initSpaceElements() {
   // Moon wrapper (for float animation)
   var wrap = document.createElement('div');
   wrap.id    = 'globe-moon-wrap';
-  wrap.style.cssText = 'position:absolute;top:10%;right:10%;width:54px;height:54px;pointer-events:none;z-index:8;animation:moonFloat 7s ease-in-out infinite;';
+  wrap.style.cssText = 'position:absolute;top:10%;right:10%;width:54px;height:54px;pointer-events:none;z-index:3;animation:moonFloat 7s ease-in-out infinite;';
 
   // Moon canvas
   var mc = document.createElement('canvas');
@@ -739,6 +739,10 @@ function toggleOutlineMode() {
     globeInst.atmosphereAltitude(0.32);
     globeInst.atmosphereColor('rgba(0,212,255,0.9)');
     globeInst.polygonStrokeColor(function() { return 'rgba(0,212,255,0.10)'; });
+    globeInst.polygonCapColor(getCapColor);
+    globeInst.polygonSideColor(getSideColor);
+    globeInst.polygonAltitude(getAltitude);
+    globeInst.backgroundColor('rgba(0,0,0,0)');
   }
   var btn = document.getElementById('outline-mode-btn');
   if (btn) btn.classList.toggle('active', _outlineMode);
