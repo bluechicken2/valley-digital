@@ -152,7 +152,7 @@ function parseXML(text) {
       if (!rm) return '';
       return rm[1]
         .replace(/<[^>]+>/g, ' ')
-        .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+        .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&apos;/g, "'").replace(/&nbsp;/g, ' ')
         .replace(/&quot;/g, '"').replace(/&#[0-9]+;/g, '')
         .replace(/\s+/g, ' ').trim();
     };
