@@ -40,10 +40,10 @@
   };
 
   function _activityLabel(n) {
-    if (n <= 1) return { label:'LOW',     bars:1, color:'rgba(0,212,255,0.6)'  };
-    if (n <= 4) return { label:'MEDIUM',  bars:3, color:'rgba(123,47,255,0.8)' };
-    if (n <= 8) return { label:'HIGH',    bars:5, color:'rgba(255,170,0,0.9)'  };
-    return              { label:'CRITICAL',bars:6, color:'rgba(255,68,68,1)'    };
+    if (n <= 1) return { label:'LOW',      bars:1, color:'rgba(140,40,255,0.85)' };  // purple
+    if (n <= 4) return { label:'MEDIUM',   bars:3, color:'rgba(255,210,0,0.9)'   };  // yellow
+    if (n <= 8) return { label:'HIGH',     bars:5, color:'rgba(255,120,0,0.95)'  };  // orange
+    return              { label:'CRITICAL', bars:6, color:'rgba(255,45,45,1)'     };  // red
   }
 
   function _ensure() {

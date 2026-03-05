@@ -348,6 +348,7 @@
    GLOBE SECTION
    ================================================ */
 .globe-section {
+  background-color: #080b12;
   position: relative;
   width: 100%;
   height: calc(100vh - var(--nav-height) - var(--ticker-height) * 2);
@@ -871,7 +872,7 @@
   left: 16px;
   top: 50%;
   transform: translateY(-50%);
-  z-index: 200;
+  z-index: 600;
 }
 .spin-toggle-btn {
   display: flex;
@@ -1466,7 +1467,7 @@
   position: absolute;
   top: 12px;
   left: 12px;
-  z-index: 20;
+  z-index: 600;
 }
 .spin-toggle-btn {
   background: rgba(8,11,18,0.85);

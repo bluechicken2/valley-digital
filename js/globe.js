@@ -103,7 +103,7 @@ function initDashboardGlobe(containerId, onCountryClick) {
       var g = Globe()
         .width(w)
         .height(h)
-        .backgroundColor('#080b12')
+        .backgroundColor('rgba(0,0,0,0)')
         .atmosphereColor('rgba(0,212,255,0.9)')
         .atmosphereAltitude(0.32)
         .globeImageUrl(EARTH_IMG);
@@ -128,12 +128,6 @@ function initDashboardGlobe(containerId, onCountryClick) {
           // Set canvas z-index ABOVE moon (z-index:2) so earth sphere occludes moon naturally
           // WebGL bg is transparent so stars/moon show through the empty space around earth
           if (renderer.domElement) renderer.domElement.style.zIndex = '4';
-      // Transparent background — starfield shows through
-      try {
-        globeInst.backgroundColor('rgba(0,0,0,0)');
-        var rend = globeInst.renderer();
-        if (rend) { rend.setClearColor(0x000000, 0); rend.setClearAlpha(0); }
-      } catch(e) {}
         }
       } catch(e) { console.warn('[Globe] pixelRatio fix failed:', e.message); }
 
@@ -731,21 +725,19 @@ function checkSpaceStories(stories) {
 function toggleOutlineMode() {
   _outlineMode = !_outlineMode;
   if (!globeInst) return _outlineMode;
-
-  var rend = null;
-  try { rend = globeInst.renderer(); } catch(e) {}
-
+  // NOTE: WebGL renderer was initialized with alpha:true (transparent bg).
+  // We NEVER touch renderer.setClearColor — globe.gl manages it internally.
+  // globe-section CSS dark bg (#080b12) shows through transparent canvas areas.
   if (_outlineMode) {
-    // OUTLINE ON — remove earth texture, dark bg
+    // OUTLINE ON: strip texture, show glowing cyan country borders
     globeInst.globeImageUrl('');
     globeInst.atmosphereAltitude(0.05);
     globeInst.atmosphereColor('rgba(0,212,255,0.3)');
-    globeInst.polygonStrokeColor(function() { return 'rgba(0,212,255,0.7)'; });
-    globeInst.polygonCapColor(function() { return 'rgba(0,212,255,0.08)'; });
-    globeInst.polygonSideColor(function() { return 'rgba(0,212,255,0.3)'; });
-    if (rend) rend.setClearColor(0x080b12, 1); // opaque dark bg
+    globeInst.polygonStrokeColor(function() { return 'rgba(0,212,255,0.85)'; });
+    globeInst.polygonCapColor(function() { return 'rgba(0,212,255,0.06)'; });
+    globeInst.polygonSideColor(function() { return 'rgba(0,212,255,0.25)'; });
   } else {
-    // OUTLINE OFF — restore earth texture + transparency
+    // OUTLINE OFF: restore night-earth texture and full atmosphere
     globeInst.globeImageUrl(EARTH_IMG);
     globeInst.atmosphereAltitude(0.32);
     globeInst.atmosphereColor('rgba(0,212,255,0.9)');
@@ -753,9 +745,7 @@ function toggleOutlineMode() {
     globeInst.polygonCapColor(getCapColor);
     globeInst.polygonSideColor(getSideColor);
     globeInst.polygonAltitude(getAltitude);
-    if (rend) rend.setClearColor(0x000000, 0); // transparent — stars show through
   }
-
   var btn = document.getElementById('outline-mode-btn');
   if (btn) btn.classList.toggle('active', _outlineMode);
   return _outlineMode;
