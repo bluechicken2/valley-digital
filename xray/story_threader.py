@@ -18,7 +18,7 @@ import hashlib
 
 # Configuration
 SUPABASE_URL = os.environ.get('SUPABASE_URL', 'https://dkxydhuojaspmbpjfyoz.supabase.co')
-SERVICE_KEY = os.environ.get('SUPABASE_SERVICE_KEY', os.environ.get('SUPABASE_ANON_KEY', 'sb_publishable_ydepQXbHFjFA-_TIwOYNHg_SwN0m5PL'))
+SERVICE_KEY = os.environ.get('SUPABASE_SERVICE_KEY', os.environ.get('SERVICE_ROLE_SUBABASE', os.environ.get('SUPABASE_ANON_KEY', 'sb_publishable_ydepQXbHFjFA-_TIwOYNHg_SwN0m5PL')))
 
 def get_headers():
     return {

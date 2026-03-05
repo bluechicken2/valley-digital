@@ -8,7 +8,7 @@ import urllib.request, json, time, argparse, os, re
 from datetime import datetime
 
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://dkxydhuojaspmbpjfyoz.supabase.co")
-SERVICE_KEY  = os.environ.get("SUPABASE_SERVICE_KEY", os.environ.get("SUPABASE_ANON_KEY", ""))
+SERVICE_KEY  = os.environ.get("SUPABASE_SERVICE_KEY", os.environ.get("SERVICE_ROLE_SUBABASE", os.environ.get("SUPABASE_ANON_KEY", "")))
 
 SOURCE_HIGH = ["reuters","associated press","ap news","bbc","bbc news","the guardian",
               "npr","al jazeera","dw","france24","sky news","wall street journal",
