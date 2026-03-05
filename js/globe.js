@@ -723,24 +723,42 @@ function checkSpaceStories(stories) {
 }
 
 // ---- Outline mode toggle ----
+// Saved globe material state for outline toggle
+var _savedGlobeMap   = null;
+
 function toggleOutlineMode() {
   _outlineMode = !_outlineMode;
   if (!globeInst) return _outlineMode;
-  // NOTE: WebGL renderer was initialized with alpha:true (transparent bg).
-  // We NEVER touch renderer.setClearColor — globe.gl manages it internally.
-  // globe-section CSS dark bg (#080b12) shows through transparent canvas areas.
+
+  // Use globe.gl official globeMaterial() API — direct Three.js material access
+  var mat = null;
+  try { mat = globeInst.globeMaterial(); } catch(e) {}
+
   if (_outlineMode) {
-    // OUTLINE ON: strip texture, show glowing cyan country borders
-    globeInst.globeImageUrl('');
+    // OUTLINE ON: save texture map and set near-black sphere
+    if (mat) {
+      _savedGlobeMap = mat.map || null;
+      mat.map = null;
+      mat.color.set(0x060a10);
+      mat.needsUpdate = true;
+    }
     globeInst.atmosphereAltitude(0.05);
     globeInst.atmosphereColor('rgba(0,212,255,0.3)');
     globeInst.polygonStrokeColor(function() { return 'rgba(0,212,255,0.85)'; });
-    globeInst.polygonCapColor(function() { return 'rgba(0,212,255,0.06)'; });
-    globeInst.polygonSideColor(function() { return 'rgba(0,212,255,0.25)'; });
+    globeInst.polygonCapColor(function()    { return 'rgba(0,212,255,0.06)'; });
+    globeInst.polygonSideColor(function()   { return 'rgba(0,212,255,0.25)'; });
   } else {
-    // OUTLINE OFF: restore night-earth texture and full atmosphere
-    // Append timestamp to force globe.gl to reload texture (cache-busts same URL)
-    globeInst.globeImageUrl(EARTH_IMG + '?t=' + Date.now());
+    // OUTLINE OFF: restore saved texture — instant, zero network requests
+    if (mat) {
+      if (_savedGlobeMap) {
+        mat.map = _savedGlobeMap;
+      } else {
+        // First time fallback — use globe.gl API to reload texture
+        globeInst.globeImageUrl(EARTH_IMG);
+      }
+      mat.color.set(0xffffff);
+      mat.needsUpdate = true;
+    }
     globeInst.atmosphereAltitude(0.32);
     globeInst.atmosphereColor('rgba(0,212,255,0.9)');
     globeInst.polygonStrokeColor(function() { return 'rgba(0,212,255,0.10)'; });
@@ -748,10 +766,13 @@ function toggleOutlineMode() {
     globeInst.polygonSideColor(getSideColor);
     globeInst.polygonAltitude(getAltitude);
   }
+
   var btn = document.getElementById('outline-mode-btn');
   if (btn) btn.classList.toggle('active', _outlineMode);
   return _outlineMode;
 }
+
+
 
 
 
@@ -771,12 +792,15 @@ function _startMoonOcclusionLoop() {
     var earthCX  = rect.left + rect.width  / 2;
     var earthCY  = rect.top  + rect.height / 2;
     // Compute earth apparent radius in screen px using Three.js camera
-    var earthR = rect.height * 0.38; // fallback
+    var earthR = Math.min(rect.width, rect.height) * 0.40; // fallback ~40%
     try {
       var cam  = globeInst.camera();
       var dist = cam.position.length();
       var fovR = (cam.fov * Math.PI / 180) / 2;
-      earthR   = Math.max(30, (100 / dist) * (rect.height / 2) / Math.tan(fovR));
+      var screenH = rect.height / 2;
+      // Globe radius in world units is 100 (globe.gl default)
+      earthR = (100 / dist / Math.tan(fovR)) * screenH;
+      earthR = Math.max(30, Math.min(earthR, rect.height * 0.48));
     } catch(e) {}
     // Moon screen center
     var mRect = wrap.getBoundingClientRect();
