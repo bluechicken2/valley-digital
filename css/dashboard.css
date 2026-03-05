@@ -843,7 +843,9 @@
   .nav-center { max-width: none; }
   .nav-btn    { display: none; }
   .story-grid { grid-template-columns: 1fr; }
-  .globe-section { height: calc(100vh - var(--nav-height) - var(--ticker-height) * 2); min-height: 340px; }
+  .globe-section { height: calc(100vh - var(--nav-height) - var(--ticker-height) * 2); min-height: 340px;   position: relative;
+  overflow: visible;
+}
   .globe-stats { gap: 0.65rem; padding: 0.5rem 0.75rem; }
   .stat-value  { font-size: 0.85rem; }
   .overlay-controls { top: 0.6rem; right: 0.6rem; }
@@ -1132,7 +1134,7 @@
 
 /* Body starfield canvas */
 #xray-starfield {
-  position: fixed;
+  position: absolute;
   top: 0; left: 0;
   width: 100%; height: 100%;
   pointer-events: none;
@@ -1140,16 +1142,13 @@
 }
 
 /* Make nav/content above starfield */
-.top-nav, .ticker-bar, .globe-section, .stories-section, .stats-bar {
-  position: relative;
-  z-index: 1;
-}
+/* z-index: starfield now inside .globe-section, no body-level override needed */
 
 /* Moon canvas wrapper — free-floating */
 #globe-moon-wrap {
   position: absolute;
-  top: 52px;
-  right: 80px;
+  top: 10%;
+  right: 10%;
   width: 54px;
   height: 54px;
   pointer-events: none;

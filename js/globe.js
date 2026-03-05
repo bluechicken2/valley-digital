@@ -125,6 +125,12 @@ function initDashboardGlobe(containerId, onCountryClick) {
         var renderer = g.renderer();
         if (renderer && renderer.setPixelRatio) {
           renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      // Transparent background — starfield shows through
+      try {
+        globeInst.backgroundColor('rgba(0,0,0,0)');
+        var rend = globeInst.renderer();
+        if (rend) { rend.setClearColor(0x000000, 0); rend.setClearAlpha(0); }
+      } catch(e) {}
         }
       } catch(e) { console.warn('[Globe] pixelRatio fix failed:', e.message); }
 
@@ -439,15 +445,22 @@ var SAT_ORBITS = [
 
 // ---- Starfield on body (behind everything) ----
 function _initBodyStarfield() {
+  // Remove any old body-level starfield
+  var old = document.getElementById('xray-starfield');
+  if (old && old.parentNode !== document.querySelector('.globe-section')) old.remove();
+
+  var section = document.querySelector('.globe-section');
+  if (!section) return;
   if (document.getElementById('xray-starfield')) return;
+
   var canvas = document.createElement('canvas');
   canvas.id = 'xray-starfield';
-  canvas.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100vw;pointer-events:none;z-index:0;opacity:1;';
-  document.body.insertBefore(canvas, document.body.firstChild);
+  canvas.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;';
+  section.insertBefore(canvas, section.firstChild);
 
   function draw() {
-    canvas.width  = window.innerWidth;
-    canvas.height = window.innerHeight;
+    canvas.width  = section.offsetWidth  || window.innerWidth;
+    canvas.height = section.offsetHeight || window.innerHeight;
     var ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     // 180 stars of varying sizes and brightness
@@ -554,6 +567,45 @@ function _drawMoon(canvas, active) {
   }
 }
 
+
+// ---- Moon zoom tracking ----
+var _initialCamDist = null;
+
+function _updateMoonPosition() {
+  if (!globeInst) return;
+  try {
+    var cam = globeInst.camera();
+    var section = document.querySelector('.globe-section');
+    var wrap = document.getElementById('globe-moon-wrap');
+    if (!cam || !section || !wrap) return;
+
+    var pos = cam.position;
+    var dist = Math.sqrt(pos.x*pos.x + pos.y*pos.y + pos.z*pos.z);
+    if (!_initialCamDist || _initialCamDist < 50) _initialCamDist = dist;
+
+    // zoomRatio: 1=default, >1=zoomed out, <1=zoomed in
+    var zoomRatio = dist / _initialCamDist;
+
+    var w = section.offsetWidth  || 800;
+    var h = section.offsetHeight || 500;
+    var cx = w * 0.5;
+    var cy = h * 0.5;
+
+    // Orbit radius scales WITH zoom — moon stays proportional to apparent earth size
+    var baseOrbit = Math.min(w, h) * 0.37;
+    var orbitPx   = baseOrbit * Math.max(0.4, Math.min(2.0, zoomRatio));
+    var moonSize  = 54;
+    var angle     = -0.65; // upper-right (radians)
+
+    var mx = cx + Math.cos(angle) * orbitPx;
+    var my = cy + Math.sin(angle) * orbitPx;
+
+    wrap.style.position = 'absolute';
+    wrap.style.right    = 'auto';
+    wrap.style.left     = (mx - moonSize / 2) + 'px';
+    wrap.style.top      = (my - moonSize / 2) + 'px';
+  } catch(e) {}
+}
 function _initSpaceElements() {
   var section = document.querySelector('.globe-section');
   if (!section) return;
@@ -566,7 +618,7 @@ function _initSpaceElements() {
   // Moon wrapper (for float animation)
   var wrap = document.createElement('div');
   wrap.id    = 'globe-moon-wrap';
-  wrap.style.cssText = 'position:absolute;top:52px;right:80px;width:54px;height:54px;pointer-events:none;z-index:8;animation:moonFloat 7s ease-in-out infinite;';
+  wrap.style.cssText = 'position:absolute;top:10%;right:10%;width:54px;height:54px;pointer-events:none;z-index:8;animation:moonFloat 7s ease-in-out infinite;';
 
   // Moon canvas
   var mc = document.createElement('canvas');
@@ -588,6 +640,16 @@ function _initSpaceElements() {
 
   _animateSatellites();
   _animateMoonFloat();
+
+  // Moon tracks zoom/pan
+  try {
+    var ctrl = globeInst.controls();
+    if (ctrl) {
+      ctrl.addEventListener('change', _updateMoonPosition);
+      _updateMoonPosition(); // set initial position
+    }
+  } catch(e) {}
+
   console.log('[Globe] Space elements v2 initialized');
 }
 
