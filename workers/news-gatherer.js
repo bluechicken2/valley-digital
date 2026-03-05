@@ -395,36 +395,68 @@ async function gatherNews(env) {
   const EXT_COLS  = ['external_url','full_text','xray_verdict','xray_score',
     'story_thread_id','article_fetched'];
 
+  // Final dedup within batch — by URL and headline (prevents duplicate errors)
+  const seenUrls = new Set();
+  const seenHeadlines = new Set();
+  const batchDeduped = toInsert.filter(s => {
+    if (s.external_url && seenUrls.has(s.external_url)) return false;
+    const key = s.headline.toLowerCase().replace(/[^a-z0-9]/g,'').substring(0,60);
+    if (seenHeadlines.has(key)) return false;
+    if (s.external_url) seenUrls.add(s.external_url);
+    seenHeadlines.add(key);
+    return true;
+  });
+  log.push(`After batch dedup: ${batchDeduped.length} stories`);
+
+  // Pre-filter: fetch recent external_urls from DB and filter batch locally
+  // Simple GET of last 500 URLs — no complex OR queries, no encoding issues
+  let dedupedInsert = batchDeduped;
+  try {
+    const existResp = await fetch(
+      `${SUPABASE_URL}/rest/v1/stories?select=external_url&order=created_at.desc&limit=500`,
+      { headers: { 'apikey': env.SUPABASE_SERVICE_KEY, 'Authorization': `Bearer ${env.SUPABASE_SERVICE_KEY}` } }
+    );
+    if (existResp.ok) {
+      const existing = await existResp.json();
+      const existingUrls = new Set(existing.filter(s => s.external_url).map(s => s.external_url));
+      dedupedInsert = batchDeduped.filter(s => !s.external_url || !existingUrls.has(s.external_url));
+      log.push(`Pre-filter: ${batchDeduped.length} → ${dedupedInsert.length} (${batchDeduped.length - dedupedInsert.length} already in DB)`);
+    }
+  } catch(e) {
+    log.push(`Pre-filter skipped: ${e.message}`);
+  }
+  log.push(`Ready to insert: ${dedupedInsert.length} new stories`);
+
+  // Insert stories one-at-a-time — prevents country_stats trigger
+  // 21000 error (multiple rows same country in one transaction)
   let inserted = 0;
-  if (toInsert.length > 0) {
-    // Try full insert with extended columns first
+  let insertErrors = 0;
+  for (const story of dedupedInsert) {
     try {
-      await supabase(env, 'POST', '/stories', toInsert);
-      inserted = toInsert.length;
-      log.push(`✓ Inserted: ${inserted} stories (full schema)`);
+      await supabase(env, 'POST', '/stories', [story]);
+      inserted++;
     } catch (err) {
-      if (err.message.includes('column') && err.message.includes('does not exist')) {
-        // Migration v2 not run yet — fall back to base columns only
-        log.push(`⚠ Extended cols missing, falling back to base schema`);
-        const baseInsert = toInsert.map(s => {
-          const o = {};
-          BASE_COLS.forEach(k => { if (s[k] !== undefined) o[k] = s[k]; });
-          return o;
-        });
+      const msg = err.message || '';
+      if (msg.includes('duplicate') || msg.includes('23505') || msg.includes('unique')) {
+        // Race condition — already inserted by scheduled run, skip silently
+      } else if (msg.includes('column') && msg.includes('does not exist')) {
+        // Schema not migrated — try base cols only
+        const o = {};
+        BASE_COLS.forEach(k => { if (story[k] !== undefined) o[k] = story[k]; });
         try {
-          await supabase(env, 'POST', '/stories', baseInsert);
-          inserted = baseInsert.length;
-          log.push(`✓ Inserted: ${inserted} stories (base schema)`);
-        } catch (err2) {
-          log.push(`✗ Insert error: ${err2.message}`);
-        }
+          await supabase(env, 'POST', '/stories', [o]);
+          inserted++;
+        } catch (e2) { insertErrors++; }
       } else {
-        log.push(`✗ Insert error: ${err.message}`);
+        insertErrors++;
+        if (insertErrors <= 3) log.push(`⚠ Skip: ${msg.substring(0,80)}`);
       }
     }
   }
+  if (inserted > 0)     log.push(`✓ Inserted: ${inserted} stories`);
+  if (insertErrors > 0) log.push(`⚠ Errors:   ${insertErrors} skipped`);
 
-  return { inserted, fetched, log };
+    return { inserted, fetched, candidates: candidates.length, log };
 }
 
 // ---- Worker Entry ------------------------------------------------------

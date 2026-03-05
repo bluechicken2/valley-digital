@@ -187,3 +187,28 @@ CREATE INDEX IF NOT EXISTS idx_stories_xray_score     ON stories(xray_score DESC
 
 -- Xray can write verdicts (service role bypasses RLS)
 -- Dashboard reads verdicts via existing public read policy
+
+-- ================================================
+-- SCHEMA MIGRATION v3 — Unique URL index + source_name index
+-- ================================================
+
+-- Unique partial index on external_url prevents duplicate story inserts
+CREATE UNIQUE INDEX IF NOT EXISTS idx_stories_ext_url_unique
+  ON stories(external_url)
+  WHERE external_url IS NOT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_stories_source ON stories(source_name);
+
+-- ================================================
+-- SCHEMA MIGRATION v3 — Unique constraint + source_name
+-- ================================================
+
+-- Add source_name column
+ALTER TABLE stories ADD COLUMN IF NOT EXISTS source_name TEXT;
+
+-- Proper UNIQUE CONSTRAINT on external_url
+-- Allows resolution=ignore-duplicates via PostgREST
+-- NULLs are always distinct so multiple NULL external_urls are fine
+ALTER TABLE stories ADD CONSTRAINT stories_external_url_unique UNIQUE (external_url);
+
+CREATE INDEX IF NOT EXISTS idx_stories_source ON stories(source_name);
