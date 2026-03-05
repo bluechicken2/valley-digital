@@ -34,11 +34,11 @@ function scheduleSpinResume() {
 // ------------------------------------------------
 var OVERLAYS = {
   all: function(heat) {
-    if (heat === 0)  return 'rgba(255,255,255,0.025)';
-    if (heat <= 3)   return 'rgba(0,212,255,0.15)';
-    if (heat <= 8)   return 'rgba(123,47,255,0.30)';
-    if (heat <= 15)  return 'rgba(255,170,0,0.42)';
-    return 'rgba(255,68,68,0.62)';
+    if (heat === 0)  return 'rgba(255,255,255,0.018)';  // inactive
+    if (heat <= 2)   return 'rgba(140,40,255,0.28)';   // purple — low
+    if (heat <= 6)   return 'rgba(255,210,0,0.42)';    // yellow — medium
+    if (heat <= 14)  return 'rgba(255,120,0,0.55)';    // orange — high
+    return 'rgba(255,45,45,0.72)';                      // red — max
   },
   density: function(heat) {
     if (heat === 0) return 'rgba(0,0,0,0.02)';
@@ -125,6 +125,9 @@ function initDashboardGlobe(containerId, onCountryClick) {
         var renderer = g.renderer();
         if (renderer && renderer.setPixelRatio) {
           renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+          // Set canvas z-index ABOVE moon (z-index:2) so earth sphere occludes moon naturally
+          // WebGL bg is transparent so stars/moon show through the empty space around earth
+          if (renderer.domElement) renderer.domElement.style.zIndex = '4';
       // Transparent background — starfield shows through
       try {
         globeInst.backgroundColor('rgba(0,0,0,0)');
@@ -622,7 +625,7 @@ function _initSpaceElements() {
   // Moon wrapper (for float animation)
   var wrap = document.createElement('div');
   wrap.id    = 'globe-moon-wrap';
-  wrap.style.cssText = 'position:absolute;top:10%;right:10%;width:54px;height:54px;pointer-events:none;z-index:3;animation:moonFloat 7s ease-in-out infinite;';
+  wrap.style.cssText = 'position:absolute;top:10%;right:10%;width:54px;height:54px;pointer-events:none;z-index:2;animation:moonFloat 7s ease-in-out infinite;';
 
   // Moon canvas
   var mc = document.createElement('canvas');
@@ -728,22 +731,31 @@ function checkSpaceStories(stories) {
 function toggleOutlineMode() {
   _outlineMode = !_outlineMode;
   if (!globeInst) return _outlineMode;
+
+  var rend = null;
+  try { rend = globeInst.renderer(); } catch(e) {}
+
   if (_outlineMode) {
+    // OUTLINE ON — remove earth texture, dark bg
     globeInst.globeImageUrl('');
-    globeInst.backgroundColor('rgba(8,11,18,1)');
     globeInst.atmosphereAltitude(0.05);
     globeInst.atmosphereColor('rgba(0,212,255,0.3)');
-    globeInst.polygonStrokeColor(function() { return 'rgba(0,212,255,0.55)'; });
+    globeInst.polygonStrokeColor(function() { return 'rgba(0,212,255,0.7)'; });
+    globeInst.polygonCapColor(function() { return 'rgba(0,212,255,0.08)'; });
+    globeInst.polygonSideColor(function() { return 'rgba(0,212,255,0.3)'; });
+    if (rend) rend.setClearColor(0x080b12, 1); // opaque dark bg
   } else {
-    globeInst.globeImageUrl('https://unpkg.com/three-globe/example/img/earth-night.jpg');
+    // OUTLINE OFF — restore earth texture + transparency
+    globeInst.globeImageUrl(EARTH_IMG);
     globeInst.atmosphereAltitude(0.32);
     globeInst.atmosphereColor('rgba(0,212,255,0.9)');
     globeInst.polygonStrokeColor(function() { return 'rgba(0,212,255,0.10)'; });
     globeInst.polygonCapColor(getCapColor);
     globeInst.polygonSideColor(getSideColor);
     globeInst.polygonAltitude(getAltitude);
-    globeInst.backgroundColor('rgba(0,0,0,0)');
+    if (rend) rend.setClearColor(0x000000, 0); // transparent — stars show through
   }
+
   var btn = document.getElementById('outline-mode-btn');
   if (btn) btn.classList.toggle('active', _outlineMode);
   return _outlineMode;
