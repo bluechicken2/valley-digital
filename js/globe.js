@@ -30,83 +30,35 @@ function scheduleSpinResume() {
 }
 
 // ------------------------------------------------
-// Overlay colour schemes - REFINED CYAN/TEAL THEME
+// Overlay colour schemes
 // ------------------------------------------------
 var OVERLAYS = {
-  // Subtle glow - visible but not grainy
   all: function(heat) {
-    if (heat === 0)  return 'rgba(0,0,0,0)';            // transparent - no overlay
-    if (heat <= 2)   return 'rgba(0,200,230,0.25)';     // subtle cyan
-    if (heat <= 6)   return 'rgba(0,210,240,0.35)';     // subtle cyan
-    if (heat <= 10)  return 'rgba(0,220,250,0.40)';     // subtle cyan
-    if (heat <= 14)  return 'rgba(50,230,255,0.45)';    // subtle cyan
-    return 'rgba(100,240,255,0.50)';                      // subtle cyan
+    if (heat === 0)  return 'rgba(0,0,0,0)';  // inactive
+    if (heat <= 2)   return 'rgba(0,200,230,0.25)';   // purple — low
+    if (heat <= 6)   return 'rgba(0,210,240,0.35)';    // yellow — medium
+    if (heat <= 14)  return 'rgba(0,220,250,0.40)';    // orange — high
+    return 'rgba(100,240,255,0.50)';                      // red — max
   },
   density: function(heat) {
-    if (heat === 0) return 'rgba(0,0,0,0)';
+    if (heat === 0) return 'rgba(0,0,0,0.02)';
     var t = Math.min(heat / 20, 1);
-    return 'rgba(0,200,230,' + (0.15 + t * 0.35) + ')';
+    return 'rgba(' + Math.round(t*255) + ',' + Math.round((1-t)*120) + ',' + Math.round((1-t)*255) + ',' + (0.15+t*0.5) + ')';
   },
   conflicts: function(heat, code) {
+    // Tier 1 — active warzone (brightest red)
     var DEEP  = { UA:1,PS:1,IL:1,SY:1,YE:1,SD:1,MM:1,SO:1 };
+    // Tier 2 — heavily involved / adjacent (medium red)
     var MED   = { RU:1,IR:1,LB:1,IQ:1,LY:1,AF:1,ET:1,CD:1,ML:1,NE:1,AZ:1,PK:1 };
-    if (DEEP[code])  return 'rgba(255,80,100,0.45)';     // subtle red
-    if (MED[code])   return 'rgba(255,120,140,0.35)';
-    return 'rgba(0,0,0,0)';
+    if (DEEP[code])  return 'rgba(255,55,55,0.75)';
+    if (MED[code])   return 'rgba(255,100,60,0.40)';
+    return 'rgba(255,255,255,0.015)';
   },
   weather: function(heat) {
-    if (heat === 0) return 'rgba(0,0,0,0)';
-    var t = Math.min(heat / 15, 1);
-    return 'rgba(100,180,255,' + (0.15 + t * 0.35) + ')';
+    return heat === 0 ? 'rgba(0,150,255,0.05)' : 'rgba(0,180,255,' + (0.08+Math.min(heat/15,1)*0.42) + ')';
   },
   elections: function(heat) {
-    if (heat === 0) return 'rgba(0,0,0,0)';
-    var t = Math.min(heat / 15, 1);
-    return 'rgba(139,92,246,' + (0.15 + t * 0.35) + ')';
-  }
-};
-
-var STROKE_COLORS = {
-  all: function(heat) {
-    // Visible borders for all countries
-    if (heat === 0)  return 'rgba(0,180,220,0.20)';    // subtle border for inactive
-    if (heat <= 2)   return 'rgba(0,200,240,0.35)';    // visible border
-    if (heat <= 6)   return 'rgba(0,210,250,0.45)';    // brighter border
-    if (heat <= 10)  return 'rgba(50,220,255,0.55)';    // bright border
-    return 'rgba(100,230,255,0.60)';                     // brightest border
-  },
-  density: function(heat) {
-    var t = Math.min(heat / 20, 1);
-    return 'rgba(0,200,240,' + (0.25 + t * 0.35) + ')';
-  },
-  conflicts: function(heat, code) {
-    var DEEP  = { UA:1,PS:1,IL:1,SY:1,YE:1,SD:1,MM:1,SO:1 };
-    var MED   = { RU:1,IR:1,LB:1,IQ:1,LY:1,AF:1,ET:1,CD:1,ML:1,NE:1,AZ:1,PK:1 };
-    if (DEEP[code])  return 'rgba(255,100,120,0.60)';
-    if (MED[code])   return 'rgba(255,150,170,0.45)';
-    return 'rgba(100,100,100,0.15)';
-  },
-  weather: function(heat) {
-    var t = Math.min(heat / 15, 1);
-    return 'rgba(100,200,255,' + (0.25 + t * 0.35) + ')';
-  },
-  elections: function(heat) {
-    var t = Math.min(heat / 15, 1);
-    return 'rgba(160,110,255,' + (0.25 + t * 0.35) + ')';
-  }
-};
-    var MED   = { RU:1,IR:1,LB:1,IQ:1,LY:1,AF:1,ET:1,CD:1,ML:1,NE:1,AZ:1,PK:1 };
-    if (DEEP[code])  return 'rgba(255,100,120,0.55)';
-    if (MED[code])   return 'rgba(255,150,170,0.40)';
-    return 'rgba(0,0,0,0)';
-  },
-  weather: function(heat) {
-    var t = Math.min(heat / 15, 1);
-    return 'rgba(100,200,255,' + (0.20 + t * 0.35) + ')';
-  },
-  elections: function(heat) {
-    var t = Math.min(heat / 15, 1);
-    return 'rgba(160,110,255,' + (0.20 + t * 0.35) + ')';
+    return heat === 0 ? 'rgba(123,47,255,0.04)' : 'rgba(123,47,255,' + (0.08+Math.min(heat/15,1)*0.5) + ')';
   }
 };
 
@@ -118,22 +70,12 @@ function getCapColor(feat) {
 function getSideColor(feat) {
   var code = (feat.properties && feat.properties.ISO_A2) || '';
   var heat = (countryMap[code] && countryMap[code].story_count) || 0;
-  // Darker country sides for glow contrast
-  return heat > 0 ? 'rgba(0,40,50,0.50)' : 'rgba(10,15,20,0.35)';
+  return heat > 0 ? 'rgba(0,212,255,0.12)' : 'rgba(255,255,255,0.04)';
 }
-
-function getStrokeColor(feat) {
-  var code = (feat.properties && feat.properties.ISO_A2) || '';
-  var heat = (countryMap[code] && countryMap[code].story_count) || 0;
-  // Bright stroke creates the glow effect
-  return (STROKE_COLORS[currentOverlay] || STROKE_COLORS.all)(heat, code);
-}
-
 function getAltitude(feat) {
   var code = (feat.properties && feat.properties.ISO_A2) || '';
   var heat = (countryMap[code] && countryMap[code].story_count) || 0;
-  // Slightly lower extrusion for more refined look
-  return 0.001 + Math.min(heat/25, 1) * 0.008;
+  return 0.001 + Math.min(heat/20, 1) * 0.01;
 }
 
 // ------------------------------------------------
@@ -167,8 +109,8 @@ function initDashboardGlobe(containerId, onCountryClick) {
         .width(w)
         .height(h)
         .backgroundColor('rgba(0,0,0,0)')
-        .atmosphereColor('rgba(0,200,255,0.6)')
-        .atmosphereAltitude(0.25)
+        .atmosphereColor('rgba(0,212,255,0.9)')
+        .atmosphereAltitude(0.32)
         .globeImageUrl(EARTH_IMG);
 
       g(el);
@@ -258,7 +200,7 @@ function _applyPolygons(g, geoJson, onCountryClick) {
    .polygonCapColor(getCapColor)
    .polygonSideColor(getSideColor)
    .polygonAltitude(getAltitude)
-   .polygonStrokeColor(getStrokeColor)
+   .polygonStrokeColor(function() { return 'rgba(0,200,230,0.35)'; })
    .onPolygonHover(function(feat) {
       var tip = document.getElementById('globe-tooltip');
       if (!tip) return;
@@ -314,8 +256,8 @@ function updateStoryPins(stories) {
         id:    s.id,
         lat:   +s.lat,
         lng:   +s.lng,
-        size:  s.is_breaking ? 0.85 : (s.confidence_score >= 71 ? 0.60 : (s.confidence_score >= 51 ? 0.45 : (s.confidence_score >= 31 ? 0.35 : 0.25))),
-        color: s.is_breaking ? '#ffffff' : (s.confidence_score >= 71 ? '#00ff88' : (s.confidence_score >= 51 ? '#00d4ff' : (s.confidence_score >= 31 ? '#ffaa00' : '#ff6b6b'))),
+        size:  s.is_breaking ? 0.85 : (s.confidence_score >= 71 ? 0.60 : (s.confidence_score >= 41 ? 0.45 : 0.30)),
+        color: s.is_breaking ? '#ffffff' : (s.confidence_score >= 71 ? '#00d4ff' : (s.confidence_score >= 41 ? '#ffaa00' : '#ff4444')),
         label: s.headline
       };
     });
@@ -817,7 +759,7 @@ function toggleOutlineMode() {
     }
     globeInst.atmosphereAltitude(0.01);
     globeInst.atmosphereColor('rgba(0,212,255,0.08)');
-    globeInst.polygonStrokeColor(function(feat) { return 'rgba(0,255,255,0.95)'; });
+    globeInst.polygonStrokeColor(function() { return 'rgba(0,212,255,0.95)'; });
     globeInst.polygonCapColor(function()    { return 'rgba(0,212,255,0.04)'; });
     globeInst.polygonSideColor(function()   { return 'rgba(0,212,255,0.12)'; });
     globeInst.polygonAltitude(0.004);
@@ -828,9 +770,9 @@ function toggleOutlineMode() {
       mat.opacity = 1;
       mat.needsUpdate = true;
     }
-    globeInst.atmosphereAltitude(0.25);
-    globeInst.atmosphereColor('rgba(0,200,255,0.6)');
-    globeInst.polygonStrokeColor(getStrokeColor);
+    globeInst.atmosphereAltitude(0.32);
+    globeInst.atmosphereColor('rgba(0,212,255,0.9)');
+    globeInst.polygonStrokeColor(function() { return 'rgba(0,200,230,0.35)'; });
     globeInst.polygonCapColor(getCapColor);
     globeInst.polygonSideColor(getSideColor);
     globeInst.polygonAltitude(getAltitude);
