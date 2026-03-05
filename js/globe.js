@@ -33,54 +33,80 @@ function scheduleSpinResume() {
 // Overlay colour schemes - REFINED CYAN/TEAL THEME
 // ------------------------------------------------
 var OVERLAYS = {
-  // SOLID colors - no graininess, no see-through
+  // Subtle glow - visible but not grainy
   all: function(heat) {
     if (heat === 0)  return 'rgba(0,0,0,0)';            // transparent - no overlay
-    if (heat <= 2)   return 'rgba(0,200,230,0.75)';     // solid cyan
-    if (heat <= 6)   return 'rgba(0,210,240,0.80)';     // solid cyan
-    if (heat <= 10)  return 'rgba(0,220,250,0.85)';     // solid cyan
-    if (heat <= 14)  return 'rgba(50,230,255,0.88)';    // solid cyan
-    return 'rgba(100,240,255,0.90)';                      // solid cyan
+    if (heat <= 2)   return 'rgba(0,200,230,0.25)';     // subtle cyan
+    if (heat <= 6)   return 'rgba(0,210,240,0.35)';     // subtle cyan
+    if (heat <= 10)  return 'rgba(0,220,250,0.40)';     // subtle cyan
+    if (heat <= 14)  return 'rgba(50,230,255,0.45)';    // subtle cyan
+    return 'rgba(100,240,255,0.50)';                      // subtle cyan
   },
   density: function(heat) {
     if (heat === 0) return 'rgba(0,0,0,0)';
     var t = Math.min(heat / 20, 1);
-    return 'rgba(0,200,230,' + (0.50 + t * 0.40) + ')';
+    return 'rgba(0,200,230,' + (0.15 + t * 0.35) + ')';
   },
   conflicts: function(heat, code) {
     var DEEP  = { UA:1,PS:1,IL:1,SY:1,YE:1,SD:1,MM:1,SO:1 };
     var MED   = { RU:1,IR:1,LB:1,IQ:1,LY:1,AF:1,ET:1,CD:1,ML:1,NE:1,AZ:1,PK:1 };
-    if (DEEP[code])  return 'rgba(255,80,100,0.85)';     // solid red
-    if (MED[code])   return 'rgba(255,120,140,0.70)';
+    if (DEEP[code])  return 'rgba(255,80,100,0.45)';     // subtle red
+    if (MED[code])   return 'rgba(255,120,140,0.35)';
     return 'rgba(0,0,0,0)';
   },
   weather: function(heat) {
     if (heat === 0) return 'rgba(0,0,0,0)';
     var t = Math.min(heat / 15, 1);
-    return 'rgba(100,180,255,' + (0.50 + t * 0.40) + ')';
+    return 'rgba(100,180,255,' + (0.15 + t * 0.35) + ')';
   },
   elections: function(heat) {
     if (heat === 0) return 'rgba(0,0,0,0)';
     var t = Math.min(heat / 15, 1);
-    return 'rgba(139,92,246,' + (0.50 + t * 0.40) + ')';
+    return 'rgba(139,92,246,' + (0.15 + t * 0.35) + ')';
   }
 };
 
 var STROKE_COLORS = {
   all: function(heat) {
-    return 'rgba(0,0,0,0)';  // No stroke - eliminates edge artifacts
+    // Visible borders for all countries
+    if (heat === 0)  return 'rgba(0,180,220,0.20)';    // subtle border for inactive
+    if (heat <= 2)   return 'rgba(0,200,240,0.35)';    // visible border
+    if (heat <= 6)   return 'rgba(0,210,250,0.45)';    // brighter border
+    if (heat <= 10)  return 'rgba(50,220,255,0.55)';    // bright border
+    return 'rgba(100,230,255,0.60)';                     // brightest border
   },
   density: function(heat) {
-    return 'rgba(0,0,0,0)';
+    var t = Math.min(heat / 20, 1);
+    return 'rgba(0,200,240,' + (0.25 + t * 0.35) + ')';
   },
   conflicts: function(heat, code) {
+    var DEEP  = { UA:1,PS:1,IL:1,SY:1,YE:1,SD:1,MM:1,SO:1 };
+    var MED   = { RU:1,IR:1,LB:1,IQ:1,LY:1,AF:1,ET:1,CD:1,ML:1,NE:1,AZ:1,PK:1 };
+    if (DEEP[code])  return 'rgba(255,100,120,0.60)';
+    if (MED[code])   return 'rgba(255,150,170,0.45)';
+    return 'rgba(100,100,100,0.15)';
+  },
+  weather: function(heat) {
+    var t = Math.min(heat / 15, 1);
+    return 'rgba(100,200,255,' + (0.25 + t * 0.35) + ')';
+  },
+  elections: function(heat) {
+    var t = Math.min(heat / 15, 1);
+    return 'rgba(160,110,255,' + (0.25 + t * 0.35) + ')';
+  }
+};
+    var MED   = { RU:1,IR:1,LB:1,IQ:1,LY:1,AF:1,ET:1,CD:1,ML:1,NE:1,AZ:1,PK:1 };
+    if (DEEP[code])  return 'rgba(255,100,120,0.55)';
+    if (MED[code])   return 'rgba(255,150,170,0.40)';
     return 'rgba(0,0,0,0)';
   },
   weather: function(heat) {
-    return 'rgba(0,0,0,0)';
+    var t = Math.min(heat / 15, 1);
+    return 'rgba(100,200,255,' + (0.20 + t * 0.35) + ')';
   },
   elections: function(heat) {
-    return 'rgba(0,0,0,0)';
+    var t = Math.min(heat / 15, 1);
+    return 'rgba(160,110,255,' + (0.20 + t * 0.35) + ')';
   }
 };
 

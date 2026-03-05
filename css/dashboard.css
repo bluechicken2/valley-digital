@@ -1929,7 +1929,7 @@
   color: #fff;
 }
 
-/* === GLOBE GLOW EFFECT === */
+/* === GLOBE GLOW EFFECT - SUBTLE === */
 #globe-container {
   position: relative;
 }
@@ -1939,14 +1939,14 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 60%;
-  height: 60%;
+  width: 40%;
+  height: 40%;
   transform: translate(-50%, -50%);
-  background: radial-gradient(ellipse at center, rgba(0, 212, 255, 0.15) 0%, transparent 70%);
+  background: radial-gradient(ellipse at center, rgba(0, 180, 220, 0.08) 0%, transparent 70%);
   pointer-events: none;
   z-index: 1;
 }
 
 #globe-container canvas {
-  filter: drop-shadow(0 0 30px rgba(0, 212, 255, 0.3));
+  filter: drop-shadow(0 0 20px rgba(0, 180, 220, 0.15));
 }
