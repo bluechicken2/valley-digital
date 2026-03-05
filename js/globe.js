@@ -46,8 +46,13 @@ var OVERLAYS = {
     return 'rgba(' + Math.round(t*255) + ',' + Math.round((1-t)*120) + ',' + Math.round((1-t)*255) + ',' + (0.15+t*0.5) + ')';
   },
   conflicts: function(heat, code) {
-    var HOT = { UA:1,RU:1,PS:1,IL:1,SY:1,YE:1,SD:1,SO:1,ET:1,MM:1,CD:1,AF:1,ML:1,NE:1,LY:1,IQ:1,LB:1,AZ:1,IR:1,PK:1 };
-    return HOT[code] ? 'rgba(255,68,68,0.58)' : 'rgba(255,255,255,0.02)';
+    // Tier 1 — active warzone (brightest red)
+    var DEEP  = { UA:1,PS:1,IL:1,SY:1,YE:1,SD:1,MM:1,SO:1 };
+    // Tier 2 — heavily involved / adjacent (medium red)
+    var MED   = { RU:1,IR:1,LB:1,IQ:1,LY:1,AF:1,ET:1,CD:1,ML:1,NE:1,AZ:1,PK:1 };
+    if (DEEP[code])  return 'rgba(255,55,55,0.75)';
+    if (MED[code])   return 'rgba(255,100,60,0.40)';
+    return 'rgba(255,255,255,0.015)';
   },
   weather: function(heat) {
     return heat === 0 ? 'rgba(0,150,255,0.05)' : 'rgba(0,180,255,' + (0.08+Math.min(heat/15,1)*0.42) + ')';
@@ -329,6 +334,16 @@ function switchOverlay(mode) {
   document.querySelectorAll('.overlay-btn').forEach(function(b) {
     b.classList.toggle('active', b.dataset.mode === mode);
   });
+  if (!globeInst) return;
+  // Conflicts/elections: flat polygons (no altitude extrusion — avoids fuzzy
+  // edge artifacts on large countries like Russia, USA, Canada, China)
+  if (mode === 'conflicts' || mode === 'elections') {
+    globeInst.polygonAltitude(0.001);
+    globeInst.polygonSideColor(function() { return 'rgba(0,0,0,0)'; });
+  } else if (mode === 'all' || mode === 'density' || mode === 'weather') {
+    globeInst.polygonAltitude(getAltitude);
+    globeInst.polygonSideColor(getSideColor);
+  }
   _refreshColors();
 }
 
@@ -723,40 +738,35 @@ function checkSpaceStories(stories) {
 }
 
 // ---- Outline mode toggle ----
-// Saved globe material state for outline toggle
-var _savedGlobeMap   = null;
+// Outline mode toggle — opacity-based (texture stays loaded, no network request)
+  // already declared above, this is the toggle function only
 
 function toggleOutlineMode() {
   _outlineMode = !_outlineMode;
   if (!globeInst) return _outlineMode;
 
-  // Use globe.gl official globeMaterial() API — direct Three.js material access
   var mat = null;
   try { mat = globeInst.globeMaterial(); } catch(e) {}
 
   if (_outlineMode) {
-    // OUTLINE ON: save texture map and set near-black sphere
+    // SEE-THROUGH mode: hide sphere via opacity=0, show country outlines
+    // Texture stays loaded — restore is instant (just set opacity back to 1)
     if (mat) {
-      _savedGlobeMap = mat.map || null;
-      mat.map = null;
-      mat.color.set(0x060a10);
+      mat.transparent = true;
+      mat.opacity = 0;
       mat.needsUpdate = true;
     }
-    globeInst.atmosphereAltitude(0.05);
-    globeInst.atmosphereColor('rgba(0,212,255,0.3)');
-    globeInst.polygonStrokeColor(function() { return 'rgba(0,212,255,0.85)'; });
-    globeInst.polygonCapColor(function()    { return 'rgba(0,212,255,0.06)'; });
-    globeInst.polygonSideColor(function()   { return 'rgba(0,212,255,0.25)'; });
+    globeInst.atmosphereAltitude(0.01);
+    globeInst.atmosphereColor('rgba(0,212,255,0.08)');
+    globeInst.polygonStrokeColor(function() { return 'rgba(0,212,255,0.95)'; });
+    globeInst.polygonCapColor(function()    { return 'rgba(0,212,255,0.04)'; });
+    globeInst.polygonSideColor(function()   { return 'rgba(0,212,255,0.12)'; });
+    globeInst.polygonAltitude(0.004);
   } else {
-    // OUTLINE OFF: restore saved texture — instant, zero network requests
+    // SAT IMAGERY mode: restore opaque sphere — instant, no reload
     if (mat) {
-      if (_savedGlobeMap) {
-        mat.map = _savedGlobeMap;
-      } else {
-        // First time fallback — use globe.gl API to reload texture
-        globeInst.globeImageUrl(EARTH_IMG);
-      }
-      mat.color.set(0xffffff);
+      mat.transparent = false;
+      mat.opacity = 1;
       mat.needsUpdate = true;
     }
     globeInst.atmosphereAltitude(0.32);
@@ -771,6 +781,9 @@ function toggleOutlineMode() {
   if (btn) btn.classList.toggle('active', _outlineMode);
   return _outlineMode;
 }
+
+
+
 
 
 
