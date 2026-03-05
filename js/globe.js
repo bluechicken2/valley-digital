@@ -669,7 +669,7 @@ function _initSpaceElements() {
     }
   } catch(e) {}
 
-  console.log('[Globe] Space elements v2 initialized');
+  // console.log('[Globe] Space elements v2 initialized');
 }
 
 function _animateMoonFloat() {
