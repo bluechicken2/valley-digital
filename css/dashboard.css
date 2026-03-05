@@ -1632,3 +1632,276 @@
   opacity: 0.9;
 }
 
+
+/* ================================================
+   STORY THREADING STYLES
+   ================================================ */
+
+/* Thread badge on story cards */
+.thread-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #8b5cf6;
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 10px;
+  margin-left: 8px;
+  white-space: nowrap;
+}
+
+.thread-badge:hover {
+  background: rgba(139, 92, 246, 0.25);
+}
+
+/* Related thread badge */
+.related-thread-badge {
+  font-size: 12px;
+  margin-left: auto;
+  padding: 0 4px;
+}
+
+/* Thread section on story detail page */
+#thread-section {
+  margin: 24px 0;
+  padding: 20px;
+  background: rgba(139, 92, 246, 0.08);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 12px;
+}
+
+#thread-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #a78bfa;
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 20px;
+  margin-bottom: 16px;
+}
+
+/* Thread navigation */
+.thread-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  margin-bottom: 16px;
+  border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.thread-nav-btn {
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #a78bfa;
+  background: rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 8px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.thread-nav-btn:hover:not(.thread-nav-disabled) {
+  background: rgba(139, 92, 246, 0.2);
+  transform: translateY(-1px);
+}
+
+.thread-nav-disabled {
+  color: #666;
+  background: rgba(100, 100, 100, 0.1);
+  border-color: rgba(100, 100, 100, 0.2);
+  cursor: default;
+}
+
+.thread-position {
+  font-size: 13px;
+  color: #8b5cf6;
+  font-weight: 600;
+}
+
+/* Thread items list */
+.thread-items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.thread-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(139, 92, 246, 0.15);
+  border-radius: 8px;
+  text-decoration: none;
+  color: #e0e0e0;
+  transition: all 0.2s ease;
+}
+
+.thread-item:hover {
+  background: rgba(139, 92, 246, 0.1);
+  border-color: rgba(139, 92, 246, 0.3);
+}
+
+.thread-item.thread-active {
+  background: rgba(139, 92, 246, 0.15);
+  border-color: #8b5cf6;
+}
+
+.thread-num {
+  font-size: 11px;
+  font-weight: 700;
+  color: #8b5cf6;
+  min-width: 28px;
+}
+
+.thread-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.thread-headline {
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.thread-meta {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: #888;
+  margin-top: 4px;
+}
+
+.thread-current {
+  color: #8b5cf6;
+  font-size: 16px;
+}
+
+/* ================================================
+   COUNTRY BRIEFINGS STYLES (SIDEBAR)
+   ================================================ */
+
+/* Briefing section in sidebar */
+.sb-briefing-section {
+  padding: 12px 0;
+}
+
+.sb-briefing-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #00d4ff;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+}
+
+.sb-briefing-icon {
+  font-size: 14px;
+}
+
+.sb-briefing-content {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.sb-briefing-loading {
+  color: #666;
+  font-style: italic;
+  padding: 8px 0;
+}
+
+.sb-briefing-inner {
+  background: rgba(0, 212, 255, 0.05);
+  border: 1px solid rgba(0, 212, 255, 0.15);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.sb-briefing-date {
+  font-size: 11px;
+  color: #00d4ff;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.sb-briefing-stats {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(0, 212, 255, 0.1);
+}
+
+.sb-briefing-stat {
+  font-size: 12px;
+  color: #00d4ff;
+}
+
+.sb-briefing-top {
+  font-size: 11px;
+  color: #00ff88;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.sb-briefing-top:hover {
+  color: #00ff88;
+  text-decoration: underline;
+}
+
+.sb-briefing-summary {
+  font-size: 12px;
+  color: #b0b0b0;
+  line-height: 1.6;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+/* Thread badge in sidebar mini cards */
+.sb-thread-badge {
+  font-size: 10px;
+  margin-left: auto;
+  opacity: 0.8;
+}
+
+/* ================================================
+   RESPONSIVE ADJUSTMENTS
+   ================================================ */
+
+@media (max-width: 768px) {
+  .thread-nav {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .thread-nav-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+  
+  .thread-item {
+    padding: 10px 12px;
+  }
+  
+  .thread-headline {
+    font-size: 13px;
+  }
+}

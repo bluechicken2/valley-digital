@@ -105,6 +105,15 @@
       // Render story
       renderStory(story, verifications);
       
+      // Load thread stories if this story is part of a thread
+      if (story.story_thread_id) {
+        loadThreadStories(story);
+      } else {
+        // Hide thread section if no thread
+        const threadSection = document.getElementById('thread-section');
+        if (threadSection) threadSection.style.display = 'none';
+      }
+      
       // Load related stories (same country or category)
       loadRelatedStories(story);
       
@@ -139,6 +148,17 @@
     
     // Time
     document.getElementById('story-time').innerHTML = '🕐 ' + timeAgo(story.created_at);
+    
+    // Thread badge (if story is part of a thread)
+    const threadBadge = document.getElementById('thread-badge');
+    if (threadBadge) {
+      if (story.story_thread_id) {
+        threadBadge.innerHTML = '🧵 Part of a thread';
+        threadBadge.style.display = 'inline-block';
+      } else {
+        threadBadge.style.display = 'none';
+      }
+    }
     
     // Headline & Summary
     document.getElementById('story-headline').textContent = story.headline || '';
@@ -286,6 +306,98 @@
       }).join('');
   }
   
+  // Load thread stories
+  async function loadThreadStories(story) {
+    const container = document.getElementById('thread-list');
+    const section = document.getElementById('thread-section');
+    const badge = document.getElementById('thread-badge');
+    
+    if (!container || !story.story_thread_id) return;
+    
+    try {
+      // Fetch stories with same thread_id
+      const allStories = await window.XrayNewsDB.getStories({ limit: 50 });
+      
+      // Filter to same thread
+      const threadStories = allStories.filter(function(s) {
+        return s.story_thread_id === story.story_thread_id;
+      }).sort(function(a, b) {
+        return new Date(a.created_at) - new Date(b.created_at); // Oldest first
+      });
+      
+      if (threadStories.length <= 1) {
+        if (section) section.style.display = 'none';
+        return;
+      }
+      
+      // Update badge
+      if (badge) {
+        badge.innerHTML = '🧵 Part of thread: ' + threadStories.length + ' stories';
+      }
+      
+      // Find current story index
+      const currentIndex = threadStories.findIndex(function(s) { return s.id === story.id; });
+      
+      // Render thread navigation
+      const navHtml = renderThreadNav(threadStories, currentIndex);
+      
+      // Render thread list
+      const listHtml = threadStories.map(function(s, idx) {
+        const score = s.xray_score || s.confidence_score || 0;
+        const scoreColor = getScoreColor(score);
+        const isActive = s.id === story.id;
+        
+        return '<a href="story.html?id=' + s.id + '" class="thread-item' + (isActive ? ' thread-active' : '') + '">'
+          + '<span class="thread-num">#' + (idx + 1) + '</span>'
+          + '<div class="thread-content">'
+            + '<div class="thread-headline">' + escHtml(s.headline) + '</div>'
+            + '<div class="thread-meta">'
+              + '<span style="color:' + scoreColor + '">' + score + '%</span>'
+              + '<span>' + timeAgo(s.created_at) + '</span>'
+            + '</div>'
+          + '</div>'
+          + (isActive ? '<span class="thread-current">▸</span>' : '')
+        + '</a>';
+      }).join('');
+      
+      container.innerHTML = navHtml + '<div class="thread-items">' + listHtml + '</div>';
+      if (section) section.style.display = '';
+      
+    } catch(err) {
+      console.error('Error loading thread stories:', err);
+      if (section) section.style.display = 'none';
+    }
+  }
+  
+  // Render thread navigation (prev/next)
+  function renderThreadNav(threadStories, currentIndex) {
+    const prevStory = currentIndex > 0 ? threadStories[currentIndex - 1] : null;
+    const nextStory = currentIndex < threadStories.length - 1 ? threadStories[currentIndex + 1] : null;
+    
+    let navHtml = '<div class="thread-nav">';
+    
+    if (prevStory) {
+      navHtml += '<a href="story.html?id=' + prevStory.id + '" class="thread-nav-btn thread-prev">'
+        + '← Previous'
+        + '</a>';
+    } else {
+      navHtml += '<span class="thread-nav-btn thread-nav-disabled">← Oldest</span>';
+    }
+    
+    navHtml += '<span class="thread-position">' + (currentIndex + 1) + ' of ' + threadStories.length + '</span>';
+    
+    if (nextStory) {
+      navHtml += '<a href="story.html?id=' + nextStory.id + '" class="thread-nav-btn thread-next">'
+        + 'Next →'
+        + '</a>';
+    } else {
+      navHtml += '<span class="thread-nav-btn thread-nav-disabled">Latest →</span>';
+    }
+    
+    navHtml += '</div>';
+    return navHtml;
+  }
+  
   // Load related stories
   async function loadRelatedStories(story) {
     const container = document.getElementById('related-list');
@@ -294,10 +406,16 @@
       // Fetch stories with same country or category
       const allStories = await window.XrayNewsDB.getStories({ limit: 20 });
       
-      // Filter to related (same country OR category, exclude current)
+      // Filter to related (same country OR category, exclude current and thread)
       const related = allStories
         .filter(function(s) { return s.id !== story.id; })
-        .filter(function(s) { return s.country_code === story.country_code || s.category === story.category; })
+        .filter(function(s) { 
+          // Exclude stories from same thread (they're shown in thread section)
+          if (story.story_thread_id && s.story_thread_id === story.story_thread_id) {
+            return false;
+          }
+          return s.country_code === story.country_code || s.category === story.category;
+        })
         .slice(0, 4);
       
       if (related.length === 0) {
@@ -309,9 +427,15 @@
         const score = s.xray_score || s.confidence_score || 0;
         const scoreColor = getScoreColor(score);
         
+        // Add thread badge if part of thread
+        const threadBadgeHtml = s.story_thread_id 
+          ? '<span class="related-thread-badge" title="Part of thread">🧵</span>' 
+          : '';
+        
         return '<a href="story.html?id=' + s.id + '" class="related-item">'
           + '<div class="related-score" style="background:' + scoreColor + '22;color:' + scoreColor + '">' + score + '</div>'
           + '<div class="related-headline">' + escHtml(s.headline) + '</div>'
+          + threadBadgeHtml
           + '<span style="color:#666">→</span>'
         + '</a>';
       }).join('');

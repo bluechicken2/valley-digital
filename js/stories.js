@@ -50,7 +50,8 @@ async function toggleSaveStoryAsync(story) {
       country_name: story.country_name,
       category: story.category,
       xray_score: story.xray_score,
-      status: story.status
+      status: story.status,
+      story_thread_id: story.story_thread_id
     };
     return await window.XrayNewsSaved.toggleSaveStory(story.id, storyMeta);
   }
@@ -138,6 +139,20 @@ function getSourceName(story) {
 }
 
 // ------------------------------------------------
+// Thread badge cache - stores thread counts
+// ------------------------------------------------
+var _threadCounts = {};
+
+function setThreadCounts(threadData) {
+  // threadData should be { thread_id: count, ... }
+  _threadCounts = threadData || {};
+}
+
+function getThreadCount(threadId) {
+  return _threadCounts[threadId] || 0;
+}
+
+// ------------------------------------------------
 // Render single story card
 // ------------------------------------------------
 function renderStoryCard(story) {
@@ -154,6 +169,14 @@ function renderStoryCard(story) {
   var isFresh    = story.created_at &&
     (Date.now() - new Date(story.created_at).getTime()) < 60 * 60 * 1000;
   var freshBadge = isFresh ? '<span class="fresh-badge">&#9679; NEW</span>' : '';
+  
+  // Thread badge
+  var threadBadge = '';
+  if (story.story_thread_id) {
+    var threadCount = getThreadCount(story.story_thread_id);
+    threadBadge = '<span class="thread-badge" title="Part of a thread with ' + (threadCount || 'multiple') + ' stories">🧵 ' + (threadCount || '') + '</span>';
+  }
+  
   var age        = timeAgo(story.created_at);
   var flagHtml   = flag ? '<span class="country-flag">' + flag + '</span>' : '';
   var summaryHtml= story.summary
@@ -165,12 +188,13 @@ function renderStoryCard(story) {
   var sourceBadgeHtml = srcName
     ? '<span class="source-badge">' + escHtml(srcName.slice(0, 24)) + '</span>' : '';
 
-  return '<article class="story-card" data-id="' + escHtml(story.id) + '" tabindex="0">'
+  return '<article class="story-card" data-id="' + escHtml(story.id) + '" data-thread="' + escHtml(story.story_thread_id || '') + '" tabindex="0">'
     + '<div class="card-top">'
       + '<div class="card-meta-row">'
         + '<span class="category-badge" style="--cat-color:' + catColor + '">' + catIcon + ' ' + escHtml(story.category || 'General') + '</span>'
         + breaking
         + freshBadge
+        + threadBadge
       + '</div>'
       + '<div class="card-country">'
         + flagHtml
@@ -218,6 +242,16 @@ function renderAllCards(stories) {
       + '</div>';
     return;
   }
+  
+  // Pre-compute thread counts from stories array
+  var threadCounts = {};
+  stories.forEach(function(s) {
+    if (s.story_thread_id) {
+      threadCounts[s.story_thread_id] = (threadCounts[s.story_thread_id] || 0) + 1;
+    }
+  });
+  setThreadCounts(threadCounts);
+  
   grid.innerHTML = stories.map(renderStoryCard).join('');
   // Animate confidence bars
   requestAnimationFrame(function() {
@@ -385,5 +419,8 @@ window.StoryCards = {
       return window.XrayNewsSaved.getSavedStories();
     }
     return Promise.resolve({ stories: _getSaved(), source: 'localStorage' });
-  }
+  },
+  // Thread support
+  setThreadCounts:    setThreadCounts,
+  getThreadCount:     getThreadCount
 };

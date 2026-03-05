@@ -244,3 +244,35 @@ CREATE POLICY "Users delete own saved stories"   ON saved_stories FOR DELETE USI
 
 -- Enable realtime for saved_stories (optional, for live sync)
 ALTER PUBLICATION supabase_realtime ADD TABLE saved_stories;
+
+-- ================================================
+-- SCHEMA MIGRATION v5 — Daily Country Briefings
+-- ================================================
+
+-- Daily briefings table for AI-generated country summaries
+CREATE TABLE IF NOT EXISTS country_briefings (
+    id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    country_code TEXT NOT NULL,
+    country_name TEXT NOT NULL,
+    briefing_date DATE NOT NULL,
+    summary      TEXT NOT NULL,          -- AI-generated summary (2-3 paragraphs)
+    story_count  INTEGER DEFAULT 0,      -- Number of stories covered
+    top_story_id UUID REFERENCES stories(id),  -- Most important story
+    created_at   TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(country_code, briefing_date)
+);
+
+-- Indexes for fast lookups
+CREATE INDEX IF NOT EXISTS idx_briefings_country ON country_briefings(country_code);
+CREATE INDEX IF NOT EXISTS idx_briefings_date ON country_briefings(briefing_date DESC);
+CREATE INDEX IF NOT EXISTS idx_briefings_top_story ON country_briefings(top_story_id);
+
+-- RLS for country_briefings
+ALTER TABLE country_briefings ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Public read country_briefings" ON country_briefings;
+
+CREATE POLICY "Public read country_briefings" ON country_briefings FOR SELECT USING (true);
+
+-- Enable realtime for briefings
+ALTER PUBLICATION supabase_realtime ADD TABLE country_briefings;

@@ -21,6 +21,10 @@ class XrayNewsDB {
     this._realtimeWs  = null;
     this._realtimeCbs = [];
   }
+  
+  // ---- Accessors ----
+  getUrl() { return this.url; }
+  getKey() { return this.key; }
 
   // ---- REST helpers ---------------------------------------------------
   async _fetch(path, opts) {

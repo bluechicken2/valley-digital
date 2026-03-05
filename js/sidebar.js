@@ -67,6 +67,14 @@
         '</div>',
         '<div class="sb-act" id="sb-act"></div>',
         '<div class="sb-divider"></div>',
+        '<div class="sb-briefing-section" id="sb-briefing-section" style="display:none;">',
+          '<div class="sb-briefing-head">',
+            '<span class="sb-briefing-icon">&#127760;</span>',
+            '<span>DAILY BRIEFING</span>',
+          '</div>',
+          '<div class="sb-briefing-content" id="sb-briefing-content"></div>',
+        '</div>',
+        '<div class="sb-divider" id="sb-briefing-divider" style="display:none;"></div>',
         '<div class="sb-stories-title">ACTIVE STORIES</div>',
         '<div class="sb-list" id="sb-list"></div>',
         '<div class="sb-foot" id="sb-foot"></div>',
@@ -83,11 +91,19 @@
     var col  = confColor(sc);
     var catC = CAT_COLORS[story.category] || '#00d4ff';
     var dots = '';
+    
+    // Thread badge
+    var threadBadgeHtml = '';
+    if (story.story_thread_id) {
+      threadBadgeHtml = '<span class="sb-thread-badge" title="Part of thread">&#129521;</span>';
+    }
+    
     for (var i = 0; i < 5; i++) dots += '<span class="sb-dot' + (sc/20 > i ? ' sb-dot-on' : '') + '"></span>';
     return '<div class="sb-card" data-id="' + esc(story.id) + '" tabindex="0" role="button" aria-label="' + esc(story.headline) + '">'
       + '<div class="sb-card-top">'
         + '<span class="sb-cat" style="border-color:' + catC + ';color:' + catC + '">' + esc(story.category||'') + '</span>'
         + (story.is_breaking ? '<span class="sb-brk">&#9889; BREAKING</span>' : '')
+        + threadBadgeHtml
       + '</div>'
       + '<div class="sb-card-hl">' + esc(story.headline) + '</div>'
       + '<div class="sb-card-foot">'
@@ -100,7 +116,48 @@
     + '</div>';
   }
 
-  function open(countryCode, countryName, stories) {
+  // Fetch briefing from Supabase
+  async function _fetchBriefing(countryCode) {
+    var today = new Date().toISOString().split('T')[0];
+    var url = window.XrayNewsDB 
+      ? window.XrayNewsDB.getUrl() + '/rest/v1/country_briefings?select=*&country_code=eq.' + countryCode + '&briefing_date=eq.' + today
+      : null;
+    
+    if (!url) return null;
+    
+    try {
+      var resp = await fetch(url, {
+        headers: {
+          'apikey': window.XrayNewsDB.getKey(),
+          'Authorization': 'Bearer ' + window.XrayNewsDB.getKey()
+        }
+      });
+      var data = await resp.json();
+      return data && data.length > 0 ? data[0] : null;
+    } catch(e) {
+      console.warn('Could not fetch briefing:', e);
+      return null;
+    }
+  }
+
+  // Render briefing content
+  function _renderBriefing(briefing, countryName) {
+    if (!briefing) return '';
+    
+    var summaryHtml = esc(briefing.summary || 'No summary available');
+    summaryHtml = summaryHtml.replace(/\n/g, '<br>');
+    
+    return '<div class="sb-briefing-inner">'
+      + '<div class="sb-briefing-date">' + briefing.briefing_date + '</div>'
+      + '<div class="sb-briefing-stats">'
+        + '<span class="sb-briefing-stat">&#128240; ' + briefing.story_count + ' stories</span>'
+        + (briefing.top_story_id ? '<a href="story.html?id=' + briefing.top_story_id + '" class="sb-briefing-top">View Top Story &#8594;</a>' : '')
+      + '</div>'
+      + '<div class="sb-briefing-summary">' + summaryHtml + '</div>'
+    + '</div>';
+  }
+
+  async function open(countryCode, countryName, stories) {
     _ensure();
     var fg = flag(countryCode);
     var act = _activityLabel(stories.length);
@@ -117,6 +174,26 @@
     document.getElementById('sb-foot').innerHTML    = stories.length
       ? '<button class="sb-view-all" onclick="window.NewsFeed&&window.NewsFeed.filterByCountry(\'' + esc(countryCode) + '\');window.CountrySidebar.close();">VIEW ALL STORIES FOR ' + esc(countryName.toUpperCase()) + ' &#8594;</button>'
       : '';
+
+    // Fetch and display briefing
+    var briefingSection = document.getElementById('sb-briefing-section');
+    var briefingDivider = document.getElementById('sb-briefing-divider');
+    var briefingContent = document.getElementById('sb-briefing-content');
+    
+    if (briefingSection && briefingContent) {
+      briefingContent.innerHTML = '<div class="sb-briefing-loading">Loading briefing...</div>';
+      briefingSection.style.display = '';
+      briefingDivider.style.display = '';
+      
+      var briefing = await _fetchBriefing(countryCode);
+      
+      if (briefing) {
+        briefingContent.innerHTML = _renderBriefing(briefing, countryName);
+      } else {
+        briefingSection.style.display = 'none';
+        briefingDivider.style.display = 'none';
+      }
+    }
 
     // Attach card clicks
     var list = document.getElementById('sb-list');
