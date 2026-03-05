@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Story - XrayNews</title>
-  <link rel="stylesheet" href="css/main.css?v=25">
-  <link rel="stylesheet" href="css/dashboard.css?v=25">
+  <link rel="stylesheet" href="css/main.css?v=26">
+  <link rel="stylesheet" href="css/dashboard.css?v=26">
   <style>
     /* Story Detail Page Styles */
     .story-detail-container {
@@ -111,6 +111,7 @@
       gap: 24px;
     }
     
+    /* FIXED: Score Circle with proper contrast */
     .xray-score-circle {
       width: 100px;
       height: 100px;
@@ -121,17 +122,40 @@
       justify-content: center;
       font-weight: 700;
       position: relative;
+      box-shadow: 0 0 20px rgba(0,0,0,0.3), inset 0 0 0 3px rgba(255,255,255,0.05);
+    }
+    
+    /* Dark background for score text contrast */
+    .xray-score-circle::before {
+      content: '';
+      position: absolute;
+      width: 76px;
+      height: 76px;
+      background: #0a0a0f;
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 0;
     }
     
     .xray-score-circle .score-value {
       font-size: 36px;
       line-height: 1;
+      position: relative;
+      z-index: 1;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+      font-weight: 800;
     }
     
     .xray-score-circle .score-label {
       font-size: 10px;
       text-transform: uppercase;
-      opacity: 0.7;
+      opacity: 0.8;
+      position: relative;
+      z-index: 1;
+      color: #888;
+      letter-spacing: 1px;
     }
     
     .xray-verdict {
@@ -142,11 +166,13 @@
       font-size: 12px;
       color: #888;
       margin-bottom: 4px;
+      letter-spacing: 1px;
     }
     
     .xray-verdict-text {
       font-size: 16px;
       color: #fff;
+      font-weight: 500;
     }
     
     .xray-status-badge {
@@ -156,8 +182,9 @@
       padding: 6px 14px;
       border-radius: 20px;
       font-size: 13px;
-      font-weight: 600;
+      font-weight: 700;
       margin-top: 12px;
+      border: 1px solid currentColor;
     }
     
     .status-verified { background: rgba(0,255,136,0.15); color: #00ff88; }
@@ -165,7 +192,7 @@
     .status-contested { background: rgba(255,68,68,0.15); color: #ff4444; }
     .status-false { background: rgba(255,68,68,0.25); color: #ff4444; }
     
-    /* Score Breakdown */
+    /* Score Breakdown - FIXED visibility */
     .score-breakdown {
       margin-top: 24px;
       padding-top: 24px;
@@ -177,6 +204,7 @@
       font-weight: 600;
       margin-bottom: 16px;
       color: #888;
+      letter-spacing: 1px;
     }
     
     .breakdown-item {
@@ -189,28 +217,133 @@
     .breakdown-label {
       width: 140px;
       font-size: 13px;
-      color: #888;
+      color: #aaa;
     }
     
     .breakdown-bar {
       flex: 1;
-      height: 6px;
+      height: 8px;
       background: rgba(255,255,255,0.1);
-      border-radius: 3px;
+      border-radius: 4px;
       overflow: hidden;
     }
     
     .breakdown-fill {
       height: 100%;
-      border-radius: 3px;
+      border-radius: 4px;
       transition: width 0.5s ease;
     }
     
     .breakdown-value {
-      width: 40px;
+      width: 45px;
       text-align: right;
-      font-size: 13px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    }
+    
+    /* Thread Section */
+    #thread-section {
+      margin-bottom: 32px;
+    }
+    
+    .thread-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 16px;
+      padding: 12px 16px;
+      background: rgba(139, 92, 246, 0.08);
+      border-radius: 8px;
+      border: 1px solid rgba(139, 92, 246, 0.2);
+    }
+    
+    .thread-nav-btn {
+      padding: 8px 16px;
+      border-radius: 6px;
+      background: rgba(139, 92, 246, 0.2);
+      color: #a78bfa;
+      text-decoration: none;
+      transition: all 0.2s;
+      font-weight: 500;
+    }
+    
+    .thread-nav-btn:hover {
+      background: rgba(139, 92, 246, 0.35);
+      color: #fff;
+    }
+    
+    .thread-nav-disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+    
+    .thread-position {
+      color: #a78bfa;
+      font-size: 14px;
       font-weight: 600;
+    }
+    
+    .thread-items {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .thread-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 8px;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.2s;
+    }
+    
+    .thread-item:hover {
+      background: rgba(255,255,255,0.05);
+      border-color: rgba(139, 92, 246, 0.3);
+    }
+    
+    .thread-item.thread-active {
+      background: rgba(139, 92, 246, 0.12);
+      border-color: rgba(139, 92, 246, 0.5);
+    }
+    
+    .thread-num {
+      color: #8b5cf6;
+      font-weight: 700;
+      min-width: 35px;
+      font-size: 13px;
+    }
+    
+    .thread-content {
+      flex: 1;
+    }
+    
+    .thread-headline {
+      color: #fff;
+      font-size: 14px;
+      line-height: 1.4;
+      margin-bottom: 4px;
+    }
+    
+    .thread-meta {
+      color: #888;
+      font-size: 12px;
+      display: flex;
+      gap: 12px;
+    }
+    
+    .thread-current {
+      color: #8b5cf6;
+      font-size: 20px;
     }
     
     /* Sources Section */
@@ -225,6 +358,7 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      color: #fff;
     }
     
     .sources-list {
@@ -268,6 +402,7 @@
     .source-name {
       font-weight: 500;
       margin-bottom: 2px;
+      color: #fff;
     }
     
     .source-type {
@@ -332,6 +467,7 @@
     
     .timeline-event {
       font-size: 14px;
+      color: #ddd;
     }
     
     /* Related Stories */
@@ -354,33 +490,44 @@
       border-radius: 8px;
       text-decoration: none;
       color: inherit;
-      transition: background 0.2s;
+      transition: all 0.2s;
     }
     
     .related-item:hover {
       background: rgba(255,255,255,0.05);
+      border-color: rgba(0,212,255,0.3);
     }
     
+    /* FIXED: Related score with better visibility */
     .related-score {
-      width: 40px;
-      height: 40px;
+      width: 44px;
+      height: 44px;
       border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-weight: 700;
-      font-size: 14px;
+      font-weight: 800;
+      font-size: 15px;
+      border: 2px solid currentColor;
+      background: rgba(0,0,0,0.3);
+      text-shadow: 0 1px 3px rgba(0,0,0,0.5);
     }
     
     .related-headline {
       flex: 1;
       font-size: 14px;
       line-height: 1.4;
+      color: #fff;
+    }
+    
+    .related-thread-badge {
+      font-size: 14px;
     }
     
     /* Actions */
     .story-actions {
       display: flex;
+      flex-wrap: wrap;
       gap: 12px;
       margin-top: 32px;
     }
@@ -404,6 +551,11 @@
       color: #000;
     }
     
+    .action-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0,212,255,0.3);
+    }
+    
     .action-secondary {
       background: rgba(255,255,255,0.05);
       color: #fff;
@@ -412,6 +564,7 @@
     
     .action-secondary:hover {
       background: rgba(255,255,255,0.1);
+      border-color: rgba(255,255,255,0.2);
     }
     
     /* Loading State */
@@ -513,6 +666,12 @@
         </div>
       </div>
       
+      <!-- Thread Section -->
+      <div id="thread-section" class="related-section" style="display:none">
+        <h2 class="section-title">🧵 Story Thread</h2>
+        <div id="thread-list"></div>
+      </div>
+      
       <!-- Sources Section -->
       <div class="sources-section">
         <h2 class="section-title">📰 Verification Sources</h2>
@@ -540,13 +699,13 @@
           📤 Share Story
         </button>
         <button id="save-btn" class="action-btn action-secondary">
-          ⭐ Save Story
+          ☆ Save Story
         </button>
       </div>
     </div>
   </div>
   
-  <script src="js/supabase-config.js?v=25"></script>
-  <script src="js/story-detail.js?v=25"></script>
+  <script src="js/supabase-config.js?v=26"></script>
+  <script src="js/story-detail.js?v=26"></script>
 </body>
 </html>
