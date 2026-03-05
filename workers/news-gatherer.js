@@ -1,27 +1,31 @@
 
 // ================================================
-// XrayNews Intelligence Gatherer v4
+// XrayNews Intelligence Gatherer v5.1
+// Architecture: Worker = fast headline grab only. Xray = article fetch + verification.
 // Schedule: Every 5 minutes
 // Sources: Reuters, BBC, AP, CNN, Sky, AlJazeera, DW, France24, Guardian, GDELT
 // Features: Article body fetching, cross-source corroboration, dedup, Xray-ready
 // ================================================
 
 const SUPABASE_URL = 'https://dkxydhuojaspmbpjfyoz.supabase.co';
-const MAX_STORIES_PER_RUN = 40;
+const MAX_STORIES_PER_RUN = 25;
 const ARTICLE_FETCH_TIMEOUT = 4000; // 4s max per article fetch
 const MAX_FULL_TEXT_CHARS = 2000;   // store first 2000 chars for Xray
 
 // ---- RSS Sources -------------------------------------------------------
 const RSS_SOURCES = [
-  { url: 'https://feeds.reuters.com/reuters/topNews', name: 'Reuters', tier: 1 },
-  { url: 'https://feeds.bbci.co.uk/news/world/rss.xml', name: 'BBC News', tier: 1 },
-  { url: 'https://www.apnews.com/apf-topnews', name: 'AP News', tier: 1 },
-  { url: 'https://rss.cnn.com/rss/edition_world.rss', name: 'CNN', tier: 2 },
-  { url: 'https://feeds.skynews.com/feeds/rss/world.xml', name: 'Sky News', tier: 2 },
-  { url: 'https://www.aljazeera.com/xml/rss/all.xml', name: 'Al Jazeera', tier: 2 },
-  { url: 'https://rss.dw.com/rdf/rss-en-world', name: 'DW News', tier: 2 },
-  { url: 'https://www.france24.com/en/rss', name: 'France24', tier: 2 },
-  { url: 'https://feeds.theguardian.com/theguardian/world/rss', name: 'The Guardian', tier: 2 },
+  // Tier 1 — reliable, open, bot-friendly
+  { url: 'https://feeds.bbci.co.uk/news/world/rss.xml',         name: 'BBC News',     tier: 1 },
+  { url: 'https://feeds.theguardian.com/theguardian/world/rss',  name: 'The Guardian', tier: 1 },
+  { url: 'https://feeds.npr.org/1004/rss.xml',                   name: 'NPR World',    tier: 1 },
+  // Tier 2 — international multi-region
+  { url: 'https://www.aljazeera.com/xml/rss/all.xml',            name: 'Al Jazeera',   tier: 2 },
+  { url: 'https://rss.dw.com/rdf/rss-en-world',                  name: 'DW News',      tier: 2 },
+  { url: 'https://www.france24.com/en/rss?format=xml',           name: 'France24',     tier: 2 },
+  { url: 'https://feeds.skynews.com/feeds/rss/world.xml',        name: 'Sky News',     tier: 2 },
+  { url: 'https://feeds.a.dj.com/rss/RSSWorldNews.xml',          name: 'WSJ World',    tier: 1 },
+  { url: 'https://www.euronews.com/rss',                         name: 'Euronews',     tier: 2 },
+  { url: 'https://www.rfi.fr/en/rss',                            name: 'RFI',          tier: 2 },
 ];
 
 // ---- Content Filter Keywords -------------------------------------------
@@ -128,21 +132,29 @@ const CATEGORY_MAP = [
 
 // ---- Source Reputation -------------------------------------------------
 const SOURCE_REPUTATION = {
-  Reuters: 95, "AP News": 93, "BBC News": 88, "The Guardian": 82,
-  "DW News": 82, "France24": 80, CNN: 75, "Sky News": 74, "Al Jazeera": 72,
+  'BBC News': 92, 'NPR World': 88, 'The Guardian': 85, 'WSJ World': 90,
+  'Al Jazeera': 78, 'DW News': 82, 'France24': 80,
+  'Sky News': 74, 'Euronews': 76, 'RFI': 74,
 };
 
 // ---- Utilities ---------------------------------------------------------
 function parseXML(text) {
   const items = [];
+  // Strip CDATA wrappers before parsing — avoids RegExp constructor escape pitfalls in CF Workers V8
+  const t = text.replace(/<!\[CDATA\[/g, '').replace(/\]\]>/g, '');
   const itemRe = /<item[^>]*>([\s\S]*?)<\/item>/gi;
   let m;
-  while ((m = itemRe.exec(text)) !== null) {
+  while ((m = itemRe.exec(t)) !== null) {
     const block = m[1];
-    const get = (tag) => {
-      const r = new RegExp(`<${tag}[^>]*><!\[CDATA\[([\s\S]*?)\]\]><\/${tag}>|<${tag}[^>]*>([^<]*)<\/${tag}>`, 'i');
+    const get = function(tag) {
+      const r = new RegExp('<' + tag + '[^>]*>([\\s\\S]*?)</' + tag + '>', 'i');
       const rm = r.exec(block);
-      return rm ? (rm[1] || rm[2] || '').trim() : '';
+      if (!rm) return '';
+      return rm[1]
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"').replace(/&#[0-9]+;/g, '')
+        .replace(/\s+/g, ' ').trim();
     };
     const title = get('title'), desc = get('description'), link = get('link'), pubDate = get('pubDate');
     if (title && title.length > 10) items.push({ title, desc, link, pubDate });
@@ -361,21 +373,11 @@ async function gatherNews(env) {
     story.source_count = 1 + corr.length;
   }
 
-  // Fetch article bodies in parallel (with timeout)
-  const articleFetches = toProcess.map(async (story) => {
-    if (story.external_url) {
-      const text = await fetchArticleText(story.external_url);
-      if (text) {
-        story.full_text = text;
-        story.article_fetched = true;
-      }
-    }
-    return story;
-  });
-
-  const enriched = await Promise.all(articleFetches);
-  const fetched = enriched.filter(s => s.article_fetched).length;
-  log.push(`Articles fetched: ${fetched}/${enriched.length}`);
+  // Article body fetching is handled by Xray during verification
+  // Worker stays under CF 50-subrequest limit: 10 RSS + 1 Supabase insert = 11 total
+  const enriched = toProcess;
+  const fetched = 0;
+  log.push(`Stories ready for Xray verification: ${enriched.length}`);
 
   // Score confidence
   const toInsert = enriched.map(story => {
@@ -434,7 +436,7 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     if (url.pathname === '/health') {
-      return new Response(JSON.stringify({ status: 'ok', service: 'xraynews-gatherer', version: 'v4' }), {
+      return new Response(JSON.stringify({ status: 'ok', service: 'xraynews-gatherer', version: 'v5.1' }), {
         headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
       });
     }
