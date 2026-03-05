@@ -352,7 +352,7 @@
   width: 100%;
   height: calc(100vh - var(--nav-height) - var(--ticker-height) * 2);
   min-height: 400px;
-  overflow: hidden;
+  overflow: visible;
   background: var(--bg-primary);
   flex-shrink: 0;
 }
@@ -1144,7 +1144,7 @@
     inset -6px -4px 12px rgba(0,0,0,0.6),
     inset 3px 3px 8px rgba(255,255,240,0.15),
     0 0 8px rgba(180,170,150,0.12);
-  opacity: 0.28;
+  opacity: 0.60;
   transition: opacity 1.2s ease, box-shadow 1.2s ease, transform 1.2s ease;
   pointer-events: none;
   z-index: 5;
@@ -1188,7 +1188,7 @@
   height: 6px;
   pointer-events: none;
   z-index: 6;
-  opacity: 0.30;
+  opacity: 0.65;
   transition: opacity 0.8s ease;
 }
 
