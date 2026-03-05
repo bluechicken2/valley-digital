@@ -1,343 +1,449 @@
-// XrayNews — Cloudflare Worker News Gatherer
-// Sources: GDELT API (free) + Reuters/BBC/AP RSS
-// Deploy: cd workers && wrangler deploy
-// Secret: wrangler secret put SUPABASE_SERVICE_KEY
+// ================================================
+// XRAYNEWS — News Gatherer Worker v3
+// Cloudflare Worker — runs every 15 minutes
+// Sources: GDELT + 9 RSS feeds
+// Features: cross-reference confidence, dedup by similarity,
+//           event-type tracking, 50+ country detection
+// ================================================
 
-const SUPABASE_URL = 'https://dkxydhuojaspmbpjfyoz.supabase.co';
+const SUPABASE_URL     = 'https://dkxydhuojaspmbpjfyoz.supabase.co';
+const SUPABASE_KEY     = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRreHlkaHVvamFzcG1icGpmeW96Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4MDE3NTcsImV4cCI6MjA4NzM3Nzc1N30.6jwE5s6aekCDXALnrCK2hA1Lu3h3lbh7WqR9Io0lx8s';
 
-const COUNTRY_CENTROIDS = {
-  US:{lat:37.09,lng:-95.71}, GB:{lat:55.37,lng:-3.43}, FR:{lat:46.22,lng:2.21},
-  DE:{lat:51.16,lng:10.45}, RU:{lat:61.52,lng:105.31}, CN:{lat:35.86,lng:104.19},
-  IN:{lat:20.59,lng:78.96}, BR:{lat:-14.23,lng:-51.92}, AU:{lat:-25.27,lng:133.77},
-  CA:{lat:56.13,lng:-106.34}, UA:{lat:48.37,lng:31.16}, IL:{lat:31.04,lng:34.85},
-  JP:{lat:36.20,lng:138.25}, KR:{lat:35.90,lng:127.76}, SA:{lat:23.88,lng:45.07},
-  ZA:{lat:-30.55,lng:22.93}, NG:{lat:9.08,lng:8.67}, EG:{lat:26.82,lng:30.80},
-  PK:{lat:30.37,lng:69.34}, ID:{lat:-0.78,lng:113.92}, MX:{lat:23.63,lng:-102.55},
-  AR:{lat:-38.41,lng:-63.61}, PL:{lat:51.91,lng:19.14}, TR:{lat:38.96,lng:35.24},
-  IR:{lat:32.42,lng:53.68}, KP:{lat:40.33,lng:127.51}, TH:{lat:15.87,lng:100.99}
-,
-  IT:{lat:41.87,lng:12.57}, ES:{lat:40.46,lng:-3.75}, NL:{lat:52.13,lng:5.29},
-  ZA:{lat:-30.56,lng:22.94}, AR:{lat:-38.42,lng:-63.62}, CO:{lat:4.57,lng:-74.30},
-  VE:{lat:6.42,lng:-66.59}, TW:{lat:23.70,lng:121.00}, TH:{lat:15.87,lng:100.99},
-  VN:{lat:14.06,lng:108.28}, MM:{lat:21.91,lng:95.96}, AF:{lat:33.93,lng:67.71},
-  ET:{lat:9.15,lng:40.49}, SE:{lat:60.13,lng:18.64}, NO:{lat:60.47,lng:8.47},
-  FI:{lat:61.92,lng:25.75}, CH:{lat:46.82,lng:8.23}, GR:{lat:39.07,lng:21.82},
-  HU:{lat:47.16,lng:19.50}, RO:{lat:45.94,lng:24.97}, RS:{lat:44.02,lng:21.01},
-  SO:{lat:5.15,lng:46.20}, SD:{lat:12.86,lng:30.22}, LY:{lat:26.34,lng:17.23},
-  LB:{lat:33.85,lng:35.86}, SY:{lat:34.80,lng:38.99}, IQ:{lat:33.22,lng:43.68},
-  YE:{lat:15.55,lng:48.52}, KZ:{lat:48.02,lng:66.92}, BY:{lat:53.71,lng:27.95},
-  CL:{lat:-35.68,lng:-71.54}, PE:{lat:-9.19,lng:-75.02}, PH:{lat:12.88,lng:121.77},
-  MY:{lat:4.21,lng:101.98}, KE:{lat:-0.02,lng:37.91}, GH:{lat:7.95,lng:-1.02},
-  TR:{lat:38.96,lng:35.24}, ID:{lat:-0.79,lng:113.92}
-};
+// ---- RSS Sources ----
+const RSS_SOURCES = [
+  { name: 'Reuters',      url: 'https://feeds.reuters.com/reuters/topNews',              bias: 'center' },
+  { name: 'BBC',          url: 'https://feeds.bbci.co.uk/news/world/rss.xml',             bias: 'center-left' },
+  { name: 'AP News',      url: 'https://rsshub.app/apnews/topics/apf-intlnews',          bias: 'center' },
+  { name: 'CNN',          url: 'https://rss.cnn.com/rss/edition_world.rss',              bias: 'center-left' },
+  { name: 'Sky News',     url: 'https://feeds.skynews.com/feeds/rss/world.xml',          bias: 'center-right' },
+  { name: 'Al Jazeera',  url: 'https://www.aljazeera.com/xml/rss/all.xml',              bias: 'center-left' },
+  { name: 'DW News',     url: 'https://rss.dw.com/rdf/rss-en-world',                    bias: 'center' },
+  { name: 'France24',    url: 'https://www.france24.com/en/rss',                        bias: 'center-left' },
+  { name: 'Guardian',    url: 'https://www.theguardian.com/world/rss',                  bias: 'center-left' },
+];
 
-const CAT_COLORS = {
-  'War & Conflict':     '#ff4444',
-  'Politics':           '#7b2fff',
-  'Weather & Disaster': '#ffaa00',
-  'Economy':            '#00d4ff',
-  'Science & Tech':     '#00ff88',
-  'Health':             '#ff69b4',
-  'Elections':          '#4488ff',
-  'Environment':        '#44ff88'
-};
+// ---- Country detection: name -> {code, lat, lng} ----
+const COUNTRIES = [
+  // Major conflict zones first for priority matching
+  {k:'ukraine',       c:'UA', lat:49.0,  lng:31.0},
+  {k:'russia',        c:'RU', lat:61.0,  lng:105.0},
+  {k:'russian',       c:'RU', lat:61.0,  lng:105.0},
+  {k:'kremlin',       c:'RU', lat:61.0,  lng:105.0},
+  {k:'israel',        c:'IL', lat:31.0,  lng:35.2},
+  {k:'israeli',       c:'IL', lat:31.0,  lng:35.2},
+  {k:'gaza',          c:'PS', lat:31.4,  lng:34.3},
+  {k:'palestine',     c:'PS', lat:31.9,  lng:35.2},
+  {k:'hamas',         c:'PS', lat:31.4,  lng:34.3},
+  {k:'hezbollah',     c:'LB', lat:33.9,  lng:35.5},
+  {k:'lebanon',       c:'LB', lat:33.9,  lng:35.5},
+  {k:'iran',          c:'IR', lat:32.4,  lng:53.7},
+  {k:'iranian',       c:'IR', lat:32.4,  lng:53.7},
+  {k:'tehran',        c:'IR', lat:35.7,  lng:51.4},
+  {k:'syria',         c:'SY', lat:35.0,  lng:38.0},
+  {k:'yemen',         c:'YE', lat:15.6,  lng:48.5},
+  {k:'houthi',        c:'YE', lat:15.6,  lng:48.5},
+  {k:'sudan',         c:'SD', lat:12.9,  lng:30.2},
+  {k:'myanmar',       c:'MM', lat:21.9,  lng:95.9},
+  {k:'haiti',         c:'HT', lat:18.9,  lng:-72.3},
+  // NATO/West
+  {k:'united states', c:'US', lat:38.0,  lng:-97.0},
+  {k:'american',      c:'US', lat:38.0,  lng:-97.0},
+  {k:'washington',    c:'US', lat:38.9,  lng:-77.0},
+  {k:'white house',   c:'US', lat:38.9,  lng:-77.0},
+  {k:'congress',      c:'US', lat:38.9,  lng:-77.0},
+  {k:'pentagon',      c:'US', lat:38.9,  lng:-77.0},
+  {k:'trump',         c:'US', lat:38.9,  lng:-77.0},
+  {k:'biden',         c:'US', lat:38.9,  lng:-77.0},
+  {k:'united kingdom',c:'GB', lat:55.4,  lng:-3.4},
+  {k:'britain',       c:'GB', lat:55.4,  lng:-3.4},
+  {k:'british',       c:'GB', lat:55.4,  lng:-3.4},
+  {k:'london',        c:'GB', lat:51.5,  lng:-0.1},
+  {k:'france',        c:'FR', lat:46.2,  lng:2.2},
+  {k:'french',        c:'FR', lat:46.2,  lng:2.2},
+  {k:'paris',         c:'FR', lat:48.9,  lng:2.3},
+  {k:'germany',       c:'DE', lat:51.2,  lng:10.4},
+  {k:'german',        c:'DE', lat:51.2,  lng:10.4},
+  {k:'berlin',        c:'DE', lat:52.5,  lng:13.4},
+  {k:'canada',        c:'CA', lat:56.1,  lng:-106.3},
+  {k:'canadian',      c:'CA', lat:56.1,  lng:-106.3},
+  {k:'ottawa',        c:'CA', lat:45.4,  lng:-75.7},
+  {k:'australia',     c:'AU', lat:-25.3, lng:133.8},
+  {k:'australian',    c:'AU', lat:-25.3, lng:133.8},
+  {k:'poland',        c:'PL', lat:51.9,  lng:19.1},
+  {k:'nato',          c:'BE', lat:50.8,  lng:4.4},
+  {k:'european union',c:'BE', lat:50.8,  lng:4.4},
+  {k:'italy',         c:'IT', lat:41.9,  lng:12.6},
+  {k:'spain',         c:'ES', lat:40.5,  lng:-3.7},
+  {k:'netherlands',   c:'NL', lat:52.1,  lng:5.3},
+  {k:'sweden',        c:'SE', lat:60.1,  lng:18.6},
+  {k:'finland',       c:'FI', lat:61.9,  lng:25.7},
+  {k:'norway',        c:'NO', lat:60.5,  lng:8.5},
+  // Asia Pacific
+  {k:'china',         c:'CN', lat:35.9,  lng:104.2},
+  {k:'chinese',       c:'CN', lat:35.9,  lng:104.2},
+  {k:'beijing',       c:'CN', lat:39.9,  lng:116.4},
+  {k:'taiwan',        c:'TW', lat:23.7,  lng:121.0},
+  {k:'japan',         c:'JP', lat:36.2,  lng:138.3},
+  {k:'japanese',      c:'JP', lat:36.2,  lng:138.3},
+  {k:'tokyo',         c:'JP', lat:35.7,  lng:139.7},
+  {k:'south korea',   c:'KR', lat:35.9,  lng:127.8},
+  {k:'north korea',   c:'KP', lat:40.3,  lng:127.5},
+  {k:'kim jong',      c:'KP', lat:40.3,  lng:127.5},
+  {k:'india',         c:'IN', lat:20.6,  lng:79.1},
+  {k:'indian',        c:'IN', lat:20.6,  lng:79.1},
+  {k:'new delhi',     c:'IN', lat:28.6,  lng:77.2},
+  {k:'pakistan',      c:'PK', lat:30.4,  lng:69.3},
+  {k:'indonesia',     c:'ID', lat:-0.8,  lng:113.9},
+  {k:'philippines',   c:'PH', lat:12.9,  lng:121.8},
+  {k:'thailand',      c:'TH', lat:15.9,  lng:100.9},
+  {k:'vietnam',       c:'VN', lat:14.1,  lng:108.3},
+  {k:'bangladesh',    c:'BD', lat:23.7,  lng:90.4},
+  // Middle East
+  {k:'saudi arabia',  c:'SA', lat:23.9,  lng:45.1},
+  {k:'saudi',         c:'SA', lat:23.9,  lng:45.1},
+  {k:'riyadh',        c:'SA', lat:24.7,  lng:46.7},
+  {k:'turkey',        c:'TR', lat:38.96, lng:35.2},
+  {k:'turkish',       c:'TR', lat:38.96, lng:35.2},
+  {k:'erdogan',       c:'TR', lat:39.9,  lng:32.9},
+  {k:'iraq',          c:'IQ', lat:33.2,  lng:43.7},
+  {k:'baghdad',       c:'IQ', lat:33.3,  lng:44.4},
+  {k:'egypt',         c:'EG', lat:26.8,  lng:30.8},
+  {k:'qatar',         c:'QA', lat:25.4,  lng:51.2},
+  {k:'jordan',        c:'JO', lat:30.6,  lng:36.2},
+  // Americas
+  {k:'mexico',        c:'MX', lat:23.6,  lng:-102.6},
+  {k:'mexican',       c:'MX', lat:23.6,  lng:-102.6},
+  {k:'brazil',        c:'BR', lat:-14.2, lng:-51.9},
+  {k:'brazilian',     c:'BR', lat:-14.2, lng:-51.9},
+  {k:'argentina',     c:'AR', lat:-38.4, lng:-63.6},
+  {k:'venezuela',     c:'VE', lat:6.4,   lng:-66.6},
+  {k:'colombia',      c:'CO', lat:4.6,   lng:-74.3},
+  {k:'chile',         c:'CL', lat:-35.7, lng:-71.5},
+  // Africa
+  {k:'nigeria',       c:'NG', lat:9.1,   lng:8.7},
+  {k:'south africa',  c:'ZA', lat:-30.6, lng:22.9},
+  {k:'ethiopia',      c:'ET', lat:9.1,   lng:40.5},
+  {k:'kenya',         c:'KE', lat:0.02,  lng:37.9},
+  {k:'libya',         c:'LY', lat:26.3,  lng:17.2},
+  {k:'mali',          c:'ML', lat:17.6,  lng:-2.0},
+  {k:'somalia',       c:'SO', lat:5.2,   lng:46.2},
+  {k:'congo',         c:'CD', lat:-4.0,  lng:21.8},
+  {k:'mozambique',    c:'MZ', lat:-18.7, lng:35.5},
+];
 
-// Fetch with abort timeout
-async function fetchWithTimeout(url, options, ms) {
+// ---- Category detection ----
+const CATEGORIES = [
+  { name: 'elections',    keys: ['election','vote','ballot','polling','referendum','campaign','political party','primary','candidate','democracy'] },
+  { name: 'war',          keys: ['war','attack','missile','airstrike','troops','military','bomb','invasion','occupation','ceasefire','offensive','killed','wounded','combat','soldier','artillery','drone strike'] },
+  { name: 'weather',      keys: ['hurricane','earthquake','flood','tornado','typhoon','cyclone','tsunami','drought','wildfire','storm','blizzard','heatwave','disaster','eruption'] },
+  { name: 'economy',      keys: ['economy','gdp','inflation','recession','trade','tariff','sanction','market','stock','oil price','interest rate','unemployment','bank','currency','imf','debt'] },
+  { name: 'politics',     keys: ['president','prime minister','parliament','government','summit','diplomatic','treaty','sanctions','senate','minister','chancellor'] },
+  { name: 'health',       keys: ['pandemic','outbreak','virus','vaccine','epidemic','who','health','disease','hospital','death toll','medical'] },
+  { name: 'science',      keys: ['nasa','space','climate','ai ','artificial intelligence','nuclear','technology','satellite','launch','research','discovery'] },
+  { name: 'environment',  keys: ['climate change','emissions','carbon','deforestation','coral reef','arctic','glacier','pollution','renewable','solar','wind farm'] },
+];
+
+// ---- Content filter (block junk) ----
+const BLOCK_KEYWORDS = [
+  'kardashian','taylor swift','beyonce','celebrity','grammy','oscar','emmy','bachelorette',
+  'reality tv','bachelor','dancing with','american idol','got talent','x factor',
+  'recipe','cookbook','fashion week','runway','horoscope','astrology','lottery winner',
+  'sports score','nfl draft','nba trade','mlb','nhl game','fifa',
+  'tiktok trend','instagram','influencer','viral video','meme','gossip',
+  'deadliest catch','duck dynasty','survivor episode','big brother',
+];
+
+// ---- Fetch with timeout ----
+async function fetchWithTimeout(url, ms) {
   const ctrl = new AbortController();
-  const t = setTimeout(() => ctrl.abort(), ms || 7000);
+  const tid  = setTimeout(() => ctrl.abort(), ms);
   try {
-    const res = await fetch(url, Object.assign({}, options, { signal: ctrl.signal }));
-    clearTimeout(t);
-    return res;
+    const r = await fetch(url, { signal: ctrl.signal });
+    clearTimeout(tid);
+    return r;
   } catch(e) {
-    clearTimeout(t);
+    clearTimeout(tid);
     throw e;
   }
 }
 
-function detectCategory(text) {
-  const t = (text || '').toLowerCase();
-  if (/war|attack|military|missile|strike|conflict|troops|bomb|kill|soldier/.test(t)) return 'War & Conflict';
-  if (/election|vote|ballot|parliament|president|congress|senate/.test(t)) return 'Elections';
-  if (/hurricane|earthquake|flood|storm|tsunami|wildfire|disaster|tornado/.test(t)) return 'Weather & Disaster';
-  if (/economy|gdp|inflation|bank|recession|market|trade|tariff|sanction/.test(t)) return 'Economy';
-  if (/health|virus|covid|vaccine|disease|outbreak|hospital|medical/.test(t)) return 'Health';
-  if (/tech|ai|space|nasa|robot|cyber|hack|software|satellite/.test(t)) return 'Science & Tech';
-  if (/climate|carbon|emissions|environment|pollution|wildlife|forest/.test(t)) return 'Environment';
-  return 'Politics';
-}
-
-function detectCountry(text) {
-  const t = (text || '').toLowerCase();
-  const map = [
-    {p:['united states','american',' usa ','u.s.'],iso:'US',name:'United States'},
-    {p:['britain','british','england','london',' uk '],iso:'GB',name:'United Kingdom'},
-    {p:['ukraine','ukrainian','kyiv','kiev'],iso:'UA',name:'Ukraine'},
-    {p:['russia','russian','moscow','kremlin'],iso:'RU',name:'Russia'},
-    {p:['china','chinese','beijing'],iso:'CN',name:'China'},
-    {p:['israel','israeli','gaza','tel aviv'],iso:'IL',name:'Israel'},
-    {p:['france','french','paris','macron'],iso:'FR',name:'France'},
-    {p:['germany','german','berlin'],iso:'DE',name:'Germany'},
-    {p:['india','indian','delhi','modi'],iso:'IN',name:'India'},
-    {p:['iran','iranian','tehran'],iso:'IR',name:'Iran'},
-    {p:['canada','canadian','ottawa'],iso:'CA',name:'Canada'},
-    {p:['australia','australian','sydney'],iso:'AU',name:'Australia'},
-    {p:['japan','japanese','tokyo'],iso:'JP',name:'Japan'},
-    {p:['pakistan','islamabad'],iso:'PK',name:'Pakistan'},
-    {p:['north korea','pyongyang'],iso:'KP',name:'North Korea'},
-    {p:['south korea','seoul'],iso:'KR',name:'South Korea'},
-    {p:['brazil','brazilian','brasilia'],iso:'BR',name:'Brazil'},
-    {p:['mexico','mexican'],iso:'MX',name:'Mexico'},
-    {p:['nigeria','nigerian','lagos'],iso:'NG',name:'Nigeria'},
-    {p:['egypt','egyptian','cairo'],iso:'EG',name:'Egypt'},
-    {p:['saudi','riyadh'],iso:'SA',name:'Saudi Arabia'},
-    {p:['poland','polish','warsaw'],iso:'PL',name:'Poland'},
-    {p:['turkey','turkish','ankara'],iso:'TR',name:'Turkey'},
-    {p:['indonesia','jakarta'],iso:'ID',name:'Indonesia'},
-    {p:['italy','italian','rome'],iso:'IT',name:'Italy'},
-    {p:['spain','spanish','madrid'],iso:'ES',name:'Spain'},
-    {p:['netherlands','dutch','amsterdam'],iso:'NL',name:'Netherlands'},
-    {p:['south africa','johannesburg','pretoria'],iso:'ZA',name:'South Africa'},
-    {p:['argentina','buenos aires'],iso:'AR',name:'Argentina'},
-    {p:['colombia','bogota'],iso:'CO',name:'Colombia'},
-    {p:['venezuela','caracas'],iso:'VE',name:'Venezuela'},
-    {p:['taiwan','taipei'],iso:'TW',name:'Taiwan'},
-    {p:['thailand','bangkok'],iso:'TH',name:'Thailand'},
-    {p:['vietnam','hanoi','ho chi minh'],iso:'VN',name:'Vietnam'},
-    {p:['myanmar','yangon','rangoon'],iso:'MM',name:'Myanmar'},
-    {p:['afghanistan','kabul'],iso:'AF',name:'Afghanistan'},
-    {p:['ethiopia','addis ababa'],iso:'ET',name:'Ethiopia'},
-    {p:['sweden','stockholm'],iso:'SE',name:'Sweden'},
-    {p:['norway','oslo'],iso:'NO',name:'Norway'},
-    {p:['finland','helsinki'],iso:'FI',name:'Finland'},
-    {p:['switzerland','bern','zurich','geneva'],iso:'CH',name:'Switzerland'},
-    {p:['greece','athens','greek'],iso:'GR',name:'Greece'},
-    {p:['hungary','budapest'],iso:'HU',name:'Hungary'},
-    {p:['romania','bucharest'],iso:'RO',name:'Romania'},
-    {p:['serbia','belgrade'],iso:'RS',name:'Serbia'},
-    {p:['somalia','mogadishu'],iso:'SO',name:'Somalia'},
-    {p:['sudan','khartoum'],iso:'SD',name:'Sudan'},
-    {p:['libya','tripoli'],iso:'LY',name:'Libya'},
-    {p:['lebanon','beirut'],iso:'LB',name:'Lebanon'},
-    {p:['syria','damascus'],iso:'SY',name:'Syria'},
-    {p:['iraq','baghdad','iraqi'],iso:'IQ',name:'Iraq'},
-    {p:['yemen','sanaa','houthi'],iso:'YE',name:'Yemen'},
-    {p:['kazakhstan','astana'],iso:'KZ',name:'Kazakhstan'},
-    {p:['belarus','minsk'],iso:'BY',name:'Belarus'},
-    {p:['moldova','chisinau'],iso:'MD',name:'Moldova'},
-    {p:['chile','santiago'],iso:'CL',name:'Chile'},
-    {p:['peru','lima'],iso:'PE',name:'Peru'},
-    {p:['philippines','manila'],iso:'PH',name:'Philippines'},
-    {p:['malaysia','kuala lumpur'],iso:'MY',name:'Malaysia'},
-    {p:['kenya','nairobi'],iso:'KE',name:'Kenya'},
-    {p:['ghana','accra'],iso:'GH',name:'Ghana'}
-  ];
-  for (const c of map) {
-    if (c.p.some(pat => t.includes(pat))) return {iso:c.iso, name:c.name};
+// ---- Parse RSS ----
+function parseRSS(xml, sourceName) {
+  const items = [];
+  const re = /<item[^>]*>([\s\S]*?)<\/item>/g;
+  let m;
+  while ((m = re.exec(xml)) !== null) {
+    const block = m[1];
+    const getTag = (t) => {
+      const tm = block.match(new RegExp('<' + t + '[^>]*>(?:<\\!\\[CDATA\\[)?([\\s\\S]*?)(?:\\]\\]>)?<\\/' + t + '>'));
+      return tm ? tm[1].trim() : '';
+    };
+    const title = getTag('title').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>');
+    const desc  = getTag('description').replace(/<[^>]+>/g,' ').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').trim();
+    const link  = getTag('link') || getTag('guid');
+    const pub   = getTag('pubDate') || getTag('dc:date') || new Date().toISOString();
+    if (title && title.length > 10) items.push({ title, desc, link, pub, source: sourceName });
   }
-  return {iso:'XX', name:'Global'};
+  return items;
 }
 
-function calcConfidence(source, title) {
-  let score = 40;
-  const src = (source || '').toLowerCase();
-  const trusted = ['reuters','bbc','associated press','bloomberg','guardian','france24','dw.com','apnews'];
-  const biased  = ['rt.com','xinhua','tass','sputnik','presstv'];
-  if (trusted.some(s => src.includes(s))) score += 30;
-  if (biased.some(s => src.includes(s)))  score -= 20;
-  if ((title||'').length > 40) score += 5;
-  if (/breaking|unconfirmed|rumor|alleged|claims/i.test(title||'')) score -= 10;
-  return Math.max(5, Math.min(95, score));
+// ---- Detect country ----
+function detectCountry(text) {
+  const t = text.toLowerCase();
+  for (const c of COUNTRIES) {
+    if (t.includes(c.k)) return c;
+  }
+  return null;
 }
 
+// ---- Detect category ----
+function detectCategory(text) {
+  const t = text.toLowerCase();
+  for (const cat of CATEGORIES) {
+    for (const kw of cat.keys) {
+      if (t.includes(kw)) return cat.name;
+    }
+  }
+  return 'politics';
+}
+
+// ---- Check if junk ----
+function isJunk(text) {
+  const t = text.toLowerCase();
+  return BLOCK_KEYWORDS.some(k => t.includes(k));
+}
+
+// ---- Headline similarity (Jaccard on word sets) ----
+function similarity(a, b) {
+  const setA = new Set(a.toLowerCase().split(/\W+/).filter(w => w.length > 3));
+  const setB = new Set(b.toLowerCase().split(/\W+/).filter(w => w.length > 3));
+  let inter = 0;
+  for (const w of setA) { if (setB.has(w)) inter++; }
+  const union = setA.size + setB.size - inter;
+  return union > 0 ? inter / union : 0;
+}
+
+// ---- Confidence score ----
+function calcConfidence(item, allItems) {
+  let score = 30; // base
+  const text = (item.title + ' ' + item.desc).toLowerCase();
+
+  // Cross-source corroboration — biggest trust signal
+  const matches = allItems.filter(other =>
+    other.source !== item.source && similarity(item.title, other.title) > 0.25
+  );
+  const uniqueSources = new Set(matches.map(m => m.source));
+  score += Math.min(35, uniqueSources.size * 12); // +12 per corroborating source, max +35
+
+  // Source trust weights
+  const SOURCE_TRUST = { 'Reuters':8, 'AP News':8, 'DW News':6, 'BBC':6, 'Guardian':5, 'France24':5, 'Al Jazeera':4, 'CNN':4, 'Sky News':4 };
+  score += SOURCE_TRUST[item.source] || 3;
+
+  // Has a real description
+  if (item.desc && item.desc.length > 80) score += 5;
+
+  // Breaking/developing = lower confidence (more uncertain)
+  if (/breaking|developing|just in/i.test(item.title)) score -= 8;
+
+  // Quotes official source = higher confidence
+  if (/says|confirms|announces|according to|official/i.test(text)) score += 7;
+
+  // Sensational language = lower confidence
+  if (/claims|alleged|rumor|unconfirmed|sources say/i.test(text)) score -= 10;
+
+  return Math.min(98, Math.max(10, Math.round(score)));
+}
+
+// ---- Status from confidence ----
+function getStatus(score) {
+  if (score >= 75) return 'verified';
+  if (score >= 45) return 'unverified';
+  return 'contested';
+}
+
+// ---- Fetch one RSS source ----
+async function fetchSource(src) {
+  try {
+    const r = await fetchWithTimeout(src.url, 7000);
+    if (!r.ok) return [];
+    const xml = await r.text();
+    return parseRSS(xml, src.name).slice(0, 15);
+  } catch(e) {
+    console.log('[Worker] ' + src.name + ' failed: ' + e.message);
+    return [];
+  }
+}
+
+// ---- Fetch GDELT ----
 async function fetchGDELT() {
   try {
-    const url = 'https://api.gdeltproject.org/api/v2/doc/doc?query=sourcelang:english&mode=artlist&maxrecords=20&format=json&timespan=6h&sort=hybridrel';
-    const res = await fetchWithTimeout(url, {headers:{'User-Agent':'XrayNews/1.0'}}, 7000);
-    if (!res.ok) return [];
-    const data = await res.json();
-    return (data.articles || []).map(a => ({
-      headline:    (a.title  || '').trim(),
-      summary:     (a.title  || '').trim(),
-      source_name: a.domain  || 'GDELT',
-      raw_text:    (a.title  || '').toLowerCase()
-    })).filter(a => a.headline);
+    const url = 'https://api.gdeltproject.org/api/v2/doc/doc?query=war+election+conflict&mode=artlist&maxrecords=20&format=json&timespan=60&sourcelang=english';
+    const r = await fetchWithTimeout(url, 8000);
+    if (!r.ok) return [];
+    const j = await r.json();
+    return (j.articles || []).map(a => ({
+      title:  a.title   || '',
+      desc:   a.seendate || '',
+      link:   a.url     || '',
+      pub:    a.seendate || new Date().toISOString(),
+      source: 'GDELT'
+    })).filter(a => a.title.length > 10);
   } catch(e) {
-    console.error('GDELT failed:', e.message);
+    console.log('[Worker] GDELT failed:', e.message);
     return [];
   }
 }
 
-async function fetchRSS(feedUrl, sourceName) {
-  try {
-    const res = await fetchWithTimeout(feedUrl, {headers:{'User-Agent':'XrayNews/1.0'}}, 7000);
-    if (!res.ok) return [];
-    const xml = await res.text();
-    const items = [];
-    const itemRx = /<item[\s\S]*?<\/item>/gi;
-    const titleRx = /<title>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?<\/title>/i;
-    const descRx  = /<description>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/description>/i;
-    let m;
-    while ((m = itemRx.exec(xml)) && items.length < 8) {
-      const block = m[0];
-      const tm = titleRx.exec(block);
-      const dm = descRx.exec(block);
-      const title = tm ? tm[1].replace(/<[^>]+>/g,'').trim() : '';
-      const desc  = dm ? dm[1].replace(/<[^>]+>/g,'').trim().slice(0,300) : '';
-      if (!title || title.length < 10) continue;
-      items.push({ headline:title, summary:desc||title, source_name:sourceName, raw_text:(title+' '+desc).toLowerCase() });
-    }
-    return items;
-  } catch(e) {
-    console.error(sourceName + ' failed:', e.message);
-    return [];
-  }
-}
-
-
-function isRelevantStory(article) {
-  const t = (article.headline + ' ' + (article.summary || '')).toLowerCase();
-  // Block entertainment, sports, celebrity, TV shows
-  const BLOCK_PATTERNS = [
-    'deadliest catch', 'bachelor', 'bachelorette', 'reality tv', 'reality show',
-    'celebrity', 'kardashian', 'taylor swift', 'beyonce', 'pop star', 'oscar',
-    'grammy', 'emmy', 'academy award', 'box office', 'movie review', 'film review',
-    'nfl draft', 'nba', 'nfl', 'mlb', 'nhl', 'soccer score', 'football score',
-    'super bowl', 'world cup score', 'match result', 'game result',
-    'recipe', 'cooking show', 'food network', 'lifestyle tip',
-    'horoscope', 'zodiac', 'astrology',
-    'fashion week', 'runway', 'beauty tip', 'skincare',
-    'viral video', 'tiktok trend', 'instagram', 'social media influencer'
-  ];
-  return !BLOCK_PATTERNS.some(p => t.includes(p));
-}
-
-function deduplicate(articles) {
-  const seen = new Set();
-  return articles.filter(a => {
-    const key = (a.headline||'').toLowerCase().replace(/[^a-z0-9 ]/g,'').split(' ').slice(0,5).join(' ');
-    if (!key || seen.has(key)) return false;
-    seen.add(key);
-    return true;
+// ---- Supabase insert ----
+async function insertStory(story) {
+  const r = await fetch(SUPABASE_URL + '/rest/v1/stories', {
+    method: 'POST',
+    headers: {
+      'apikey':        SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type':  'application/json',
+      'Prefer':        'resolution=ignore-duplicates,return=minimal'
+    },
+    body: JSON.stringify(story)
   });
+  return r.status;
 }
 
-async function storeToSupabase(stories, key) {
-  let stored = 0, errors = 0;
-  for (const s of stories) {
-    try {
-      const res = await fetchWithTimeout(SUPABASE_URL + '/rest/v1/stories', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': key,
-          'Authorization': 'Bearer ' + key,
-          'Prefer': 'return=minimal'
-        },
-        body: JSON.stringify(s)
-      }, 5000);
-      if (res.ok || res.status === 409) stored++;
-      else {
-        const body = await res.text();
-        console.error('Supabase error', res.status, body.slice(0,100));
-        errors++;
-      }
-    } catch(e) { errors++; }
-  }
-  return { stored, errors };
-}
+// ---- Main handler ----
+export default {
+  async scheduled(event, env, ctx) {
+    console.log('[XrayNews Worker v3] Starting gather cycle...');
 
-async function runGather(env, cors) {
-  try {
-    const KEY = env.SUPABASE_SERVICE_KEY || '';
-    if (!KEY) return new Response(
-      JSON.stringify({error:'SUPABASE_SERVICE_KEY not set'}),
-      {status:500, headers:{...cors,'Content-Type':'application/json'}}
-    );
-
-    const [g, r, b, a, c, sk, aj] = await Promise.allSettled([
+    // Fetch all sources in parallel
+    const [gdelt, ...rssResults] = await Promise.allSettled([
       fetchGDELT(),
-      fetchRSS('https://feeds.reuters.com/reuters/worldNews', 'Reuters'),
-      fetchRSS('https://feeds.bbci.co.uk/news/world/rss.xml', 'BBC News'),
-      fetchRSS('https://rsshub.app/apnews/world-news', 'AP News'),
-      fetchRSS('https://rss.cnn.com/rss/edition_world.rss', 'CNN'),
-      fetchRSS('https://feeds.skynews.com/feeds/rss/world.xml', 'Sky News'),
-      fetchRSS('https://www.aljazeera.com/xml/rss/all.xml', 'Al Jazeera')
+      ...RSS_SOURCES.map(src => fetchSource(src))
     ]);
 
-    let raw = [
-      ...(g.status==='fulfilled' ? g.value : []),
-      ...(r.status==='fulfilled' ? r.value : []),
-      ...(b.status==='fulfilled' ? b.value : []),
-      ...(a.status==='fulfilled' ? a.value : []),
-      ...(c  && c.status==='fulfilled'  ? c.value  : []),
-      ...(sk && sk.status==='fulfilled' ? sk.value : []),
-      ...(aj && aj.status==='fulfilled' ? aj.value : [])
-    ];
-    raw = deduplicate(raw).filter(isRelevantStory);
+    const gdeltItems = gdelt.status === 'fulfilled' ? gdelt.value : [];
+    const rssItems   = rssResults.flatMap(r => r.status === 'fulfilled' ? r.value : []);
+    const allItems   = [...gdeltItems, ...rssItems];
 
-    const stories = raw.map(x => {
-      const country    = detectCountry(x.raw_text);
-      const centroid   = COUNTRY_CENTROIDS[country.iso] || {lat:0, lng:0};
-      const confidence = calcConfidence(x.source_name, x.headline);
-      const cat        = detectCategory(x.raw_text);
-      return {
-        headline:         x.headline.slice(0, 255),
-        summary:          (x.summary || x.headline).slice(0, 500),
-        category:         cat,
-        category_color:   CAT_COLORS[cat] || '#00d4ff',
-        country_code:     country.iso,
-        country_name:     country.name,
-        lat:              centroid.lat,
-        lng:              centroid.lng,
-        confidence_score: confidence,
-        verified_count:   confidence >= 70 ? 1 : 0,
-        source_count:     1,
-        status:           confidence >= 70 ? 'verified' : 'unverified',
-        is_breaking:      confidence >= 80 && /breaking|urgent|alert/i.test(x.headline)
-      };
-    });
+    console.log('[Worker] Raw items:', allItems.length);
 
-    // Filter out stories with no country or ocean pins (lat:0,lng:0)
-    const validStories = stories.filter(s => {
-      if (s.country_code === 'XX') return false;
-      if (s.lat === 0 && s.lng === 0) return false;
+    // Dedup by headline similarity
+    const seen = [];
+    const deduped = allItems.filter(item => {
+      if (isJunk(item.title + ' ' + item.desc)) return false;
+      if (!item.title || item.title.length < 15) return false;
+      // Check against already-seen headlines
+      for (const s of seen) {
+        if (similarity(item.title, s) > 0.55) return false;
+      }
+      seen.push(item.title);
       return true;
     });
 
-    const result = await storeToSupabase(validStories, KEY);
+    console.log('[Worker] After dedup:', deduped.length);
 
-    return new Response(
-      JSON.stringify({success:true, fetched:raw.length, processed:stories.length, ...result, timestamp:new Date().toISOString()}),
-      {headers:{...cors,'Content-Type':'application/json'}}
-    );
-  } catch(err) {
-    console.error('[Gather] Fatal:', err.message);
-    return new Response(
-      JSON.stringify({success:false, error:err.message, timestamp:new Date().toISOString()}),
-      {status:500, headers:{...cors,'Content-Type':'application/json'}}
-    );
-  }
-}
+    let stored = 0, errors = 0, skipped = 0;
 
-export default {
-  async fetch(request, env) {
-    const url = new URL(request.url);
-    const cors = {
-      'Access-Control-Allow-Origin': 'https://ottawav.com',
-      'Access-Control-Allow-Methods': 'GET, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type'
-    };
-    if (request.method === 'OPTIONS') return new Response(null, {headers:cors});
-    if (url.pathname === '/gather') return runGather(env, cors);
-    if (url.pathname === '/health') return new Response(
-      JSON.stringify({status:'ok', service:'XrayNews News Gatherer', time:new Date().toISOString()}),
-      {headers:{...cors,'Content-Type':'application/json'}}
-    );
-    return new Response('XrayNews News Gatherer — /gather or /health', {headers:cors});
+    for (const item of deduped) {
+      const text    = item.title + ' ' + item.desc;
+      const country = detectCountry(text);
+
+      if (!country) { skipped++; continue; } // Skip if no country detected
+
+      const category  = detectCategory(text);
+      const confidence = calcConfidence(item, allItems);
+      const status    = getStatus(confidence);
+      const isBreaking = /breaking|urgent|alert/i.test(item.title);
+
+      // Source count = number of other sources with similar headline
+      const sourceMatches = allItems.filter(o =>
+        o.source !== item.source && similarity(item.title, o.title) > 0.25
+      );
+      const sourceCount = 1 + new Set(sourceMatches.map(m => m.source)).size;
+
+      const story = {
+        headline:         item.title.slice(0, 255),
+        summary:          (item.desc || item.title).slice(0, 500),
+        category:         category,
+        country_code:     country.c,
+        country_name:     country.k.charAt(0).toUpperCase() + country.k.slice(1),
+        latitude:         country.lat,
+        longitude:        country.lng,
+        confidence_score: confidence,
+        status:           status,
+        is_breaking:      isBreaking,
+        source_count:     sourceCount,
+        sources:          [item.source, ...sourceMatches.slice(0,4).map(m => m.source)].filter((v,i,a)=>a.indexOf(v)===i),
+        external_url:     item.link || null,
+        created_at:       new Date().toISOString()
+      };
+
+      try {
+        const status_code = await insertStory(story);
+        if (status_code === 201) stored++;
+        else if (status_code === 409) skipped++; // duplicate
+        else errors++;
+      } catch(e) {
+        errors++;
+        console.log('[Worker] Insert error:', e.message);
+      }
+    }
+
+    console.log('[Worker] Done — stored:', stored, 'skipped:', skipped, 'errors:', errors);
   },
-  async scheduled(event, env, ctx) {
-    ctx.waitUntil(runGather(env, {}));
+
+  async fetch(request) {
+    const url = new URL(request.url);
+    if (url.pathname === '/health') {
+      return new Response(JSON.stringify({ status: 'ok', version: 3, timestamp: new Date().toISOString() }), {
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    if (url.pathname === '/gather') {
+      // Manual trigger endpoint
+      let stored = 0, errors = 0, skipped = 0;
+      const [gdelt, ...rssResults] = await Promise.allSettled([
+        fetchGDELT(),
+        ...RSS_SOURCES.map(src => fetchSource(src))
+      ]);
+      const gdeltItems = gdelt.status === 'fulfilled' ? gdelt.value : [];
+      const rssItems   = rssResults.flatMap(r => r.status === 'fulfilled' ? r.value : []);
+      const allItems   = [...gdeltItems, ...rssItems];
+      const seen = [];
+      const deduped = allItems.filter(item => {
+        if (isJunk(item.title + ' ' + item.desc)) return false;
+        if (!item.title || item.title.length < 15) return false;
+        for (const s of seen) { if (similarity(item.title, s) > 0.55) return false; }
+        seen.push(item.title);
+        return true;
+      });
+      for (const item of deduped) {
+        const text = item.title + ' ' + item.desc;
+        const country = detectCountry(text);
+        if (!country) { skipped++; continue; }
+        const category = detectCategory(text);
+        const confidence = calcConfidence(item, allItems);
+        const status = getStatus(confidence);
+        const isBreaking = /breaking|urgent|alert/i.test(item.title);
+        const sourceMatches = allItems.filter(o => o.source !== item.source && similarity(item.title, o.title) > 0.25);
+        const sourceCount = 1 + new Set(sourceMatches.map(m => m.source)).size;
+        const story = {
+          headline: item.title.slice(0, 255), summary: (item.desc || item.title).slice(0, 500),
+          category, country_code: country.c, country_name: country.k.charAt(0).toUpperCase() + country.k.slice(1),
+          latitude: country.lat, longitude: country.lng,
+          confidence_score: confidence, status, is_breaking: isBreaking,
+          source_count: sourceCount,
+          sources: [item.source, ...sourceMatches.slice(0,4).map(m => m.source)].filter((v,i,a)=>a.indexOf(v)===i),
+          external_url: item.link || null, created_at: new Date().toISOString()
+        };
+        try {
+          const sc = await insertStory(story);
+          if (sc === 201) stored++; else if (sc === 409) skipped++; else errors++;
+        } catch(e) { errors++; }
+      }
+      return new Response(JSON.stringify({ raw: allItems.length, deduped: deduped.length, stored, skipped, errors }), {
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    return new Response('XrayNews Gatherer v3', { status: 200 });
   }
 };

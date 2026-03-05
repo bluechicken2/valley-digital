@@ -2,6 +2,28 @@
 // XRAYNEWS - Story Card Renderer
 // ================================================
 
+// ---- Save/Bookmark helpers ----
+function _getSaved() {
+  try { return JSON.parse(localStorage.getItem('xraynews_saved') || '[]'); } catch(e) { return []; }
+}
+function _isSaved(id) {
+  return _getSaved().some(function(s){ return String(s.id) === String(id); });
+}
+function toggleSaveStory(story) {
+  var saved = _getSaved();
+  var idx = saved.findIndex(function(s){ return String(s.id) === String(story.id); });
+  if (idx >= 0) {
+    saved.splice(idx, 1);
+    localStorage.setItem('xraynews_saved', JSON.stringify(saved));
+    return false;
+  } else {
+    saved.unshift(story);
+    if (saved.length > 100) saved = saved.slice(0, 100);
+    localStorage.setItem('xraynews_saved', JSON.stringify(saved));
+    return true;
+  }
+}
+
 var CAT_COLORS = {
   'War & Conflict':    '#ff4444',
   'Politics':          '#7b2fff',
@@ -138,6 +160,7 @@ function renderStoryCard(story) {
       + sourceBadgeHtml
       + '<span class="card-time">&#128336; ' + age + '</span>'
       + '<button class="card-expand-btn" data-id="' + escHtml(story.id) + '">&#9654; More</button>'
+      + '<button class="card-save-btn" data-id="' + escHtml(story.id) + '"' + ' title="Save story">' + (_isSaved(story.id) ? '&#9733;' : '&#9734;') + '</button>'
     + '</div>'
     + '<div class="card-expanded" id="expanded-' + escHtml(story.id) + '" aria-hidden="true">'
       + '<div class="expanded-inner"><div class="expanded-loading">Loading sources&#8230;</div></div>'

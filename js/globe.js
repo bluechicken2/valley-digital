@@ -592,8 +592,12 @@ function _updateMoonPosition() {
     var cy = h * 0.5;
 
     // Orbit radius scales WITH zoom — moon stays proportional to apparent earth size
-    var baseOrbit = Math.min(w, h) * 0.37;
-    var orbitPx   = baseOrbit * Math.max(0.4, Math.min(2.0, zoomRatio));
+    var baseOrbit   = Math.min(w, h) * 0.37;
+    var scaledOrbit = baseOrbit * Math.max(0.4, Math.min(2.5, zoomRatio));
+    // HARD MINIMUM: moon always stays outside earth radius + padding
+    var earthRadiusPx = Math.min(w, h) * 0.36;  // approximate rendered earth radius in px
+    var minOrbit      = earthRadiusPx + 55;      // earth edge + moon radius + gap
+    var orbitPx       = Math.max(minOrbit, scaledOrbit);
     var moonSize  = 54;
     var angle     = -0.65; // upper-right (radians)
 

@@ -7,8 +7,26 @@
   <link rel="manifest" href="/manifest.json">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500;600&display=swap">
-  <link rel="stylesheet" href="css/dashboard.css?v=11">
+  <link rel="stylesheet" href="css/dashboard.css?v=12">
   <style>
+    :root {
+      --bg-primary: #080b12;
+      --bg-secondary: #0d1117;
+      --text-primary: #e8eaf0;
+      --cyan: #00d4ff;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #080b12;
+      color: #e8eaf0;
+      font-family: Inter, sans-serif;
+      min-height: 100vh;
+    }
+    a { color: #00d4ff; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    button { font-family: Inter, sans-serif; }
+    input, select { font-family: Inter, sans-serif; color: #e8eaf0; }
+    select option { background: #0d1117; color: #e8eaf0; }
     .profile-page { max-width: 900px; margin: 0 auto; padding: 100px 24px 60px; }
     .profile-hero {
       display: flex; align-items: center; gap: 32px;
@@ -158,7 +176,7 @@
 <body>
   <!-- Nav -->
   <nav class="top-nav">
-    <a href="dashboard.html" class="nav-logo">🌍 XRAYNEWS</a>
+    <a href="dashboard.html" class="nav-logo" style="color:#00d4ff;font-family:Orbitron,sans-serif;font-weight:700;letter-spacing:2px;text-decoration:none;">🌍 XRAYNEWS</a>
     <div style="margin-left:auto;display:flex;align-items:center;gap:12px;">
       <a href="dashboard.html" class="overlay-btn" style="text-decoration:none">← Back to Globe</a>
     </div>
@@ -287,8 +305,8 @@
 
   </div>
 
-  <script src="js/supabase-config.js?v=11"></script>
-  <script src="js/auth.js?v=11"></script>
+  <script src="js/supabase-config.js?v=12"></script>
+  <script src="js/auth.js?v=12"></script>
   <script>
     var _prefs = {};
     var _savedStories = [];
