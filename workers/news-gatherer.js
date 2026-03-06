@@ -1,10 +1,10 @@
 // ================================================
-// XrayNews Intelligence Gatherer v5.3
+// XrayNews Intelligence Gatherer v5.4
 // Architecture: Worker = fast headline grab only. Xray = article fetch + verification.
 // Schedule: Every 5 minutes
-// Sources: Reuters, BBC, AP, CNN, Sky, AlJazeera, DW, France24, Guardian, GDELT
+// Sources: Reuters, BBC, AP, CNN, Sky, AlJazeera, DW, France24, Guardian, GDELT, Reddit
 // Features: Article body fetching, cross-source corroboration, dedup, Xray-ready
-// v5.3: Optimized for CF free tier - batched fetches, reduced timeouts, CPU limits
+// v5.4: Added Reddit RSS integration with Atom parser for social news sources
 // ================================================
 
 // SUPABASE_URL accessed via env parameter
@@ -27,6 +27,15 @@ const RSS_SOURCES = [
   { url: 'https://feeds.a.dj.com/rss/RSSWorldNews.xml',          name: 'WSJ World',    tier: 1 },
   { url: 'https://www.euronews.com/rss',                         name: 'Euronews',     tier: 2 },
   { url: 'https://www.rfi.fr/en/rss',                            name: 'RFI',          tier: 2 },
+];
+
+// ---- Reddit RSS Sources (Atom format) ----------------------------------
+const REDDIT_SOURCES = [
+  { url: 'https://www.reddit.com/r/worldnews/hot.rss', name: 'Reddit WorldNews', tier: 2, type: 'social' },
+  { url: 'https://www.reddit.com/r/geopolitics/hot.rss', name: 'Reddit Geopolitics', tier: 2, type: 'social' },
+  { url: 'https://www.reddit.com/r/UkrainianConflict/hot.rss', name: 'Reddit Ukraine', tier: 2, type: 'social' },
+  { url: 'https://www.reddit.com/r/europe/hot.rss', name: 'Reddit Europe', tier: 2, type: 'social' },
+  { url: 'https://www.reddit.com/r/news/hot.rss', name: 'Reddit News', tier: 2, type: 'social' },
 ];
 
 // ---- Content Filter Keywords (simplified for CPU) ----------------------
@@ -92,6 +101,8 @@ const SOURCE_REPUTATION = {
   'BBC News': 92, 'NPR World': 88, 'The Guardian': 85, 'WSJ World': 90,
   'Al Jazeera': 78, 'DW News': 82, 'France24': 80,
   'Sky News': 74, 'Euronews': 76, 'RFI': 74,
+  'Reddit WorldNews': 65, 'Reddit Geopolitics': 60, 'Reddit Ukraine': 55,
+  'Reddit Europe': 55, 'Reddit News': 60,
 };
 
 // ---- Utilities ---------------------------------------------------------
@@ -114,6 +125,61 @@ function parseXML(text) {
     };
     const title = get('title'), desc = get('description'), link = get('link'), pubDate = get('pubDate');
     if (title && title.length > 10) items.push({ title, desc, link, pubDate });
+  }
+  return items;
+}
+
+// Parse Reddit Atom RSS format
+function parseRedditAtom(text, sourceName) {
+  const items = [];
+  try {
+    const t = text.replace(/<!\[CDATA\[/g, '').replace(/\]\]>/g, '');
+    // Atom uses <entry> instead of <item>
+    const entryRe = /<entry[^>]*>([\s\S]*?)<\/entry>/gi;
+    let m;
+    while ((m = entryRe.exec(t)) !== null) {
+      const block = m[1];
+      const get = function(tag) {
+        const r = new RegExp('<' + tag + '[^>]*>([\\s\\S]*?)</' + tag + '>', 'i');
+        const rm = r.exec(block);
+        if (!rm) return '';
+        return rm[1]
+          .replace(/<[^>]+>/g, ' ')
+          .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+          .replace(/&apos;/g, "'").replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+          .replace(/\s+/g, ' ').trim();
+      };
+      // Extract Reddit-specific data
+      const title = get('title');
+      const link = block.match(/<link[^>]*href="([^"]+)"[^>]*rel="alternate"/i)?.[1] || 
+                   block.match(/<link[^>]*href="([^"]+)"/i)?.[1] || '';
+      const pubDate = get('updated') || get('published');
+      const desc = get('content') || get('summary');
+      
+      // Extract score from title like "[12345] Article Title"
+      let score = 0;
+      const scoreMatch = title.match(/^\[(\d+)\]\s*/);
+      const cleanTitle = scoreMatch ? title.replace(scoreMatch[0], '') : title;
+      if (scoreMatch) score = parseInt(scoreMatch[1]) || 0;
+      
+      // Extract comment count from content
+      let comments = 0;
+      const commentMatch = desc.match(/(\d+)\s*comments?/i);
+      if (commentMatch) comments = parseInt(commentMatch[1]) || 0;
+      
+      if (cleanTitle && cleanTitle.length > 10) {
+        items.push({ 
+          title: cleanTitle, 
+          desc: desc.substring(0, 500), 
+          link, 
+          pubDate,
+          reddit_score: score,
+          reddit_comments: comments
+        });
+      }
+    }
+  } catch (e) {
+    console.error('Reddit parse error:', e.message);
   }
   return items;
 }
@@ -151,6 +217,9 @@ function scoreConfidence(story, allItems) {
   if (/\b(official|confirmed|announced|statement)\b/.test(text)) score += 8;
   if (/\b(according to|reportedly|alleged|claims|might)\b/.test(text)) score -= 10;
   if (/\b(breaking|urgent|exclusive)\b/.test(text)) score += 3;
+  // Boost for high Reddit engagement
+  if (story.reddit_score && story.reddit_score > 1000) score += 5;
+  if (story.reddit_score && story.reddit_score > 5000) score += 5;
   return Math.max(5, Math.min(99, score));
 }
 
@@ -197,13 +266,53 @@ async function gatherNews(env) {
       if (res.status === 'fulfilled' && res.value.items.length) {
         const { src, items } = res.value;
         for (const item of items.slice(0, MAX_ITEMS_PER_SOURCE)) {
-          allRawItems.push({ ...item, sourceName: src.name, sourceTier: src.tier });
+          allRawItems.push({ ...item, sourceName: src.name, sourceTier: src.tier, sourceType: 'legacy' });
         }
         log.push(`✓ ${src.name}: ${items.length} items`);
       } else {
         const src = res.value?.src || { name: 'unknown' };
         log.push(`✗ ${src.name}: ${res.reason?.message || res.value?.error || 'failed'}`);
       }
+    }
+  }
+
+  // Fetch Reddit sources (separate batch to avoid rate limiting)
+  log.push('Fetching Reddit sources...');
+  for (let i = 0; i < REDDIT_SOURCES.length; i += 2) { // Smaller batches for Reddit
+    const batch = REDDIT_SOURCES.slice(i, i + 2);
+    const fetches = batch.map(src =>
+      fetch(src.url, {
+        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; XrayNewsBot/1.0)' },
+        signal: AbortSignal.timeout(RSS_TIMEOUT)
+      })
+      .then(r => r.text())
+      .then(xml => ({ src, items: parseRedditAtom(xml, src.name) }))
+      .catch(err => ({ src, items: [], error: err.message }))
+    );
+    
+    const results = await Promise.allSettled(fetches);
+    for (const res of results) {
+      if (res.status === 'fulfilled' && res.value.items.length) {
+        const { src, items } = res.value;
+        for (const item of items.slice(0, MAX_ITEMS_PER_SOURCE)) {
+          allRawItems.push({ 
+            ...item, 
+            sourceName: src.name, 
+            sourceTier: src.tier,
+            sourceType: 'social',
+            reddit_score: item.reddit_score || 0,
+            reddit_comments: item.reddit_comments || 0
+          });
+        }
+        log.push(`✓ ${src.name}: ${items.length} items`);
+      } else {
+        const src = res.value?.src || { name: 'unknown' };
+        log.push(`✗ ${src.name}: ${res.reason?.message || res.value?.error || 'failed'}`);
+      }
+    }
+    // Small delay between Reddit batches to avoid rate limiting
+    if (i + 2 < REDDIT_SOURCES.length) {
+      await new Promise(r => setTimeout(r, 500));
     }
   }
 
@@ -261,6 +370,9 @@ async function gatherNews(env) {
       article_fetched: false,
       sourceName: item.sourceName,
       sourceTier: item.sourceTier,
+      source_type: item.sourceType || 'legacy',
+      reddit_score: item.reddit_score || 0,
+      reddit_comments: item.reddit_comments || 0,
     });
   }
 
@@ -324,7 +436,7 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     if (url.pathname === '/health') {
-      return new Response(JSON.stringify({ status: 'ok', service: 'xraynews-gatherer', version: 'v5.3.2' }), {
+      return new Response(JSON.stringify({ status: 'ok', service: 'xraynews-gatherer', version: 'v5.4.0' }), {
         headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
       });
     }
@@ -334,6 +446,6 @@ export default {
         headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
       });
     }
-    return new Response('XrayNews Gatherer v5.3 — OK', { status: 200 });
+    return new Response('XrayNews Gatherer v5.4 — OK', { status: 200 });
   }
 };
