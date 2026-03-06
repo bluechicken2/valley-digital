@@ -374,17 +374,14 @@ async function expandCard(storyId) {
     try { verifs = await window.XrayNewsDB.getVerifications(storyId); } catch(e){}
   }
   if (!verifs || verifs.length === 0) {
-    var story  = window.NewsFeed ? window.NewsFeed.getAll().find(function(s){return s.id==storyId;}) : null;
-    var count  = (story && story.source_count) || 3;
-    var sample = [
-      { source_name:'Reuters',            source_type:'legacy',      agrees:true  },
-      { source_name:'Associated Press',   source_type:'legacy',      agrees:true  },
-      { source_name:'BBC News',           source_type:'legacy',      agrees:true  },
-      { source_name:'Twitter/X',          source_type:'social',      agrees:true  },
-      { source_name:'Official Statement', source_type:'official',    agrees:true  },
-      { source_name:'Bellingcat',         source_type:'independent', agrees:false }
-    ];
-    verifs = sample.slice(0, Math.min(count, 6));
+    // No fake data - show empty state message
+    inner.innerHTML = '<div class="sources-header">Verification Sources</div>'
+      + '<div class="sources-empty">'
+      + '<div class="sources-empty-icon">&#128269;</div>'
+      + '<div class="sources-empty-text">No verifications yet</div>'
+      + '<div class="sources-empty-sub">Sources will appear as this story is verified</div>'
+      + '</div>';
+    return;
   }
   var typeLabel = {legacy:'Legacy Media',social:'Social Media',official:'Official',independent:'Independent'};
   var rows = verifs.map(function(v) {

@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/main.css?v=33">
-  <link rel="stylesheet" href="css/dashboard.css?v=35">
+  <link rel="stylesheet" href="css/dashboard.css?v=36">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <!-- globe.gl loaded async in body -->
   <script src="js/loader.js?v=33"></script>
@@ -463,7 +463,7 @@
         </div>
         <div class="notif-footer">
           <button class="notif-footer-btn" id="notif-mark-all-2">&#10003; Mark all read</button>
-          <button class="notif-footer-btn" onclick="alert('Notification settings coming soon!');">&#9881;&#65039; Settings</button>
+          <button class="notif-footer-btn" disabled title='Settings coming soon' style='opacity:0.5;cursor:not-allowed;'>&#9881;&#65039; Settings</button>
         </div>
       </div>
     </div>
@@ -482,7 +482,7 @@
         <button class="dropdown-item" role="menuitem"
           onclick="window.location.href='profile.html';">&#128100; Profile</button>
         <button class="dropdown-item" role="menuitem"
-          onclick="alert('Settings coming soon!');">&#9881;&#65039; Settings</button>
+          disabled title='Settings coming soon' style='opacity:0.5;cursor:not-allowed;'>&#9881;&#65039; Settings</button>
         <div class="dropdown-divider" role="separator"></div>
         <button class="dropdown-item danger" id="signout-btn" role="menuitem">&#128682; Sign Out</button>
       </div>

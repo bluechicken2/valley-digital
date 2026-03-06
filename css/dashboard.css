@@ -2050,3 +2050,26 @@
     }
   }
 }
+
+
+/* Sources Empty State */
+.sources-empty {
+  padding: 24px 16px;
+  text-align: center;
+  color: rgba(232, 234, 240, 0.6);
+}
+.sources-empty-icon {
+  font-size: 32px;
+  margin-bottom: 12px;
+  opacity: 0.5;
+}
+.sources-empty-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(232, 234, 240, 0.8);
+  margin-bottom: 4px;
+}
+.sources-empty-sub {
+  font-size: 12px;
+  color: rgba(232, 234, 240, 0.4);
+}

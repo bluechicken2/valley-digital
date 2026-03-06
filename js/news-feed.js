@@ -36,7 +36,7 @@ function timeAgo(iso) {
 }
 
 // ------------------------------------------------
-// Load stories (Supabase -> sample fallback)
+// Load stories from Supabase
 // ------------------------------------------------
 async function loadStories(append) {
   if (_isLoading) return _allStories;
