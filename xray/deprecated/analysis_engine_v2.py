@@ -9,7 +9,7 @@ import sys
 import json
 import requests
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 from urllib.parse import quote_plus
 import time
 
@@ -27,8 +27,9 @@ def load_env():
     except:
         pass
 
-SUPABASE_URL = os.environ.get('SUPABASE_URL', '')
-SERVICE_KEY = os.environ.get("SERVICE_ROLE_SUPABASE") or os.environ.get("SERVICE_ROLE_SUPABASE") or ""
+load_env()  # Load .env before reading vars
+SUPABASE_URL = os.environ.get('SUPABASE_URL', 'https://dkxydhuojaspmbpjfyoz.supabase.co')
+SERVICE_KEY = os.environ.get('SERVICE_ROLE_SUBABASE') or os.environ.get('SERVICE_ROLE_SUPABASE') or os.environ.get('SUPABASE_SERVICE_KEY') or ""
 
 
 HEADERS = {
@@ -177,7 +178,7 @@ def get_stories_for_analysis(limit=10):
 
 def update_story_analysis(story_id, analysis):
     url = f"{SUPABASE_URL}/rest/v1/stories?id=eq.{story_id}"
-    data = {"xray_analysis": analysis, "xray_analysis_at": datetime.utcnow().isoformat(), "xray_analysis_version": 2}
+    data = {"xray_analysis": analysis, "xray_analysis_at": datetime.now(timezone.utc).isoformat(), "xray_analysis_version": 2}
     resp = requests.patch(url, headers=HEADERS, json=data)
     resp.raise_for_status()
     return True

@@ -192,11 +192,26 @@
     if (!section || !contentEl) return;
 
     if (story.xray_analysis && story.xray_analysis.trim()) {
-      // Format analysis text into paragraphs
+      // Format analysis — handles plain text (v1) and **markdown** (v2)
       const analysisText = story.xray_analysis;
-      const paragraphs = analysisText.split(/\.\s+/).filter(p => p.trim().length > 10);
-
-      contentEl.innerHTML = paragraphs.map(p => '<p>' + escHtml(p.trim()) + (p.trim().endsWith('.') ? '' : '.') + '</p>').join('');
+      const hasMarkdown = /\*\*[^*]+\*\*/.test(analysisText);
+      let analysisHtml;
+      if (hasMarkdown) {
+        // v2 format: \n\n-separated sections with **LABEL:** markers
+        const sections = analysisText.split(/\n\n+/).filter(function(s) { return s.trim().length > 5; });
+        analysisHtml = sections.map(function(s) {
+          const escaped = escHtml(s.trim());
+          const withBold = escaped.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+          return '<p>' + withBold + '</p>';
+        }).join('');
+      } else {
+        // v1 format: sentence-split plain text
+        const paragraphs = analysisText.split(/\.\s+/).filter(function(p) { return p.trim().length > 10; });
+        analysisHtml = paragraphs.map(function(p) {
+          return '<p>' + escHtml(p.trim()) + (p.trim().endsWith('.') ? '' : '.') + '</p>';
+        }).join('');
+      }
+      contentEl.innerHTML = analysisHtml;
 
       // Show timestamp
       if (story.xray_analysis_at) {
@@ -406,15 +421,12 @@
     if (!container || !story.story_thread_id) return;
     
     try {
-      // Fetch stories with same thread_id
-      const allStories = await window.XrayNewsDB.getStories({ limit: 50 });
-      
-      // Filter to same thread
-      const threadStories = allStories.filter(function(s) {
-        return s.story_thread_id === story.story_thread_id;
-      }).sort(function(a, b) {
-        return new Date(a.created_at) - new Date(b.created_at); // Oldest first
-      });
+      // Fetch thread stories directly via targeted DB query (efficient)
+      const threadStories = await window.XrayNewsDB._fetch(
+        '/stories?story_thread_id=eq.' + encodeURIComponent(story.story_thread_id) +
+        '&select=id,headline,xray_score,confidence_score,story_thread_id,created_at' +
+        '&order=created_at.asc&limit=30'
+      );
       
       if (threadStories.length <= 1) {
         if (section) section.style.display = 'none';
@@ -438,7 +450,7 @@
         const scoreColor = getScoreColor(score);
         const isActive = s.id === story.id;
         
-        return '<a href="story.html?id=' + s.id + '" class="thread-item' + (isActive ? ' thread-active' : '') + '">'
+        return '<a href="/story/' + s.id + '" class="thread-item' + (isActive ? ' thread-active' : '') + '">'
           + '<span class="thread-num">#' + (idx + 1) + '</span>'
           + '<div class="thread-content">'
             + '<div class="thread-headline">' + escHtml(s.headline) + '</div>'
@@ -468,7 +480,7 @@
     let navHtml = '<div class="thread-nav">';
     
     if (prevStory) {
-      navHtml += '<a href="story.html?id=' + prevStory.id + '" class="thread-nav-btn thread-prev">'
+      navHtml += '<a href="/story/' + prevStory.id + '" class="thread-nav-btn thread-prev">'
         + '← Previous'
         + '</a>';
     } else {
@@ -478,7 +490,7 @@
     navHtml += '<span class="thread-position">' + (currentIndex + 1) + ' of ' + threadStories.length + '</span>';
     
     if (nextStory) {
-      navHtml += '<a href="story.html?id=' + nextStory.id + '" class="thread-nav-btn thread-next">'
+      navHtml += '<a href="/story/' + nextStory.id + '" class="thread-nav-btn thread-next">'
         + 'Next →'
         + '</a>';
     } else {
@@ -494,20 +506,20 @@
     const container = document.getElementById('related-list');
     
     try {
-      // Fetch stories with same country or category
-      const allStories = await window.XrayNewsDB.getStories({ limit: 20 });
-      
-      // Filter to related (same country OR category, exclude current and thread)
-      const related = allStories
-        .filter(function(s) { return s.id !== story.id; })
+      // Fetch related stories via targeted DB query (efficient)
+      const relatedUrl = (() => {
+        const base = '/stories?select=id,headline,xray_score,confidence_score,story_thread_id,created_at&order=created_at.desc&limit=8&id=neq.' + story.id;
+        if (story.country_code && story.category) {
+          return base + '&or=(country_code.eq.' + encodeURIComponent(story.country_code) + ',category.eq.' + encodeURIComponent(story.category) + ')';
+        } else if (story.country_code) {
+          return base + '&country_code=eq.' + encodeURIComponent(story.country_code);
+        }
+        return base + '&category=eq.' + encodeURIComponent(story.category || 'Politics');
+      })();
+      const related = (await window.XrayNewsDB._fetch(relatedUrl))
         .filter(function(s) {
-          // Exclude stories from same thread (they're shown in thread section)
-          if (story.story_thread_id && s.story_thread_id === story.story_thread_id) {
-            return false;
-          }
-          return s.country_code === story.country_code || s.category === story.category;
-        })
-        .slice(0, 4);
+          return !(story.story_thread_id && s.story_thread_id === story.story_thread_id);
+        }).slice(0, 4);
       
       if (related.length === 0) {
         container.innerHTML = '<p style="color:#666">No related stories found.</p>';
@@ -523,7 +535,7 @@
           ? '<span class="related-thread-badge" title="Part of thread">🧵</span>'
           : '';
         
-        return '<a href="story.html?id=' + s.id + '" class="related-item">'
+        return '<a href="/story/' + s.id + '" class="related-item">'
           + '<div class="related-score" style="background:' + scoreColor + '22;color:' + scoreColor + '">' + score + '</div>'
           + '<div class="related-headline">' + escHtml(s.headline) + '</div>'
           + threadBadgeHtml

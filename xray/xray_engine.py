@@ -391,7 +391,7 @@ class AnalysisEngine:
     def __init__(self, db: SupabaseClient):
         self.db = db
     
-    def fetch_unanalyzedd(self, limit: int = 10) -> List[Dict]:
+    def fetch_unanalyzed(self, limit: int = 10) -> List[Dict]:
         """Fetch stories without analysis"""
         return self.db.fetch(
             'stories',
@@ -477,7 +477,7 @@ class AnalysisEngine:
     
     def run(self, limit: int = 10, verbose: bool = True) -> int:
         """Run analysis on stories"""
-        stories = self.fetch_unanalyzedd(limit)
+        stories = self.fetch_unanalyzed(limit)
         if not stories:
             if verbose:
                 print("[ANALYSIS] No stories need analysis")
