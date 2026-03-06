@@ -137,7 +137,7 @@ class TruthEngine:
         return self.db.fetch(
             'stories',
             select='id,headline,summary,source_name,category,confidence_score,is_breaking',
-            filters={'or': '(xray_score.is.null,xray_score.lt.0)'},
+            filters={'or': '(xray_score.is.null,xray_score.lt.1)'},
             order='created_at.desc',
             limit=limit
         )
