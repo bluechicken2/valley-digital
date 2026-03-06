@@ -19,12 +19,13 @@
   top: 0;
   left: 0;
   right: 0;
-  height: var(--nav-height);
+  height: calc(var(--nav-height) + env(safe-area-inset-top, 0px));
+  padding-top: env(safe-area-inset-top, 0px);
   z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 1.25rem;
+  padding: 0 1.25rem; padding-top: env(safe-area-inset-top, 0px);
   gap: 1rem;
   background: rgba(8,11,18,0.88);
   backdrop-filter: blur(20px);
@@ -395,7 +396,7 @@
   top: 1rem;
   right: 1rem;
   z-index: 200;
-  display: flex;
+  display: none !important;
   flex-wrap: wrap;
   gap: 0.4rem;
   justify-content: flex-end;
@@ -1222,7 +1223,7 @@
 }
 
 /* Outline mode button */
-.overlay-btn.outline-btn {
+/* HIDDEN */ .overlay-btn.outline-btn { display: none;
   border-left: 1px solid rgba(0,212,255,0.15);
   margin-left: 4px;
   padding-left: 10px;
