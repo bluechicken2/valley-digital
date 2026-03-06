@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/main.css?v=33">
-  <link rel="stylesheet" href="css/dashboard.css?v=37">
+  <link rel="stylesheet" href="css/dashboard.css?v=38">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <!-- globe.gl loaded async in body -->
   <script src="js/loader.js?v=33"></script>
@@ -248,6 +248,16 @@
   .sb-brk{font-size:9px;color:#ff4444;font-weight:700;}
   .sb-card-hl{font-size:12px;color:#e8eaf0;line-height:1.4;margin-bottom:8px;}
   .sb-card-foot{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+
+  /* Mobile portrait fix for sidebar */
+  @media (max-width: 768px) and (orientation: portrait) {
+    .sb-panel {
+      padding-top: max(25px, env(safe-area-inset-top, 25px));
+    }
+    .sb-head {
+      padding-top: max(25px, env(safe-area-inset-top, 25px));
+    }
+  }
   .sb-dots{display:flex;gap:2px;}
   .sb-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.1);}
   .sb-dot-on{background:#00d4ff;}
