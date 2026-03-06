@@ -1950,3 +1950,69 @@
 #globe-container canvas {
   filter: drop-shadow(0 0 20px rgba(0, 180, 220, 0.15));
 }
+
+/* ================================================
+   LOAD MORE BUTTON
+   ================================================ */
+
+.load-more-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 24px 0 32px;
+}
+
+.load-more-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 32px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #00d4ff;
+  background: rgba(0, 212, 255, 0.08);
+  border: 1px solid rgba(0, 212, 255, 0.3);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  letter-spacing: 0.02em;
+}
+
+.load-more-btn:hover:not(:disabled) {
+  background: rgba(0, 212, 255, 0.15);
+  border-color: #00d4ff;
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.load-more-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.load-more-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* Loading spinner for load-more */
+.load-more-btn.loading::before {
+  content: '';
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(0, 212, 255, 0.3);
+  border-top-color: #00d4ff;
+  border-radius: 50%;
+  animation: btn-spin 0.8s linear infinite;
+}
+
+@keyframes btn-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .load-more-btn {
+    padding: 12px 24px;
+    font-size: 13px;
+  }
+}

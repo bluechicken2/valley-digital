@@ -1,0 +1,5 @@
+# SEO-friendly story URLs
+/story/*  /story.html?id=:splat  200
+
+# Fallback for SPA
+/*       /index.html   404

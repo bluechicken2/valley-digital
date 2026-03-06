@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Story - XrayNews</title>
-  <link rel="stylesheet" href="css/main.css?v=26">
-  <link rel="stylesheet" href="css/dashboard.css?v=26">
+  <link rel="stylesheet" href="css/main.css?v=28">
+  <link rel="stylesheet" href="css/dashboard.css?v=28">
   <style>
     /* Story Detail Page Styles */
     .story-detail-container {
@@ -567,7 +567,240 @@
       border-color: rgba(255,255,255,0.2);
     }
     
-    /* Loading State */
+    /* ============================================ */
+    /* SKELETON LOADER STYLES */
+    /* ============================================ */
+    
+    .skeleton-container {
+      animation: skeleton-fade-in 0.3s ease;
+    }
+    
+    @keyframes skeleton-fade-in {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .skeleton {
+      background: linear-gradient(90deg, 
+        rgba(255,255,255,0.05) 0%, 
+        rgba(255,255,255,0.1) 50%, 
+        rgba(255,255,255,0.05) 100%);
+      background-size: 200% 100%;
+      animation: skeleton-pulse 1.5s ease-in-out infinite;
+      border-radius: 4px;
+    }
+    
+    @keyframes skeleton-pulse {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+    
+    /* Skeleton - Back Button */
+    .skeleton-back {
+      width: 140px;
+      height: 16px;
+      margin-bottom: 24px;
+    }
+    
+    /* Skeleton - Meta badges */
+    .skeleton-meta {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    
+    .skeleton-badge {
+      width: 80px;
+      height: 28px;
+      border-radius: 14px;
+    }
+    
+    /* Skeleton - Headline */
+    .skeleton-headline {
+      height: 36px;
+      margin-bottom: 12px;
+      width: 90%;
+    }
+    
+    .skeleton-headline-short {
+      height: 36px;
+      width: 60%;
+      margin-bottom: 16px;
+    }
+    
+    /* Skeleton - Summary */
+    .skeleton-summary {
+      height: 18px;
+      margin-bottom: 8px;
+    }
+    
+    .skeleton-summary:nth-child(4) { width: 75%; }
+    
+    /* Skeleton - Score Circle */
+    .skeleton-score-circle {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    
+    /* Skeleton - Verdict area */
+    .skeleton-verdict {
+      flex: 1;
+      padding-left: 24px;
+    }
+    
+    .skeleton-verdict-label {
+      width: 60px;
+      height: 12px;
+      margin-bottom: 8px;
+    }
+    
+    .skeleton-verdict-text {
+      width: 200px;
+      height: 20px;
+      margin-bottom: 12px;
+    }
+    
+    .skeleton-badge-large {
+      width: 100px;
+      height: 28px;
+      border-radius: 14px;
+    }
+    
+    /* Skeleton - Breakdown */
+    .skeleton-breakdown-title {
+      width: 140px;
+      height: 14px;
+      margin-bottom: 16px;
+    }
+    
+    .skeleton-breakdown-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    
+    .skeleton-breakdown-label {
+      width: 140px;
+      height: 13px;
+    }
+    
+    .skeleton-breakdown-bar {
+      flex: 1;
+      height: 8px;
+      border-radius: 4px;
+    }
+    
+    .skeleton-breakdown-value {
+      width: 45px;
+      height: 14px;
+    }
+    
+    /* Skeleton - Section Title */
+    .skeleton-section-title {
+      width: 180px;
+      height: 20px;
+      margin-bottom: 16px;
+    }
+    
+    /* Skeleton - Source Item */
+    .skeleton-source-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      background: rgba(255,255,255,0.02);
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    
+    .skeleton-source-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+    }
+    
+    .skeleton-source-info {
+      flex: 1;
+    }
+    
+    .skeleton-source-name {
+      width: 120px;
+      height: 16px;
+      margin-bottom: 4px;
+    }
+    
+    .skeleton-source-type {
+      width: 80px;
+      height: 12px;
+    }
+    
+    /* Skeleton - Related Item */
+    .skeleton-related-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+    
+    .skeleton-related-score {
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
+    }
+    
+    .skeleton-related-headline {
+      flex: 1;
+      height: 20px;
+    }
+    
+    /* Skeleton - Timeline */
+    .skeleton-timeline-item {
+      display: flex;
+      gap: 12px;
+      padding: 12px 0;
+      padding-left: 20px;
+    }
+    
+    .skeleton-timeline-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 4px;
+    }
+    
+    .skeleton-timeline-content {
+      flex: 1;
+    }
+    
+    .skeleton-timeline-time {
+      width: 100px;
+      height: 12px;
+      margin-bottom: 4px;
+    }
+    
+    .skeleton-timeline-event {
+      width: 200px;
+      height: 14px;
+    }
+    
+    /* Smooth transition when content loads */
+    #story-content {
+      animation: content-fade-in 0.4s ease;
+    }
+    
+    @keyframes content-fade-in {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    /* Loading State - OLD (kept as fallback) */
     .story-loading {
       text-align: center;
       padding: 100px 20px;
@@ -603,12 +836,210 @@
       color: #888;
       margin-bottom: 24px;
     }
+    
+    /* Share buttons container */
+    .share-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+    
+    .share-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      text-decoration: none;
+      cursor: pointer;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.05);
+      color: #fff;
+      transition: all 0.2s;
+    }
+    
+    .share-btn:hover {
+      background: rgba(255,255,255,0.1);
+      transform: translateY(-1px);
+    }
+    
+    .share-btn-twitter { color: #1da1f2; border-color: rgba(29,161,242,0.3); }
+    .share-btn-twitter:hover { background: rgba(29,161,242,0.15); }
+    
+    .share-btn-facebook { color: #4267b2; border-color: rgba(66,103,178,0.3); }
+    .share-btn-facebook:hover { background: rgba(66,103,178,0.15); }
+    
+    .share-btn-linkedin { color: #0077b5; border-color: rgba(0,119,181,0.3); }
+    .share-btn-linkedin:hover { background: rgba(0,119,181,0.15); }
+    
+    .share-btn-copy { color: #00ff88; border-color: rgba(0,255,136,0.3); }
+    .share-btn-copy:hover { background: rgba(0,255,136,0.15); }
+    
+    /* Mobile responsiveness */
+    @media (max-width: 768px) {
+      .story-detail-container {
+        padding: 20px 16px;
+      }
+      
+      .story-headline {
+        font-size: 24px;
+      }
+      
+      .story-summary {
+        font-size: 16px;
+      }
+      
+      .xray-score-display {
+        flex-direction: column;
+        text-align: center;
+      }
+      
+      .xray-verdict {
+        padding-left: 0;
+        padding-top: 16px;
+      }
+      
+      .breakdown-label {
+        width: 100px;
+        font-size: 12px;
+      }
+      
+      .story-actions {
+        flex-direction: column;
+      }
+      
+      .action-btn {
+        justify-content: center;
+      }
+      
+      .share-buttons {
+        justify-content: center;
+      }
+    }
   </style>
 </head>
 <body class="story-page">
   <div class="story-detail-container">
-    <!-- Loading State -->
-    <div id="story-loading" class="story-loading">
+    <!-- Skeleton Loading State -->
+    <div id="story-skeleton" class="skeleton-container">
+      <div class="skeleton skeleton-back"></div>
+      
+      <!-- Header Skeleton -->
+      <div class="story-header">
+        <div class="skeleton-meta">
+          <div class="skeleton skeleton-badge"></div>
+          <div class="skeleton skeleton-badge"></div>
+          <div class="skeleton skeleton-badge"></div>
+        </div>
+        <div class="skeleton skeleton-headline"></div>
+        <div class="skeleton skeleton-headline-short"></div>
+        <div class="skeleton skeleton-summary"></div>
+        <div class="skeleton skeleton-summary"></div>
+        <div class="skeleton skeleton-summary" style="width:75%"></div>
+      </div>
+      
+      <!-- Xray Panel Skeleton -->
+      <div class="xray-panel">
+        <div class="xray-panel-header">
+          <div class="xray-title">
+            <span>🤖</span>
+            <span>Xray Truth Engine Analysis</span>
+          </div>
+        </div>
+        
+        <div class="xray-score-display">
+          <div class="skeleton skeleton-score-circle"></div>
+          <div class="skeleton-verdict">
+            <div class="skeleton skeleton-verdict-label"></div>
+            <div class="skeleton skeleton-verdict-text"></div>
+            <div class="skeleton skeleton-badge-large"></div>
+          </div>
+        </div>
+        
+        <div class="score-breakdown">
+          <div class="skeleton skeleton-breakdown-title"></div>
+          <div class="skeleton-breakdown-item">
+            <div class="skeleton skeleton-breakdown-label"></div>
+            <div class="skeleton skeleton-breakdown-bar"></div>
+            <div class="skeleton skeleton-breakdown-value"></div>
+          </div>
+          <div class="skeleton-breakdown-item">
+            <div class="skeleton skeleton-breakdown-label"></div>
+            <div class="skeleton skeleton-breakdown-bar"></div>
+            <div class="skeleton skeleton-breakdown-value"></div>
+          </div>
+          <div class="skeleton-breakdown-item">
+            <div class="skeleton skeleton-breakdown-label"></div>
+            <div class="skeleton skeleton-breakdown-bar"></div>
+            <div class="skeleton skeleton-breakdown-value"></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Sources Skeleton -->
+      <div class="sources-section">
+        <div class="skeleton skeleton-section-title"></div>
+        <div style="border:1px solid rgba(255,255,255,0.06);border-radius:8px;overflow:hidden">
+          <div class="skeleton-source-item">
+            <div class="skeleton skeleton-source-icon"></div>
+            <div class="skeleton-source-info">
+              <div class="skeleton skeleton-source-name"></div>
+              <div class="skeleton skeleton-source-type"></div>
+            </div>
+          </div>
+          <div class="skeleton-source-item">
+            <div class="skeleton skeleton-source-icon"></div>
+            <div class="skeleton-source-info">
+              <div class="skeleton skeleton-source-name"></div>
+              <div class="skeleton skeleton-source-type"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Timeline Skeleton -->
+      <div class="timeline-section">
+        <div class="skeleton skeleton-section-title" style="width:140px"></div>
+        <div class="timeline">
+          <div class="skeleton-timeline-item">
+            <div class="skeleton skeleton-timeline-dot"></div>
+            <div class="skeleton-timeline-content">
+              <div class="skeleton skeleton-timeline-time"></div>
+              <div class="skeleton skeleton-timeline-event"></div>
+            </div>
+          </div>
+          <div class="skeleton-timeline-item">
+            <div class="skeleton skeleton-timeline-dot"></div>
+            <div class="skeleton-timeline-content">
+              <div class="skeleton skeleton-timeline-time"></div>
+              <div class="skeleton skeleton-timeline-event"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Related Skeleton -->
+      <div class="related-section">
+        <div class="skeleton skeleton-section-title" style="width:150px"></div>
+        <div class="skeleton-related-item">
+          <div class="skeleton skeleton-related-score"></div>
+          <div class="skeleton skeleton-related-headline"></div>
+        </div>
+        <div class="skeleton-related-item">
+          <div class="skeleton skeleton-related-score"></div>
+          <div class="skeleton skeleton-related-headline" style="width:70%"></div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Loading State (fallback) -->
+    <div id="story-loading" class="story-loading" style="display:none">
       <div class="spinner"></div>
       <p>Loading story...</p>
     </div>
@@ -702,10 +1133,26 @@
           ☆ Save Story
         </button>
       </div>
+      
+      <!-- Share Buttons -->
+      <div id="share-buttons" class="share-buttons" style="display:none">
+        <a id="share-twitter" class="share-btn share-btn-twitter" target="blank">
+          𝕏 Twitter
+        </a>
+        <a id="share-facebook" class="share-btn share-btn-facebook" target="blank">
+          f Facebook
+        </a>
+        <a id="share-linkedin" class="share-btn share-btn-linkedin" target="blank">
+          in LinkedIn
+        </a>
+        <button id="share-copy" class="share-btn share-btn-copy">
+          📋 Copy Link
+        </button>
+      </div>
     </div>
   </div>
   
-  <script src="js/supabase-config.js?v=26"></script>
-  <script src="js/story-detail.js?v=26"></script>
+  <script src="js/supabase-config.js?v=28"></script>
+  <script src="js/story-detail.js?v=28"></script>
 </body>
 </html>

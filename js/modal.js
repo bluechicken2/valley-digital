@@ -200,7 +200,7 @@
       '<div class="mdl-divider"></div>',
 
       '<div class="mdl-actions">',
-        '<a href="story.html?id=' + story.id + '" class="mdl-action-btn mdl-action-primary">&#128270; FULL ANALYSIS</a>',
+        '<a href="/story/' + story.id + '" class="mdl-action-btn mdl-action-primary">&#128270; FULL ANALYSIS</a>',
         '<button class="mdl-action-btn" onclick="if(window.GlobeAPI){var i=document.getElementById(\'mdl\');i.classList.add(\'mdl-closing\');setTimeout(function(){window.StoryModal.close();},400);}">&#127757; VIEW ON GLOBE</button>',
         '<button class="mdl-action-btn" onclick="try{navigator.share({title:\'' + esc(story.headline).replace(/\x27/g,"\\x27") + '\',url:location.href});}catch(e){navigator.clipboard&&navigator.clipboard.writeText(location.href);alert(\'Link copied to clipboard\');}}">&#128228; SHARE</button>',
         '<button class="mdl-action-btn" onclick="alert(\'Alert set for: ' + esc(story.country_name||story.headline).slice(0,30).replace(/\x27/g,'') + '\');">&#128276; ALERT ME</button>',

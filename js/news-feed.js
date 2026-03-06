@@ -9,7 +9,7 @@ var _category    = 'all';
 var _status      = 'all';
 var _sort        = 'latest';
 var _offset      = 0;
-var _pageSize    = 50;
+var _pageSize    = 20;
 var _totalLoaded = 0;
 var _isLoading   = false;
 
