@@ -375,243 +375,401 @@ class StoryThreader:
 # ============================================
 
 class AnalysisEngine:
-    """Generates independent AI analysis with real web research"""
+    """Xray Analysis Engine v3 - Comprehensive verification with real research"""
 
-    # Verification status constants
     STATUS_CONFIRMED = "✅ CONFIRMED"
     STATUS_UNVERIFIED = "❓ UNVERIFIED"  
     STATUS_CONTESTED = "⚠️ CONTESTED"
     STATUS_INSUFFICIENT = "❌ INSUFFICIENT EVIDENCE"
 
+    SOURCE_TIERS = {
+        1: {'domains': ['reuters.com', 'apnews.com', 'bbc.com', 'bbc.co.uk', 'npr.org',
+                      'economist.com', 'ft.com', 'wsj.com', 'nytimes.com'], 'score': 95},
+        2: {'domains': ['guardian.com', 'theguardian.com', 'aljazeera.com', 'dw.com', 
+                      'france24.com', 'rfi.fr', 'cnn.com', 'axios.com'], 'score': 80},
+        3: {'domains': ['foxnews.com', 'msnbc.com', 'dailymail.co.uk'], 'score': 60},
+        4: {'domains': [], 'score': 40}
+    }
+
+    FACT_CHECKERS = [
+        {'domain': 'snopes.com', 'name': 'Snopes'},
+        {'domain': 'politifact.com', 'name': 'PolitiFact'},
+        {'domain': 'factcheck.org', 'name': 'FactCheck.org'}
+    ]
+
     def __init__(self, db: SupabaseClient):
         self.db = db
 
     def fetch_unanalyzed(self, limit: int = 10) -> List[Dict]:
-        """Fetch stories needing fresh analysis (v2)"""
         return self.db.fetch(
             'stories',
             select='id,headline,summary,country_name,category',
-            filters={'or': '(xray_analysis.is.null,xray_analysis.eq."",xray_analysis_version.lt.2)'},
+            filters={'or': '(xray_analysis.is.null,xray_analysis.eq."",xray_analysis_version.lt.3)'},
             order='created_at.desc',
             limit=limit
         )
 
+    def extract_entities(self, text: str) -> Dict[str, List[str]]:
+        """Extract named entities from text"""
+        entities = {'people': [], 'places': [], 'organizations': [], 'numbers': []}
+        text_lower = text.lower()
+
+        # World leaders
+        leaders = ['putin', 'biden', 'trump', 'zelenskyy', 'zelensky', 'xi jinping', 'modi',
+                   'macron', 'scholz', 'sunak', 'netanyahu', 'erdogan', 'harris', 'obama']
+        for leader in leaders:
+            if leader in text_lower:
+                entities['people'].append(leader.title())
+
+        # Places
+        places = {'ukraine': 'Ukraine', 'russia': 'Russia', 'china': 'China', 'israel': 'Israel',
+                  'iran': 'Iran', 'gaza': 'Gaza', 'moscow': 'Moscow', 'kyiv': 'Kyiv',
+                  'beijing': 'Beijing', 'washington': 'Washington', 'london': 'London',
+                  'europe': 'Europe', 'syria': 'Syria', 'iraq': 'Iraq', 'taiwan': 'Taiwan'}
+        for kw, place in places.items():
+            if kw in text_lower and place not in entities['places']:
+                entities['places'].append(place)
+
+        # Organizations
+        orgs = {'nato': 'NATO', 'un': 'UN', 'eu': 'EU', 'pentagon': 'Pentagon',
+                'kremlin': 'Kremlin', 'white house': 'White House'}
+        for kw, org in orgs.items():
+            if kw in text_lower and org not in entities['organizations']:
+                entities['organizations'].append(org)
+
+        # Numbers
+        numbers = re.findall(r'\$[\d,]+[bm]?|\d+[,.]?\d*\s*(?:million|billion)', text_lower)
+        numbers += re.findall(r'\d+\s*(?:dead|killed|injured|troops|%)', text_lower)
+        entities['numbers'] = list(set(numbers))[:3]
+
+        return {k: v for k, v in entities.items() if v}
+
+    def extract_claims(self, headline: str, summary: str = '') -> List[Dict]:
+        """Break down story into individual verifiable claims"""
+        claims = []
+        combined = f"{headline}. {summary}" if summary else headline
+        sentences = re.split(r'(?<=[.!?])\s+', combined)
+
+        for sentence in sentences:
+            sentence = sentence.strip()
+            if len(sentence) < 15:
+                continue
+
+            worthiness = 0
+            if re.search(r'\d+', sentence):
+                worthiness += 2
+            entities = self.extract_entities(sentence)
+            if entities.get('people') or entities.get('places'):
+                worthiness += 2
+            verify_phrases = ['announced', 'confirmed', 'reported', 'stated', 'said', 'claims']
+            if any(p in sentence.lower() for p in verify_phrases):
+                worthiness += 1
+
+            claim = re.sub(r'^(breaking|shocking|urgent):\s*', '', sentence, flags=re.IGNORECASE).strip()
+            if not claim.endswith('.'):
+                claim += '.'
+
+            claims.append({'text': claim, 'worthiness': worthiness, 'entities': entities})
+
+        claims.sort(key=lambda x: x['worthiness'], reverse=True)
+        return claims[:4]
+
+    def get_source_tier(self, source_name: str) -> int:
+        source_lower = source_name.lower()
+        for tier, data in self.SOURCE_TIERS.items():
+            if tier == 4:
+                continue
+            for domain in data['domains']:
+                if domain in source_lower:
+                    return tier
+        return 4
+
     def search_web(self, query: str) -> List[Dict]:
-        """Search web using DuckDuckGo HTML"""
+        """Search DuckDuckGo"""
         results = []
         try:
             url = f"https://html.duckduckgo.com/html/?q={requests.utils.quote(query)}"
-            headers = {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                'Accept': 'text/html'
-            }
+            headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0'}
             resp = requests.get(url, headers=headers, timeout=15)
 
             if resp.status_code == 200:
-                # Parse results
                 titles = re.findall(r'<a[^>]*class="result__a"[^>]*>([^<]+)</a>', resp.text)
                 snippets = re.findall(r'<a[^>]*class="result__snippet"[^>]*>([^<]+)</a>', resp.text)
 
-                for title, snippet in zip(titles[:5], snippets[:5]):
+                for title, snippet in zip(titles[:8], snippets[:8]):
                     if title.strip() and snippet.strip():
+                        tier = self.get_source_tier(title)
                         results.append({
                             'title': title.strip(),
-                            'snippet': snippet.strip()
+                            'snippet': snippet.strip(),
+                            'tier': tier,
+                            'reliability': self.SOURCE_TIERS[tier]['score']
                         })
         except Exception as e:
             print(f"[SEARCH ERROR] {e}")
 
         return results
 
-    def extract_keywords(self, headline: str) -> List[str]:
-        """Extract key search terms from headline"""
-        # Remove noise words
-        noise = ['breaking', 'shocking', 'bombshell', 'massive', 'major', 'huge', 
-                 'urgent', 'alert', 'update', 'just in', 'exclusive', 'reported']
-        clean = headline.lower()
-        for word in noise:
-            clean = re.sub(rf'\b{word}\b', '', clean)
+    def search_fact_checkers(self, query: str) -> List[Dict]:
+        """Search fact-checking sites"""
+        results = []
+        for fc in self.FACT_CHECKERS:
+            try:
+                fc_query = f"site:{fc['domain']} {query}"
+                url = f"https://html.duckduckgo.com/html/?q={requests.utils.quote(fc_query)}"
+                headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120'}
+                resp = requests.get(url, headers=headers, timeout=10)
 
-        # Extract meaningful words
-        words = re.findall(r'\b[a-z]{3,}\b|\b\d+\b', clean)
+                if resp.status_code == 200:
+                    titles = re.findall(r'<a[^>]*class="result__a"[^>]*>([^<]+)</a>', resp.text)
+                    snippets = re.findall(r'<a[^>]*class="result__snippet"[^>]*>([^<]+)</a>', resp.text)
 
-        # Filter common words
-        common = {'the', 'and', 'for', 'are', 'but', 'not', 'you', 'all', 
-                  'can', 'had', 'her', 'was', 'one', 'our', 'out', 'has', 'have'}
-        keywords = [w for w in words if w not in common]
+                    for title, snippet in zip(titles[:2], snippets[:2]):
+                        if title.strip():
+                            results.append({
+                                'title': title.strip(),
+                                'snippet': snippet.strip(),
+                                'source': fc['name'],
+                                'type': 'fact_check',
+                                'reliability': 90
+                            })
+            except:
+                pass
+        return results
 
-        return keywords[:8]
+    def search_official_sources(self, query: str) -> List[Dict]:
+        """Search .gov sources"""
+        results = []
+        for domain in ['.gov', '.gov.uk']:
+            try:
+                off_query = f"site:{domain} {query}"
+                url = f"https://html.duckduckgo.com/html/?q={requests.utils.quote(off_query)}"
+                headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120'}
+                resp = requests.get(url, headers=headers, timeout=10)
 
-    def generate_search_queries(self, headline: str, country: str = "") -> List[str]:
-        """Generate multiple search queries for cross-verification"""
-        keywords = self.extract_keywords(headline)
+                if resp.status_code == 200:
+                    titles = re.findall(r'<a[^>]*class="result__a"[^>]*>([^<]+)</a>', resp.text)
+                    snippets = re.findall(r'<a[^>]*class="result__snippet"[^>]*>([^<]+)</a>', resp.text)
 
-        queries = []
+                    for title, snippet in zip(titles[:2], snippets[:2]):
+                        if title.strip():
+                            results.append({
+                                'title': title.strip(),
+                                'snippet': snippet.strip(),
+                                'type': 'official',
+                                'reliability': 95
+                            })
+            except:
+                pass
+        return results
 
-        # Query 1: Core headline search
-        core_terms = ' '.join(keywords[:5])
-        if country:
-            core_terms += f' {country}'
-        queries.append(core_terms)
-
-        # Query 2: With "news" modifier
-        if len(keywords) >= 3:
-            queries.append(' '.join(keywords[:4]) + ' news')
-
-        # Query 3: Verification search
-        if len(keywords) >= 2:
-            queries.append(' '.join(keywords[:3]) + ' confirmed')
-
-        return queries[:3]
-
-    def assess_credibility(self, results: List[Dict], original_headline: str) -> tuple:
-        """Assess if sources confirm, contest, or don't support the story"""
-        if not results:
-            return self.STATUS_INSUFFICIENT, [], []
+    def verify_claim(self, claim: Dict, all_results: List[Dict]) -> Dict:
+        """Verify a single claim"""
+        claim_text = claim['text'].lower()
+        claim_entities = claim.get('entities', {})
 
         confirming = []
         conflicting = []
 
-        # Keywords that suggest confirmation
-        confirm_words = ['confirmed', 'reports', 'announced', 'official', 'according to',
-                        'statement', 'authorities', 'verified', 'sources say']
+        confirm_words = ['confirmed', 'announced', 'official', 'verified', 'reports']
+        conflict_words = ['denied', 'false', 'debunked', 'disputed', 'unverified']
 
-        # Keywords that suggest conflict
-        conflict_words = ['denied', 'false', 'debunked', 'disputed', 'unverified',
-                         'no evidence', 'claims', 'allegedly', 'unconfirmed']
+        for r in all_results:
+            combined = (r.get('title', '') + ' ' + r.get('snippet', '')).lower()
 
-        headline_keywords = set(self.extract_keywords(original_headline))
+            # Entity overlap
+            result_entities = self.extract_entities(r['title'])
+            entity_overlap = 0
+            for etype in ['people', 'places']:
+                claim_e = set(e.lower() for e in claim_entities.get(etype, []))
+                result_e = set(e.lower() for e in result_entities.get(etype, []))
+                entity_overlap += len(claim_e & result_e)
 
-        for r in results:
-            title = r.get('title', '').lower()
-            snippet = r.get('snippet', '').lower()
-            combined = title + ' ' + snippet
+            # Keyword overlap
+            claim_keywords = set(re.findall(r'\b[a-z]{4,}\b', claim_text))
+            result_keywords = set(re.findall(r'\b[a-z]{4,}\b', combined))
+            keyword_overlap = len(claim_keywords & result_keywords)
 
-            # Check keyword overlap
-            result_words = set(self.extract_keywords(r.get('title', '')))
-            overlap = len(headline_keywords & result_words)
-
-            if overlap >= 2:
+            if entity_overlap >= 1 or keyword_overlap >= 3:
                 has_confirm = any(w in combined for w in confirm_words)
                 has_conflict = any(w in combined for w in conflict_words)
 
-                if has_confirm and not has_conflict:
-                    confirming.append(r)
-                elif has_conflict and not has_confirm:
-                    conflicting.append(r)
-                elif overlap >= 3:
-                    confirming.append(r)
+                entry = {'title': r['title'][:50], 'reliability': r.get('reliability', 50)}
 
-        # Determine status
-        if confirming and not conflicting:
-            return self.STATUS_CONFIRMED, confirming, conflicting
-        elif conflicting and not confirming:
-            return self.STATUS_CONTESTED, confirming, conflicting
-        elif confirming and conflicting:
-            return self.STATUS_CONTESTED, confirming, conflicting
+                if r.get('type') == 'fact_check' and has_conflict:
+                    conflicting.append(entry)
+                elif r.get('type') == 'official' and not has_conflict:
+                    confirming.append(entry)
+                elif has_confirm and not has_conflict:
+                    confirming.append(entry)
+                elif has_conflict and not has_confirm:
+                    conflicting.append(entry)
+                elif keyword_overlap >= 4:
+                    confirming.append(entry)
+
+        confirm_score = sum(c['reliability'] for c in confirming) / 100 if confirming else 0
+        conflict_score = sum(c['reliability'] for c in conflicting) / 100 if conflicting else 0
+
+        if confirm_score >= 1.5 and conflict_score < 0.5:
+            verdict = self.STATUS_CONFIRMED
+        elif conflict_score >= 1.0:
+            verdict = self.STATUS_CONTESTED
+        elif confirm_score > 0:
+            verdict = self.STATUS_UNVERIFIED
         else:
-            return self.STATUS_UNVERIFIED, confirming, conflicting
+            verdict = self.STATUS_INSUFFICIENT
+
+        return {
+            'claim': claim['text'],
+            'verdict': verdict,
+            'confirming': confirming[:3],
+            'conflicting': conflicting[:2]
+        }
 
     def generate_analysis(self, story: Dict) -> str:
-        """Generate comprehensive analysis with real research"""
+        """Generate comprehensive v3 analysis"""
         headline = story.get('headline', '')
-        country = story.get('country_name', '')
+        summary = story.get('summary', '')
 
-        print(f"[RESEARCH] Searching for: {headline[:60]}...")
+        print(f"[v3] Analyzing: {headline[:50]}...")
 
-        # Generate search queries
-        queries = self.generate_search_queries(headline, country)
+        # Extract entities
+        entities = self.extract_entities(f"{headline} {summary}")
 
-        # Collect all results
+        # Extract claims
+        claims = self.extract_claims(headline, summary)
+
+        # Build search queries
+        entity_terms = []
+        for etype in ['people', 'places']:
+            entity_terms.extend(entities.get(etype, [])[:2])
+
+        queries = []
+        if entity_terms:
+            queries.append(' '.join(entity_terms[:3]))
+        keywords = re.findall(r'\b[a-z]{4,}\b', headline.lower())
+        common = {'this', 'that', 'with', 'from', 'have', 'been', 'will', 'would'}
+        keywords = [k for k in keywords if k not in common][:4]
+        if keywords:
+            queries.append(' '.join(keywords))
+
+        # Multi-source search
         all_results = []
         seen_titles = set()
 
-        for query in queries:
-            print(f"[SEARCH] {query[:50]}...")
-            results = self.search_web(query)
-            for r in results:
-                title_key = r['title'].lower()[:50]
-                if title_key not in seen_titles:
-                    seen_titles.add(title_key)
+        for query in queries[:2]:
+            print(f"  [SEARCH] {query[:30]}...")
+            for r in self.search_web(query):
+                tkey = r['title'].lower()[:40]
+                if tkey not in seen_titles:
+                    seen_titles.add(tkey)
                     all_results.append(r)
 
-        print(f"[FOUND] {len(all_results)} unique sources")
+        # Fact-checker search
+        if queries:
+            print("  [FACT-CHECK]...")
+            all_results.extend(self.search_fact_checkers(queries[0]))
 
-        # Assess credibility
-        status, confirming, conflicting = self.assess_credibility(all_results, headline)
+        # Official source search
+        if queries:
+            print("  [OFFICIAL]...")
+            all_results.extend(self.search_official_sources(queries[0]))
 
-        # Build analysis output
-        lines = []
-        lines.append(f"**VERIFICATION: {status}**")
-        lines.append("")
+        print(f"  [FOUND] {len(all_results)} sources")
 
-        # What the story claims
-        clean_headline = headline
-        for word in ['BREAKING:', 'SHOCKING:', 'URGENT:', 'ALERT:']:
-            clean_headline = clean_headline.replace(word, '')
-        clean_headline = re.sub(r'\s+', ' ', clean_headline).strip()
-        lines.append(f"**Claim:** {clean_headline}")
-        lines.append("")
+        # Verify claims
+        claim_verifications = [self.verify_claim(c, all_results) for c in claims]
 
-        # Supporting evidence
-        if confirming:
-            lines.append("**Supporting Sources:**")
-            for r in confirming[:3]:
-                source = r['title'][:60]
-                snippet = r['snippet'][:80]
-                lines.append(f"• {source}: {snippet}...")
+        # Overall verdict
+        if claim_verifications:
+            confirmed = sum(1 for cv in claim_verifications if 'CONFIRMED' in cv['verdict'])
+            contested = sum(1 for cv in claim_verifications if 'CONTESTED' in cv['verdict'])
+
+            if confirmed == len(claim_verifications):
+                overall = self.STATUS_CONFIRMED
+            elif confirmed > contested:
+                overall = "✅ MOSTLY CONFIRMED"
+            elif contested > confirmed:
+                overall = self.STATUS_CONTESTED
+            else:
+                overall = self.STATUS_UNVERIFIED
+        else:
+            overall = self.STATUS_INSUFFICIENT
+
+        # Build output
+        lines = [f"**VERIFICATION: {overall}**", ""]
+
+        # Entities
+        if entities:
+            entity_parts = []
+            if entities.get('people'):
+                entity_parts.append(f"People: {', '.join(entities['people'][:3])}")
+            if entities.get('places'):
+                entity_parts.append(f"Places: {', '.join(entities['places'][:3])}")
+            if entities.get('organizations'):
+                entity_parts.append(f"Orgs: {', '.join(entities['organizations'][:2])}")
+            if entity_parts:
+                lines.append("**KEY ENTITIES:**")
+                lines.append(' | '.join(entity_parts))
+                lines.append("")
+
+        # Claim analysis
+        if claim_verifications:
+            lines.append("**CLAIM ANALYSIS:**")
+            for i, cv in enumerate(claim_verifications, 1):
+                claim_short = cv['claim'][:50] + "..." if len(cv['claim']) > 50 else cv['claim']
+                lines.append(f"{i}. {claim_short}")
+                lines.append(f"   → {cv['verdict']}")
             lines.append("")
 
-        # Conflicting evidence
-        if conflicting:
-            lines.append("**Conflicting Reports:**")
-            for r in conflicting[:2]:
-                source = r['title'][:60]
-                snippet = r['snippet'][:80]
-                lines.append(f"• {source}: {snippet}...")
+        # Source quality
+        if all_results:
+            tier1 = sum(1 for r in all_results if r.get('tier') == 1)
+            official = sum(1 for r in all_results if r.get('type') == 'official')
+            factcheck = sum(1 for r in all_results if r.get('type') == 'fact_check')
+
+            lines.append("**SOURCES:**")
+            parts = [f"{len(all_results)} total"]
+            if tier1: parts.append(f"{tier1} Tier-1")
+            if official: parts.append(f"{official} official")
+            if factcheck: parts.append(f"{factcheck} fact-check")
+            lines.append(' | '.join(parts))
             lines.append("")
 
         # Conclusion
-        lines.append("**Xray Conclusion:**")
-
-        if status == self.STATUS_CONFIRMED:
-            lines.append(f"Story verified by {len(confirming)} independent source(s). "
-                        f"Claims appear accurate based on available reporting.")
-        elif status == self.STATUS_CONTESTED:
-            lines.append(f"Mixed reporting found. {len(confirming)} source(s) support, "
-                        f"{len(conflicting)} contest. Exercise caution.")
-        elif status == self.STATUS_INSUFFICIENT:
-            lines.append("No independent sources found covering this story. "
-                        f"Unable to verify claims. Story may be unreported or inaccurate.")
-        else:  # UNVERIFIED
-            lines.append(f"Insufficient independent coverage found. "
-                        f"Cannot confirm or deny claims at this time.")
+        lines.append("**CONCLUSION:**")
+        if 'CONFIRMED' in overall:
+            lines.append(f"Verified by multiple sources. High confidence in accuracy.")
+        elif 'CONTESTED' in overall:
+            lines.append(f"Mixed reporting. Verify with additional sources.")
+        elif 'UNVERIFIED' in overall:
+            lines.append(f"Insufficient coverage. Cannot fully confirm.")
+        else:
+            lines.append(f"No independent sources found. Unable to verify.")
 
         return '\n'.join(lines)
 
     def run(self, limit: int = 10, verbose: bool = True) -> int:
-        """Run analysis on stories"""
         stories = self.fetch_unanalyzed(limit)
         if not stories:
             if verbose:
-                print("[ANALYSIS] No stories need analysis")
+                print("[v3] No stories need analysis")
             return 0
 
         success = 0
         for i, story in enumerate(stories):
-            headline = story.get('headline', '')[:50]
             if verbose:
-                print(f"\n[ANALYSIS {i+1}/{len(stories)}] {headline}...")
+                print(f"[v3 {i+1}/{len(stories)}] {story.get('headline', '')[:40]}...")
 
             analysis = self.generate_analysis(story)
 
             if self.db.update('stories', story['id'], {
                 'xray_analysis': analysis,
                 'xray_analysis_at': datetime.now(timezone.utc).isoformat(),
-                'xray_analysis_version': 2
+                'xray_analysis_version': 3
             }):
                 if verbose:
-                    print(f"[SAVED] Analysis v2 stored")
+                    print("  [SAVED]")
                 success += 1
 
         return success
