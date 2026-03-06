@@ -10,13 +10,13 @@
     const pathname = window.location.pathname;
     const search = window.location.search;
     
-    console.log('[StoryDetail] Pathname:', pathname);
-    console.log('[StoryDetail] Search:', search);
+    // console.log('[StoryDetail] Pathname:', pathname);
+    // console.log('[StoryDetail] Search:', search);
     
     // Try /story/UUID format (SEO-friendly)
     const storyMatch = pathname.match(/\/story\/([a-f0-9-]{36}|[a-zA-Z0-9-_]+)/i);
     if (storyMatch) {
-      console.log('[StoryDetail] Found ID from path:', storyMatch[1]);
+      // console.log('[StoryDetail] Found ID from path:', storyMatch[1]);
       return storyMatch[1];
     }
     
@@ -24,14 +24,14 @@
     const pathParts = pathname.split('/');
     const lastPart = pathParts[pathParts.length - 1];
     if (lastPart !== 'story.html' && lastPart.length > 10) {
-      console.log('[StoryDetail] Found ID from path end:', lastPart);
+      // console.log('[StoryDetail] Found ID from path end:', lastPart);
       return lastPart;
     }
     
     // Fall back to query parameter (?id=UUID)
     const params = new URLSearchParams(search);
     const idFromQuery = params.get('id');
-    console.log('[StoryDetail] ID from query:', idFromQuery);
+    // console.log('[StoryDetail] ID from query:', idFromQuery);
     return idFromQuery;
   }
   
@@ -135,12 +135,12 @@
     }
     
     try {
-      console.log('[StoryDetail] Fetching story:', storyId);
+      // console.log('[StoryDetail] Fetching story:', storyId);
       
       // Fetch story
       const story = await window.XrayNewsDB.getStory(storyId);
       
-      console.log('[StoryDetail] Story result:', story);
+      // console.log('[StoryDetail] Story result:', story);
       
       if (!story) {
         console.error('[StoryDetail] Story not found:', storyId);

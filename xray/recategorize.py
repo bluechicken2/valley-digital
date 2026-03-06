@@ -13,7 +13,7 @@ from supabase import create_client
 SUPABASE_URL = os.environ.get('SUPABASE_URL', 'https://gebogzeqczjbkqgnxrhf.supabase.co')
 # Try multiple env var names for the service key
 SUPABASE_KEY = (
-    os.environ.get('SERVICE_ROLE_SUBABASE') or 
+    os.environ.get('SERVICE_ROLE_SUPABASE') or 
     os.environ.get('SUPABASE_SERVICE_KEY') or 
     os.environ.get('SUPABASE_ANON_KEY', '')
 )
