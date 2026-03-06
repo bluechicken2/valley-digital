@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/main.css?v=33">
-  <link rel="stylesheet" href="css/dashboard.css?v=54">
+  <link rel="stylesheet" href="css/dashboard.css?v=55">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <!-- globe.gl loaded async in body -->
   <script src="js/loader.js?v=33"></script>
@@ -242,11 +242,8 @@
     color:rgba(255,255,255,.28);padding:12px 20px 8px;flex-shrink:0;
   }
   .sb-list{
-    flex:1 1 auto;overflow-y:scroll;overflow-x:hidden;
+    flex:1 1 auto;overflow:visible;
     padding:0 12px 12px;min-height:100px;
-    -webkit-overflow-scrolling:touch;
-    touch-action:pan-y;
-    overscroll-behavior:contain;
   }
   .sb-card{touch-action:auto;}
   .sb-card{
@@ -306,12 +303,8 @@
   }
     .sb-list{
       height:auto;
-      max-height:calc(85dvh - 200px);
-      min-height:200px;
-      overflow-y:scroll !important;overflow-x:hidden;
-      -webkit-overflow-scrolling:touch;
-      touch-action:pan-y manipulation;
-      overscroll-behavior-y:contain;
+      min-height:100px;
+      overflow:visible;
       position:relative;
     }
     .sb-panel{
