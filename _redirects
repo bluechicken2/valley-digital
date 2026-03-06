@@ -1,5 +1,5 @@
-# SEO-friendly story URLs
-/story/*  /story.html?id=:splat  200
+# SEO-friendly story URLs (Cloudflare Pages syntax)
+/story/:id  /story.html?id=:id  200
 
 # Fallback for SPA
-/*       /index.html   404
+/*         /index.html         404
