@@ -1,10 +1,11 @@
 // ================================================
-// XrayNews Intelligence Gatherer v5.4
+// XrayNews Intelligence Gatherer v5.5
 // Architecture: Worker = fast headline grab only. Xray = article fetch + verification.
 // Schedule: Every 5 minutes
-// Sources: Reuters, BBC, AP, CNN, Sky, AlJazeera, DW, France24, Guardian, GDELT, Reddit
+// Sources: Reuters, BBC, AP, CNN, Sky, AlJazeera, DW, France24, Guardian, GDELT, Reddit, Nitter/X
 // Features: Article body fetching, cross-source corroboration, dedup, Xray-ready
 // v5.4: Added Reddit RSS integration with Atom parser for social news sources
+// v5.5: Added Nitter (Twitter/X) RSS integration with instance rotation
 // ================================================
 
 // SUPABASE_URL accessed via env parameter
@@ -37,6 +38,20 @@ const REDDIT_SOURCES = [
   { url: 'https://www.reddit.com/r/europe/hot.rss', name: 'Reddit Europe', tier: 2, type: 'social' },
   { url: 'https://www.reddit.com/r/news/hot.rss', name: 'Reddit News', tier: 2, type: 'social' },
 ];
+// ---- Nitter (Twitter/X) RSS Sources ------------------------------------
+const NITTER_INSTANCES = [
+  'https://nitter.net',
+  'https://nitter.poast.org', 
+  'https://nitter.privacydev.net',
+  'https://nitter.fdn.fr',
+];
+
+const NITTER_SEARCHES = [
+  { query: '#breaking OR #news', name: 'X Breaking News', min_engagement: 100 },
+  { query: '#worldnews OR #international', name: 'X World News', min_engagement: 50 },
+  { query: '#conflict OR #war', name: 'X Conflict', min_engagement: 50 },
+];
+
 
 // ---- Content Filter Keywords (simplified for CPU) ----------------------
 const JUNK_PATTERNS = [
@@ -103,6 +118,7 @@ const SOURCE_REPUTATION = {
   'Sky News': 74, 'Euronews': 76, 'RFI': 74,
   'Reddit WorldNews': 65, 'Reddit Geopolitics': 60, 'Reddit Ukraine': 55,
   'Reddit Europe': 55, 'Reddit News': 60,
+  'X Breaking News': 50, 'X World News': 45, 'X Conflict': 45,
 };
 
 // ---- Utilities ---------------------------------------------------------
@@ -184,6 +200,55 @@ function parseRedditAtom(text, sourceName) {
   return items;
 }
 
+
+// Parse Nitter RSS (Twitter/X via Nitter)
+function parseNitterRss(text, sourceName) {
+  const items = [];
+  try {
+    const t = text.replace(/<!\[CDATA\[/g, '').replace(/\]\]>/g, '');
+    const itemRe = /<item[^>]*>([\s\S]*?)<\/item>/gi;
+    let m;
+    while ((m = itemRe.exec(t)) !== null) {
+      const block = m[1];
+      const get = function(tag) {
+        const r = new RegExp('<' + tag + '[^>]*>([\\s\\S]*?)</' + tag + '>', 'i');
+        const rm = r.exec(block);
+        if (!rm) return '';
+        return rm[1]
+          .replace(/<[^>]+>/g, ' ')
+          .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+          .replace(/&apos;/g, "'").replace(/&quot;/g, '"')
+          .replace(/\s+/g, ' ').trim();
+      };
+
+      const title = get('title');
+      const desc = get('description');
+      const link = get('link');
+      const pubDate = get('pubDate');
+
+      // Extract author from nitter link
+      const authorMatch = link.match(/nitter\.net\/([^\/]+)/);
+      const author = authorMatch ? '@' + authorMatch[1] : '';
+
+      // Clean up title (remove author prefix if present)
+      const cleanTitle = title.replace(/^[^:]+:\s*/, '');
+
+      if (cleanTitle && cleanTitle.length > 10) {
+        items.push({
+          title: cleanTitle,
+          desc: desc.substring(0, 500),
+          link: link.replace(/nitter\.[^\/]+/, 'twitter.com'), // Convert back to twitter
+          pubDate,
+          twitter_author: author,
+          source_type: 'social'
+        });
+      }
+    }
+  } catch (e) {
+    // Silent fail for parsing
+  }
+  return items;
+}
 function isJunk(text) {
   return JUNK_PATTERNS.some(p => p.test(text));
 }
@@ -316,6 +381,52 @@ async function gatherNews(env) {
     }
   }
 
+  // Fetch Nitter (Twitter/X) sources with instance rotation
+  log.push('Fetching Nitter (X/Twitter) sources...');
+  let nitterSuccess = false;
+
+  for (const search of NITTER_SEARCHES) {
+    if (nitterSuccess) break; // Stop if we got results
+
+    for (const instance of NITTER_INSTANCES) {
+      try {
+        const nitterUrl = `${instance}/search/rss?q=${encodeURIComponent(search.query)}`;
+        const resp = await fetch(nitterUrl, {
+          headers: { 'User-Agent': 'Mozilla/5.0 (compatible; XrayNewsBot/1.0)' },
+          signal: AbortSignal.timeout(RSS_TIMEOUT)
+        });
+
+        if (!resp.ok) continue; // Try next instance
+
+        const xml = await resp.text();
+        const items = parseNitterRss(xml, search.name);
+
+        if (items.length > 0) {
+          for (const item of items.slice(0, MAX_ITEMS_PER_SOURCE)) {
+            allRawItems.push({
+              ...item,
+              sourceName: search.name,
+              sourceTier: 2,
+              sourceType: 'social',
+              twitter_author: item.twitter_author || ''
+            });
+          }
+          log.push(`✓ ${search.name} via ${instance}: ${items.length} items`);
+          nitterSuccess = true;
+          break; // Success, move to next search
+        }
+      } catch (err) {
+        // Try next instance
+        continue;
+      }
+    }
+
+    // Small delay between searches
+    if (!nitterSuccess) {
+      await new Promise(r => setTimeout(r, 300));
+    }
+  }
+
   log.push(`Total raw items: ${allRawItems.length}`);
 
   // Filter junk
@@ -373,6 +484,7 @@ async function gatherNews(env) {
       source_type: item.sourceType || 'legacy',
       reddit_score: item.reddit_score || 0,
       reddit_comments: item.reddit_comments || 0,
+      twitter_author: item.twitter_author || null,
     });
   }
 
@@ -436,7 +548,7 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     if (url.pathname === '/health') {
-      return new Response(JSON.stringify({ status: 'ok', service: 'xraynews-gatherer', version: 'v5.4.0' }), {
+      return new Response(JSON.stringify({ status: 'ok', service: 'xraynews-gatherer', version: 'v5.5.0' }), {
         headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
       });
     }
@@ -446,6 +558,6 @@ export default {
         headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
       });
     }
-    return new Response('XrayNews Gatherer v5.4 — OK', { status: 200 });
+    return new Response('XrayNews Gatherer v5.5 — OK', { status: 200 });
   }
 };
