@@ -182,8 +182,18 @@ function parseRedditAtom(text, sourceName) {
       // Extract score from title like "[12345] Article Title"
       let score = 0;
       const scoreMatch = title.match(/^\[(\d+)\]\s*/);
-      const cleanTitle = scoreMatch ? title.replace(scoreMatch[0], '') : title;
+      let cleanTitle = scoreMatch ? title.replace(scoreMatch[0], '') : title;
       if (scoreMatch) score = parseInt(scoreMatch[1]) || 0;
+      
+      // Clean Reddit metadata from title
+      // Decode numeric HTML entities like &#32; (space)
+      cleanTitle = cleanTitle.replace(/&#(\d+);/g, (m, n) => String.fromCharCode(parseInt(n, 10)));
+      // Remove "submitted by /u/username" patterns
+      cleanTitle = cleanTitle.replace(/\s*submitted by\s*\S+.*$/i, '');
+      // Remove "[link] [comments]" patterns
+      cleanTitle = cleanTitle.replace(/\s*\[link\]\s*\[comments\].*$/i, '');
+      // Clean up whitespace
+      cleanTitle = cleanTitle.replace(/\s+/g, ' ').trim();
       
       // Extract comment count from content
       let comments = 0;
