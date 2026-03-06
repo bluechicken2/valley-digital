@@ -1,5 +1,5 @@
 // ================================================
-// XrayNews Intelligence Gatherer v5.6
+// XrayNews Intelligence Gatherer v5.8
 // Architecture: Worker = fast headline grab only. Xray = article fetch + verification.
 // Schedule: Every 5 minutes
 // Sources: Reuters, BBC, AP, CNN, Sky, AlJazeera, DW, France24, Guardian, GDELT, Reddit, Nitter/X
@@ -9,7 +9,7 @@
 // ================================================
 
 // SUPABASE_URL accessed via env parameter
-const MAX_STORIES_PER_RUN = 20;  // Reduced from 25
+const MAX_STORIES_PER_RUN = 50;  // Reduced from 25
 const MAX_ITEMS_PER_SOURCE = 15; // Reduced from 25
 const RSS_TIMEOUT = 4000;        // Reduced from 6000ms
 const BATCH_SIZE = 5;            // Fetch 5 sources at a time instead of 10
@@ -442,6 +442,7 @@ async function gatherNews(env) {
       await new Promise(r => setTimeout(r, 300));
     }
   }
+  if (!nitterSuccess) log.push('✗ Nitter: All instances failed');
 
   log.push(`Total raw items: ${allRawItems.length}`);
 
@@ -474,8 +475,15 @@ async function gatherNews(env) {
     if (seen.has(norm.substring(0, 50))) continue;
     seen.add(norm.substring(0, 50));
 
-    const country = detectCountry(item.title + ' ' + item.desc);
-    if (!country) continue;
+    let country = detectCountry(item.title + ' ' + item.desc);
+    if (!country) {
+      // Social sources default to 'World' if no country detected
+      if (item.sourceType === 'social') {
+        country = { code: 'XX', name: 'World', lat: 0, lng: 0 };
+      } else {
+        continue;
+      }
+    }
 
     const cat = detectCategory(item.title + ' ' + item.desc);
     const isBreaking = /\b(breaking|urgent|alert)\b/i.test(item.title);
@@ -505,6 +513,13 @@ async function gatherNews(env) {
   }
 
   log.push(`Candidates: ${candidates.length}`);
+
+  // Shuffle candidates to mix sources (legacy, reddit, nitter)
+  // This ensures social sources have a chance to be processed
+  for (let i = candidates.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
+  }
 
   // Limit
   const toProcess = candidates.slice(0, MAX_STORIES_PER_RUN);
@@ -564,7 +579,7 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     if (url.pathname === '/health') {
-      return new Response(JSON.stringify({ status: 'ok', service: 'xraynews-gatherer', version: 'v5.6.0' }), {
+      return new Response(JSON.stringify({ status: 'ok', service: 'xraynews-gatherer', version: 'v5.8.0' }), {
         headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
       });
     }
@@ -574,6 +589,6 @@ export default {
         headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
       });
     }
-    return new Response('XrayNews Gatherer v5.6 — OK', { status: 200 });
+    return new Response('XrayNews Gatherer v5.8 — OK', { status: 200 });
   }
 };
