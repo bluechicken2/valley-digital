@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/main.css?v=33">
-  <link rel="stylesheet" href="css/dashboard.css?v=40">
+  <link rel="stylesheet" href="css/dashboard.css?v=41">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <!-- globe.gl loaded async in body -->
   <script src="js/loader.js?v=33"></script>
@@ -252,13 +252,10 @@
   .sb-card-hl{font-size:12px;color:#e8eaf0;line-height:1.4;margin-bottom:8px;}
   .sb-card-foot{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
 
-  /* Mobile portrait fix for sidebar */
+  /* Mobile portrait: sidebar is bottom sheet, no top positioning needed */
   @media (max-width: 768px) and (orientation: portrait) {
-    #sb {
-      padding-top: max(50px, env(safe-area-inset-top, 50px));
-    }
     .sb-panel {
-      top: max(50px, env(safe-area-inset-top, 50px)) !important;
+      max-height: 80dvh !important;
     }
     .sb-head {
       padding-top: 15px !important;
@@ -277,7 +274,14 @@
   }
   .sb-view-all:hover{background:rgba(0,212,255,.18);}
   @media(max-width:600px){
-    .sb-panel{width:100%;top:auto;border-left:none;border-top:1px solid rgba(0,212,255,.15);border-radius:16px 16px 0 0;}
+    .sb-panel{
+      width:100%;top:auto;bottom:0;max-height:85dvh;min-height:50dvh;
+      border-left:none;border-top:1px solid rgba(0,212,255,.15);border-radius:16px 16px 0 0;
+      transform:translateY(100%);
+      touch-action:pan-y;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
+    }
+    #sb.sb-open .sb-panel{transform:none;}
+    .sb-list{max-height:calc(85dvh - 180px);overflow-y:auto;-webkit-overflow-scrolling:touch;}
   }
 
   /* ================================================================
