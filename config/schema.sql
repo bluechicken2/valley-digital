@@ -55,8 +55,12 @@ CREATE TABLE IF NOT EXISTS stories (
     confidence_score INTEGER DEFAULT 0 CHECK (confidence_score BETWEEN 0 AND 100),
     verified_count   INTEGER DEFAULT 0,
     source_count     INTEGER DEFAULT 0,
-    status           TEXT DEFAULT 'unverified'
-                     CHECK (status IN ('verified','unverified','contested','false')),
+    status           TEXT DEFAULT 'unverified' CHECK (status IN ('verified','unverified','contested','false')),
+    source_type      TEXT DEFAULT 'legacy' CHECK (source_type IN ('legacy','social','official','independent')),
+    reddit_score     INTEGER DEFAULT 0,
+    reddit_comments  INTEGER DEFAULT 0,
+    external_url     TEXT,
+    article_fetched  BOOLEAN DEFAULT false,
     is_breaking      BOOLEAN DEFAULT false,
     created_at       TIMESTAMPTZ DEFAULT NOW(),
     updated_at       TIMESTAMPTZ DEFAULT NOW()

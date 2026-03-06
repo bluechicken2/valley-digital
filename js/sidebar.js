@@ -98,6 +98,16 @@
     if (story.story_thread_id) {
       threadBadgeHtml = '<span class="sb-thread-badge" title="Part of thread">&#129521;</span>';
     }
+
+    // Social badge (Reddit)
+    var socialBadgeHtml = '';
+    if (story.source_type === 'social') {
+      var redditInfo = '';
+      if (story.reddit_score > 0) {
+        redditInfo = ' &#8226; ' + (story.reddit_score >= 1000 ? (story.reddit_score/1000).toFixed(1) + 'k' : story.reddit_score) + ' upvotes';
+      }
+      socialBadgeHtml = '<span class="sb-social-badge" title="From Reddit">&#127760; Reddit' + redditInfo + '</span>';
+    }
     
     for (var i = 0; i < 5; i++) dots += '<span class="sb-dot' + (sc/20 > i ? ' sb-dot-on' : '') + '"></span>';
     return '<div class="sb-card" data-id="' + esc(story.id) + '" tabindex="0" role="button" aria-label="' + esc(story.headline) + '">'
@@ -105,6 +115,7 @@
         + '<span class="sb-cat" style="border-color:' + catC + ';color:' + catC + '">' + esc(story.category||'') + '</span>'
         + (story.is_breaking ? '<span class="sb-brk">&#9889; BREAKING</span>' : '')
         + threadBadgeHtml
+        + socialBadgeHtml
       + '</div>'
       + '<div class="sb-card-hl">' + esc(story.headline) + '</div>'
       + '<div class="sb-card-foot">'
