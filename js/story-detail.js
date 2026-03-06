@@ -8,21 +8,31 @@
   // Get story ID from URL - supports multiple formats
   function getStoryId() {
     const pathname = window.location.pathname;
+    const search = window.location.search;
+    
+    console.log('[StoryDetail] Pathname:', pathname);
+    console.log('[StoryDetail] Search:', search);
     
     // Try /story/UUID format (SEO-friendly)
     const storyMatch = pathname.match(/\/story\/([a-f0-9-]{36}|[a-zA-Z0-9-_]+)/i);
-    if (storyMatch) return storyMatch[1];
+    if (storyMatch) {
+      console.log('[StoryDetail] Found ID from path:', storyMatch[1]);
+      return storyMatch[1];
+    }
     
     // Try story.html/UUID format
     const pathParts = pathname.split('/');
     const lastPart = pathParts[pathParts.length - 1];
     if (lastPart !== 'story.html' && lastPart.length > 10) {
+      console.log('[StoryDetail] Found ID from path end:', lastPart);
       return lastPart;
     }
     
     // Fall back to query parameter (?id=UUID)
-    const params = new URLSearchParams(window.location.search);
-    return params.get('id');
+    const params = new URLSearchParams(search);
+    const idFromQuery = params.get('id');
+    console.log('[StoryDetail] ID from query:', idFromQuery);
+    return idFromQuery;
   }
   
   // Escape HTML
@@ -80,35 +90,23 @@
   }
   
   // Show/hide elements
-  function show(id) { 
+  function show(id) {
     const el = document.getElementById(id);
-    if (el) el.style.display = ''; 
+    if (el) el.style.display = '';
   }
-  function hide(id) { 
+  function hide(id) {
     const el = document.getElementById(id);
-    if (el) el.style.display = 'none'; 
+    if (el) el.style.display = 'none';
   }
   
-  // Show error state with option to redirect
-  function showError(redirect) {
+  // Show error state
+  function showError(message) {
+    console.error('[StoryDetail] Showing error:', message);
     hide('story-skeleton');
     hide('story-loading');
-    
-    if (redirect) {
-      // Redirect to 404 page after a brief delay
-      setTimeout(function() {
-        window.location.href = '404.html';
-      }, 1500);
-      
-      // Show a brief message before redirect
-      const errorEl = document.getElementById('story-error');
-      if (errorEl) {
-        errorEl.innerHTML = 
-          '<h2>⚠️ Story Not Found</h2>' +
-          '<p>Redirecting to error page...</p>';
-        show('story-error');
-      }
-    } else {
+    const errorEl = document.getElementById('story-error');
+    if (errorEl) {
+      errorEl.querySelector('p').textContent = message || "The story you're looking for doesn't exist or has been removed.";
       show('story-error');
     }
   }
@@ -119,23 +117,34 @@
     
     if (!storyId) {
       console.error('[StoryDetail] No story ID provided');
-      showError(false);
+      showError('No story ID provided. Please go back and select a story.');
       return;
     }
     
+    // Wait for XrayNewsDB to be available
+    let attempts = 0;
+    while (!window.XrayNewsDB && attempts < 50) {
+      await new Promise(r => setTimeout(r, 100));
+      attempts++;
+    }
+    
     if (!window.XrayNewsDB) {
-      console.error('[StoryDetail] XrayNewsDB not available');
-      showError(false);
+      console.error('[StoryDetail] XrayNewsDB not available after waiting');
+      showError('Database connection failed. Please refresh the page.');
       return;
     }
     
     try {
+      console.log('[StoryDetail] Fetching story:', storyId);
+      
       // Fetch story
       const story = await window.XrayNewsDB.getStory(storyId);
       
+      console.log('[StoryDetail] Story result:', story);
+      
       if (!story) {
         console.error('[StoryDetail] Story not found:', storyId);
-        showError(true); // Redirect to 404
+        showError("The story you're looking for doesn't exist or has been removed.");
         return;
       }
       
@@ -169,7 +178,7 @@
       
     } catch(err) {
       console.error('[StoryDetail] Error loading story:', err);
-      showError(false);
+      showError('Error loading story: ' + (err.message || 'Unknown error'));
     }
   }
   
@@ -393,7 +402,7 @@
         const scoreColor = getScoreColor(score);
         const isActive = s.id === story.id;
         
-        return '<a href="/story/' + s.id + '" class="thread-item' + (isActive ? ' thread-active' : '') + '">'
+        return '<a href="story.html?id=' + s.id + '" class="thread-item' + (isActive ? ' thread-active' : '') + '">'
           + '<span class="thread-num">#' + (idx + 1) + '</span>'
           + '<div class="thread-content">'
             + '<div class="thread-headline">' + escHtml(s.headline) + '</div>'
@@ -423,7 +432,7 @@
     let navHtml = '<div class="thread-nav">';
     
     if (prevStory) {
-      navHtml += '<a href="/story/' + prevStory.id + '" class="thread-nav-btn thread-prev">'
+      navHtml += '<a href="story.html?id=' + prevStory.id + '" class="thread-nav-btn thread-prev">'
         + '← Previous'
         + '</a>';
     } else {
@@ -433,11 +442,11 @@
     navHtml += '<span class="thread-position">' + (currentIndex + 1) + ' of ' + threadStories.length + '</span>';
     
     if (nextStory) {
-      navHtml += '<a href="/story/' + nextStory.id + '" class="thread-nav-btn thread-next">'
+      navHtml += '<a href="story.html?id=' + nextStory.id + '" class="thread-nav-btn thread-next">'
         + 'Next →'
         + '</a>';
     } else {
-      navHtml += '<span class="thread-nav-btn thread-nav-disabled">Latest →</span>';
+      navHtml += '<span class="thread-nav-btn thread-nav-disabled">Latest →</span>'
     }
     
     navHtml += '</div>';
@@ -478,7 +487,7 @@
           ? '<span class="related-thread-badge" title="Part of thread">🧵</span>'
           : '';
         
-        return '<a href="/story/' + s.id + '" class="related-item">'
+        return '<a href="story.html?id=' + s.id + '" class="related-item">'
           + '<div class="related-score" style="background:' + scoreColor + '22;color:' + scoreColor + '">' + score + '</div>'
           + '<div class="related-headline">' + escHtml(s.headline) + '</div>'
           + threadBadgeHtml
@@ -566,7 +575,7 @@
     });
   }
   
-  // Setup share buttons - NEW IMPLEMENTATION
+  // Setup share buttons
   function setupShareButtons(story) {
     const shareUrl = window.location.href;
     const shareTitle = story.headline || 'XrayNews Story';
@@ -603,21 +612,21 @@
     // Twitter share
     const twitterBtn = document.getElementById('share-twitter');
     if (twitterBtn) {
-      twitterBtn.href = 'https://twitter.com/intent/tweet?text=' + 
+      twitterBtn.href = 'https://twitter.com/intent/tweet?text=' +
         encodeURIComponent(shareTitle) + '&url=' + encodeURIComponent(shareUrl);
     }
     
     // Facebook share
     const facebookBtn = document.getElementById('share-facebook');
     if (facebookBtn) {
-      facebookBtn.href = 'https://www.facebook.com/sharer/sharer.php?u=' + 
+      facebookBtn.href = 'https://www.facebook.com/sharer/sharer.php?u=' +
         encodeURIComponent(shareUrl);
     }
     
     // LinkedIn share
     const linkedinBtn = document.getElementById('share-linkedin');
     if (linkedinBtn) {
-      linkedinBtn.href = 'https://www.linkedin.com/sharing/share-offsite/?url=' + 
+      linkedinBtn.href = 'https://www.linkedin.com/sharing/share-offsite/?url=' +
         encodeURIComponent(shareUrl);
     }
     
