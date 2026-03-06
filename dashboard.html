@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/main.css?v=33">
-  <link rel="stylesheet" href="css/dashboard.css?v=42">
+  <link rel="stylesheet" href="css/dashboard.css?v=43">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <!-- globe.gl loaded async in body -->
   <script src="js/loader.js?v=33"></script>
@@ -288,11 +288,17 @@
     }
     #sb.sb-open .sb-panel{transform:none;}
     .sb-list{
-      max-height:calc(85dvh - 180px);
-      overflow-y:auto;overflow-x:hidden;
+      height:auto;
+      max-height:calc(85dvh - 200px);
+      min-height:200px;
+      overflow-y:scroll !important;overflow-x:hidden;
       -webkit-overflow-scrolling:touch;
-      touch-action:pan-y;
+      touch-action:pan-y manipulation;
       overscroll-behavior-y:contain;
+      position:relative;
+    }
+    .sb-panel{
+      display:flex;flex-direction:column;height:auto;max-height:85dvh;
     }
     .sb-head{touch-action:none;}
     .sb-act{touch-action:none;}
