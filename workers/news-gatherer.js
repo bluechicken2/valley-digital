@@ -7,7 +7,7 @@
 // v5.3: Optimized for CF free tier - batched fetches, reduced timeouts, CPU limits
 // ================================================
 
-const SUPABASE_URL = 'https://dkxydhuojaspmbpjfyoz.supabase.co';
+// SUPABASE_URL accessed via env parameter
 const MAX_STORIES_PER_RUN = 20;  // Reduced from 25
 const MAX_ITEMS_PER_SOURCE = 15; // Reduced from 25
 const RSS_TIMEOUT = 4000;        // Reduced from 6000ms
@@ -156,7 +156,7 @@ function scoreConfidence(story, allItems) {
 
 // ---- Supabase Helpers --------------------------------------------------
 async function supabase(env, method, path, body) {
-  const resp = await fetch(`${SUPABASE_URL}/rest/v1${path}`, {
+  const resp = await fetch(`${env.SUPABASE_URL}/rest/v1${path}`, {
     method,
     headers: {
       'apikey': env.SUPABASE_SERVICE_KEY,
@@ -280,7 +280,7 @@ async function gatherNews(env) {
   let dedupedInsert = toInsert;
   try {
     const existResp = await fetch(
-      `${SUPABASE_URL}/rest/v1/stories?select=external_url&order=created_at.desc&limit=500`,
+      `${env.SUPABASE_URL}/rest/v1/stories?select=external_url&order=created_at.desc&limit=500`,
       { headers: { 'apikey': env.SUPABASE_SERVICE_KEY, 'Authorization': `Bearer ${env.SUPABASE_SERVICE_KEY}` } }
     );
     if (existResp.ok) {

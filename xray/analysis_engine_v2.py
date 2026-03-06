@@ -27,8 +27,8 @@ def load_env():
     except:
         pass
 
-SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://dkxydhuojaspmbpjfyoz.supabase.co")
-SERVICE_KEY = os.environ.get("SERVICE_ROLE_SUPABASE") or os.environ.get("SERVICE_ROLE_SUBABASE") or ""
+SUPABASE_URL = os.environ.get('SUPABASE_URL', '')
+SERVICE_KEY = os.environ.get("SERVICE_ROLE_SUPABASE") or os.environ.get("SERVICE_ROLE_SUPABASE") or ""
 
 
 HEADERS = {

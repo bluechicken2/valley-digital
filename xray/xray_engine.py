@@ -38,7 +38,7 @@ def get_service_key():
             if os.path.exists(path):
                 with open(path, 'r') as f:
                     for line in f:
-                        if line.startswith('SERVICE_ROLE_SUBABASE='):
+                        if line.startswith('SERVICE_ROLE_SUPABASE='):
                             key = line.split('=', 1)[1].strip()
                             break
     return key
