@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/main.css?v=33">
-  <link rel="stylesheet" href="css/dashboard.css?v=47">
+  <link rel="stylesheet" href="css/dashboard.css?v=48">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <!-- globe.gl loaded async in body -->
   <script src="js/loader.js?v=33"></script>
@@ -199,6 +199,7 @@
   ================================================================ */
   #sb{position:fixed;inset:0;z-index:7000;pointer-events:none;}
   #sb.sb-open{pointer-events:auto;}
+  #sb.sb-open{pointer-events:auto;}
   .sb-overlay{
     position:absolute;inset:0;background:rgba(8,11,18,.5);
     opacity:0;transition:opacity .3s ease;pointer-events:none;
@@ -281,13 +282,12 @@
   }
   .sb-view-all:hover{background:rgba(0,212,255,.18);}
   @media(max-width:600px){
-    .sb-panel{
-      width:100%;top:auto;bottom:0;max-height:85dvh;min-height:50dvh;
-      border-left:none;border-top:1px solid rgba(0,212,255,.15);border-radius:16px 16px 0 0;
-      transform:translateY(100%);
-      touch-action:none;overscroll-behavior:none;
-    }
-    #sb.sb-open .sb-panel{transform:none;}
+    #sb{height:auto;}
+    .sb-panel{position:fixed!important;left:0!important;right:0!important;bottom:0!important;top:auto!important;width:100%!important;height:75vh!important;max-height:75vh!important;border-radius:20px 20px 0 0!important;border-top:1px solid rgba(0,212,255,.3)!important;transform:translateY(100%)!important;overflow:visible!important;pointer-events:auto!important;}
+    #sb.sb-open .sb-panel{transform:none!important;}
+    .sb-head{position:relative;pointer-events:auto;}
+    .sb-list{height:calc(75vh - 280px)!important;max-height:calc(75vh - 280px)!important;overflow-y:scroll!important;-webkit-overflow-scrolling:touch!important;pointer-events:auto!important;touch-action:pan-y!important;overscroll-behavior:contain!important;}
+  }
     .sb-list{
       height:auto;
       max-height:calc(85dvh - 200px);
@@ -695,7 +695,7 @@
 <script src="js/news-feed.js?v=33"></script>
 <script src="js/stories.js?v=33"></script>
 <script src="js/modal.js?v=33"></script>
-<script src="js/sidebar.js?v=333"></script>
+<script src="js/sidebar.js?v=433"></script>
 <script>
 // ================================================
 // XRAYNEWS — Dashboard Init
