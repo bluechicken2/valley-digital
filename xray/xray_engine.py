@@ -375,106 +375,220 @@ class StoryThreader:
 # ============================================
 
 class AnalysisEngine:
-    """Generates independent AI analysis for stories"""
-    
-    CATEGORY_CONTEXT = {
-        'War & Conflict': ['regional stability', 'humanitarian concerns', 'international monitoring'],
-        'Politics': ['policy implications', 'political landscape', 'diplomatic relations'],
-        'Economy': ['market impact', 'economic indicators', 'trade relations'],
-        'Elections': ['electoral implications', 'voter sentiment', 'political outcomes'],
-        'Weather & Disaster': ['emergency response', 'relief efforts', 'humanitarian aid'],
-        'Health': ['public health', 'medical resources', 'health authorities'],
-        'Science & Tech': ['technological impact', 'industry implications', 'innovation'],
-        'Environment': ['environmental impact', 'climate implications', 'conservation']
-    }
-    
+    """Generates independent AI analysis with real web research"""
+
+    # Verification status constants
+    STATUS_CONFIRMED = "✅ CONFIRMED"
+    STATUS_UNVERIFIED = "❓ UNVERIFIED"  
+    STATUS_CONTESTED = "⚠️ CONTESTED"
+    STATUS_INSUFFICIENT = "❌ INSUFFICIENT EVIDENCE"
+
     def __init__(self, db: SupabaseClient):
         self.db = db
-    
+
     def fetch_unanalyzed(self, limit: int = 10) -> List[Dict]:
-        """Fetch stories without analysis"""
+        """Fetch stories needing fresh analysis (v2)"""
         return self.db.fetch(
             'stories',
             select='id,headline,summary,country_name,category',
-            filters={'or': '(xray_analysis.is.null,xray_analysis.eq."")'},
+            filters={'or': '(xray_analysis.is.null,xray_analysis.eq."",xray_analysis_version.lt.2)'},
             order='created_at.desc',
             limit=limit
         )
-    
+
     def search_web(self, query: str) -> List[Dict]:
-        """Search web for context (DuckDuckGo HTML)"""
+        """Search web using DuckDuckGo HTML"""
         results = []
         try:
             url = f"https://html.duckduckgo.com/html/?q={requests.utils.quote(query)}"
-            headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
-            resp = requests.get(url, headers=headers, timeout=10)
-            
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'text/html'
+            }
+            resp = requests.get(url, headers=headers, timeout=15)
+
             if resp.status_code == 200:
+                # Parse results
                 titles = re.findall(r'<a[^>]*class="result__a"[^>]*>([^<]+)</a>', resp.text)
                 snippets = re.findall(r'<a[^>]*class="result__snippet"[^>]*>([^<]+)</a>', resp.text)
-                
-                for title, snippet in zip(titles[:3], snippets[:3]):
-                    results.append({'title': title.strip(), 'snippet': snippet.strip()})
+
+                for title, snippet in zip(titles[:5], snippets[:5]):
+                    if title.strip() and snippet.strip():
+                        results.append({
+                            'title': title.strip(),
+                            'snippet': snippet.strip()
+                        })
         except Exception as e:
-            pass
-        
+            print(f"[SEARCH ERROR] {e}")
+
         return results
-    
+
+    def extract_keywords(self, headline: str) -> List[str]:
+        """Extract key search terms from headline"""
+        # Remove noise words
+        noise = ['breaking', 'shocking', 'bombshell', 'massive', 'major', 'huge', 
+                 'urgent', 'alert', 'update', 'just in', 'exclusive', 'reported']
+        clean = headline.lower()
+        for word in noise:
+            clean = re.sub(rf'\b{word}\b', '', clean)
+
+        # Extract meaningful words
+        words = re.findall(r'\b[a-z]{3,}\b|\b\d+\b', clean)
+
+        # Filter common words
+        common = {'the', 'and', 'for', 'are', 'but', 'not', 'you', 'all', 
+                  'can', 'had', 'her', 'was', 'one', 'our', 'out', 'has', 'have'}
+        keywords = [w for w in words if w not in common]
+
+        return keywords[:8]
+
+    def generate_search_queries(self, headline: str, country: str = "") -> List[str]:
+        """Generate multiple search queries for cross-verification"""
+        keywords = self.extract_keywords(headline)
+
+        queries = []
+
+        # Query 1: Core headline search
+        core_terms = ' '.join(keywords[:5])
+        if country:
+            core_terms += f' {country}'
+        queries.append(core_terms)
+
+        # Query 2: With "news" modifier
+        if len(keywords) >= 3:
+            queries.append(' '.join(keywords[:4]) + ' news')
+
+        # Query 3: Verification search
+        if len(keywords) >= 2:
+            queries.append(' '.join(keywords[:3]) + ' confirmed')
+
+        return queries[:3]
+
+    def assess_credibility(self, results: List[Dict], original_headline: str) -> tuple:
+        """Assess if sources confirm, contest, or don't support the story"""
+        if not results:
+            return self.STATUS_INSUFFICIENT, [], []
+
+        confirming = []
+        conflicting = []
+
+        # Keywords that suggest confirmation
+        confirm_words = ['confirmed', 'reports', 'announced', 'official', 'according to',
+                        'statement', 'authorities', 'verified', 'sources say']
+
+        # Keywords that suggest conflict
+        conflict_words = ['denied', 'false', 'debunked', 'disputed', 'unverified',
+                         'no evidence', 'claims', 'allegedly', 'unconfirmed']
+
+        headline_keywords = set(self.extract_keywords(original_headline))
+
+        for r in results:
+            title = r.get('title', '').lower()
+            snippet = r.get('snippet', '').lower()
+            combined = title + ' ' + snippet
+
+            # Check keyword overlap
+            result_words = set(self.extract_keywords(r.get('title', '')))
+            overlap = len(headline_keywords & result_words)
+
+            if overlap >= 2:
+                has_confirm = any(w in combined for w in confirm_words)
+                has_conflict = any(w in combined for w in conflict_words)
+
+                if has_confirm and not has_conflict:
+                    confirming.append(r)
+                elif has_conflict and not has_confirm:
+                    conflicting.append(r)
+                elif overlap >= 3:
+                    confirming.append(r)
+
+        # Determine status
+        if confirming and not conflicting:
+            return self.STATUS_CONFIRMED, confirming, conflicting
+        elif conflicting and not confirming:
+            return self.STATUS_CONTESTED, confirming, conflicting
+        elif confirming and conflicting:
+            return self.STATUS_CONTESTED, confirming, conflicting
+        else:
+            return self.STATUS_UNVERIFIED, confirming, conflicting
+
     def generate_analysis(self, story: Dict) -> str:
-        """Generate analysis for a story"""
+        """Generate comprehensive analysis with real research"""
         headline = story.get('headline', '')
-        summary = story.get('summary', '')
         country = story.get('country_name', '')
-        category = story.get('category', 'Politics')
-        
-        # Build search query
-        query = f"{headline} {country} {category}".strip()[:100]
-        query = re.sub(r'[^\w\s]', ' ', query)
-        
-        # Search for context
-        results = self.search_web(query)
-        
-        # Build analysis
-        parts = []
-        
-        # What happened
-        what = headline
-        for word in ['breaking', 'shocking', 'bombshell', 'massive']:
-            what = re.sub(rf'\b{word}\b', '', what, flags=re.IGNORECASE)
-        what = re.sub(r'\s+', ' ', what).strip()
-        if not what.endswith('.'):
-            what += '.'
-        parts.append(what)
-        
-        # Add summary if available
-        if summary and len(summary) > 30:
-            sentences = re.split(r'[.!?]', summary)
-            for s in sentences[:1]:
-                if len(s.strip()) > 20 and s.strip().lower() not in headline.lower():
-                    parts.append(s.strip() + '.')
-                    break
-        
-        # Add context from search
-        if results:
-            for r in results[:1]:
-                snippet = r.get('snippet', '')
-                if snippet and len(snippet) > 40:
-                    snippet = re.sub(r'<[^>]+>', '', snippet)
-                    parts.append(f"Context: {snippet[:100]}.")
-                    break
-        
-        # Add significance
-        context_options = self.CATEGORY_CONTEXT.get(category, ['ongoing developments'])
-        parts.append(f"This has implications for {context_options[0]}.")
-        
-        # Combine and limit
-        analysis = ' '.join(parts)
-        words = analysis.split()
-        if len(words) > 100:
-            analysis = ' '.join(words[:100]) + '.'
-        
-        return analysis
-    
+
+        print(f"[RESEARCH] Searching for: {headline[:60]}...")
+
+        # Generate search queries
+        queries = self.generate_search_queries(headline, country)
+
+        # Collect all results
+        all_results = []
+        seen_titles = set()
+
+        for query in queries:
+            print(f"[SEARCH] {query[:50]}...")
+            results = self.search_web(query)
+            for r in results:
+                title_key = r['title'].lower()[:50]
+                if title_key not in seen_titles:
+                    seen_titles.add(title_key)
+                    all_results.append(r)
+
+        print(f"[FOUND] {len(all_results)} unique sources")
+
+        # Assess credibility
+        status, confirming, conflicting = self.assess_credibility(all_results, headline)
+
+        # Build analysis output
+        lines = []
+        lines.append(f"**VERIFICATION: {status}**")
+        lines.append("")
+
+        # What the story claims
+        clean_headline = headline
+        for word in ['BREAKING:', 'SHOCKING:', 'URGENT:', 'ALERT:']:
+            clean_headline = clean_headline.replace(word, '')
+        clean_headline = re.sub(r'\s+', ' ', clean_headline).strip()
+        lines.append(f"**Claim:** {clean_headline}")
+        lines.append("")
+
+        # Supporting evidence
+        if confirming:
+            lines.append("**Supporting Sources:**")
+            for r in confirming[:3]:
+                source = r['title'][:60]
+                snippet = r['snippet'][:80]
+                lines.append(f"• {source}: {snippet}...")
+            lines.append("")
+
+        # Conflicting evidence
+        if conflicting:
+            lines.append("**Conflicting Reports:**")
+            for r in conflicting[:2]:
+                source = r['title'][:60]
+                snippet = r['snippet'][:80]
+                lines.append(f"• {source}: {snippet}...")
+            lines.append("")
+
+        # Conclusion
+        lines.append("**Xray Conclusion:**")
+
+        if status == self.STATUS_CONFIRMED:
+            lines.append(f"Story verified by {len(confirming)} independent source(s). "
+                        f"Claims appear accurate based on available reporting.")
+        elif status == self.STATUS_CONTESTED:
+            lines.append(f"Mixed reporting found. {len(confirming)} source(s) support, "
+                        f"{len(conflicting)} contest. Exercise caution.")
+        elif status == self.STATUS_INSUFFICIENT:
+            lines.append("No independent sources found covering this story. "
+                        f"Unable to verify claims. Story may be unreported or inaccurate.")
+        else:  # UNVERIFIED
+            lines.append(f"Insufficient independent coverage found. "
+                        f"Cannot confirm or deny claims at this time.")
+
+        return '\n'.join(lines)
+
     def run(self, limit: int = 10, verbose: bool = True) -> int:
         """Run analysis on stories"""
         stories = self.fetch_unanalyzed(limit)
@@ -482,30 +596,27 @@ class AnalysisEngine:
             if verbose:
                 print("[ANALYSIS] No stories need analysis")
             return 0
-        
+
         success = 0
         for i, story in enumerate(stories):
             headline = story.get('headline', '')[:50]
             if verbose:
-                print(f"[ANALYSIS {i+1}/{len(stories)}] Analyzing: {headline}...")
-            
+                print(f"\n[ANALYSIS {i+1}/{len(stories)}] {headline}...")
+
             analysis = self.generate_analysis(story)
-            
+
             if self.db.update('stories', story['id'], {
                 'xray_analysis': analysis,
                 'xray_analysis_at': datetime.now(timezone.utc).isoformat(),
-                'xray_analysis_version': 1
+                'xray_analysis_version': 2
             }):
                 if verbose:
-                    print(f"             {analysis[:60]}...")
+                    print(f"[SAVED] Analysis v2 stored")
                 success += 1
-        
+
         return success
 
 
-# ============================================
-# MAIN - Unified Runner
-# ============================================
 
 class XrayEngine:
     """Unified Xray Engine - combines all processing"""
