@@ -99,14 +99,20 @@
       threadBadgeHtml = '<span class="sb-thread-badge" title="Part of thread">&#129521;</span>';
     }
 
-    // Social badge (Reddit)
+    // Social badge (Reddit or Twitter/X)
     var socialBadgeHtml = '';
     if (story.source_type === 'social') {
-      var redditInfo = '';
-      if (story.reddit_score > 0) {
-        redditInfo = ' &#8226; ' + (story.reddit_score >= 1000 ? (story.reddit_score/1000).toFixed(1) + 'k' : story.reddit_score) + ' upvotes';
+      if (story.twitter_author) {
+        // Twitter/X source
+        socialBadgeHtml = '<span class="sb-social-badge sb-twitter-badge" title="From X/Twitter">&#120143; ' + esc(story.twitter_author) + '</span>';
+      } else if (story.reddit_score > 0) {
+        // Reddit source with score
+        var scoreText = story.reddit_score >= 1000 ? (story.reddit_score/1000).toFixed(1) + 'k' : story.reddit_score;
+        socialBadgeHtml = '<span class="sb-social-badge sb-reddit-badge" title="From Reddit">&#127760; Reddit &#8226; ' + scoreText + '</span>';
+      } else {
+        // Generic social source
+        socialBadgeHtml = '<span class="sb-social-badge" title="Social media source">&#127760; Social</span>';
       }
-      socialBadgeHtml = '<span class="sb-social-badge" title="From Reddit">&#127760; Reddit' + redditInfo + '</span>';
     }
     
     for (var i = 0; i < 5; i++) dots += '<span class="sb-dot' + (sc/20 > i ? ' sb-dot-on' : '') + '"></span>';

@@ -59,6 +59,7 @@ CREATE TABLE IF NOT EXISTS stories (
     source_type      TEXT DEFAULT 'legacy' CHECK (source_type IN ('legacy','social','official','independent')),
     reddit_score     INTEGER DEFAULT 0,
     reddit_comments  INTEGER DEFAULT 0,
+    twitter_author   TEXT,
     external_url     TEXT,
     article_fetched  BOOLEAN DEFAULT false,
     is_breaking      BOOLEAN DEFAULT false,
