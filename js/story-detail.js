@@ -182,6 +182,39 @@
     }
   }
   
+
+  // Render Xray Independent Analysis
+  function renderAnalysis(story) {
+    const section = document.getElementById('xray-analysis-section');
+    const contentEl = document.getElementById('xray-analysis-content');
+    const timestampEl = document.getElementById('xray-analysis-timestamp');
+
+    if (!section || !contentEl) return;
+
+    if (story.xray_analysis && story.xray_analysis.trim()) {
+      // Format analysis text into paragraphs
+      const analysisText = story.xray_analysis;
+      const paragraphs = analysisText.split(/\.\s+/).filter(p => p.trim().length > 10);
+
+      contentEl.innerHTML = paragraphs.map(p => '<p>' + escHtml(p.trim()) + (p.trim().endsWith('.') ? '' : '.') + '</p>').join('');
+
+      // Show timestamp
+      if (story.xray_analysis_at) {
+        const analysisDate = new Date(story.xray_analysis_at);
+        timestampEl.textContent = 'Analysis generated ' + timeAgo(story.xray_analysis_at);
+      } else {
+        timestampEl.textContent = 'Analysis available';
+      }
+
+      section.style.display = '';
+    } else {
+      // No analysis yet - show loading/pending state
+      contentEl.innerHTML = '<div class="xray-analysis-loading"><div class="spinner"></div><span>Independent analysis pending...</span></div>';
+      timestampEl.textContent = '';
+      section.style.display = '';
+    }
+  }
+
   // Render story content
   function renderStory(story, verifications) {
     // Category badge
@@ -241,6 +274,9 @@
     
     // Timeline
     renderTimeline(story);
+    
+    // Independent Analysis
+    renderAnalysis(story);
     
     // External link
     if (story.external_url) {

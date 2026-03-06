@@ -276,3 +276,16 @@ CREATE POLICY "Public read country_briefings" ON country_briefings FOR SELECT US
 
 -- Enable realtime for briefings
 ALTER PUBLICATION supabase_realtime ADD TABLE country_briefings;
+
+-- ============================================
+-- MIGRATION v6: Independent AI Analysis
+-- ============================================
+
+ALTER TABLE stories ADD COLUMN IF NOT EXISTS xray_analysis TEXT;
+ALTER TABLE stories ADD COLUMN IF NOT EXISTS xray_analysis_at TIMESTAMPTZ;
+ALTER TABLE stories ADD COLUMN IF NOT EXISTS xray_analysis_version INT DEFAULT 0;
+
+-- Index for finding stories without analysis
+CREATE INDEX IF NOT EXISTS idx_stories_no_analysis ON stories (created_at DESC) 
+WHERE xray_analysis IS NULL OR xray_analysis = '';
+

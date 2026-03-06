@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Story - XrayNews</title>
-  <link rel="stylesheet" href="css/main.css?v=29">
-  <link rel="stylesheet" href="css/dashboard.css?v=29">
+  <link rel="stylesheet" href="css/main.css?v=30">
+  <link rel="stylesheet" href="css/dashboard.css?v=30">
   <style>
     /* Story Detail Page Styles */
     .story-detail-container {
@@ -922,6 +922,103 @@
         justify-content: center;
       }
     }
+  
+    /* Xray Independent Analysis Section */
+    .xray-analysis-section {
+      background: linear-gradient(135deg, rgba(0,212,255,0.08) 0%, rgba(0,255,136,0.05) 100%);
+      border: 1px solid rgba(0,212,255,0.2);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 32px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .xray-analysis-section::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: linear-gradient(180deg, #00d4ff 0%, #00ff88 100%);
+    }
+
+    .xray-analysis-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .xray-analysis-icon {
+      font-size: 28px;
+    }
+
+    .xray-analysis-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #00d4ff;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .xray-analysis-badge {
+      background: rgba(0,212,255,0.15);
+      color: #00d4ff;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .xray-analysis-content {
+      font-size: 15px;
+      line-height: 1.7;
+      color: #e0e4eb;
+    }
+
+    .xray-analysis-content p {
+      margin-bottom: 12px;
+    }
+
+    .xray-analysis-content p:last-child {
+      margin-bottom: 0;
+    }
+
+    .xray-analysis-footer {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .xray-analysis-timestamp {
+      font-size: 12px;
+      color: #666;
+    }
+
+    .xray-analysis-loading {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #888;
+      font-size: 14px;
+    }
+
+    .xray-analysis-loading .spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(0,212,255,0.2);
+      border-top-color: #00d4ff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
   </style>
 </head>
 <body class="story-page">
@@ -1152,7 +1249,7 @@
     </div>
   </div>
   
-  <script src="js/supabase-config.js?v=29"></script>
-  <script src="js/story-detail.js?v=29"></script>
+  <script src="js/supabase-config.js?v=30"></script>
+  <script src="js/story-detail.js?v=30"></script>
 </body>
 </html>
