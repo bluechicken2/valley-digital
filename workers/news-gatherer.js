@@ -216,7 +216,7 @@ async function gatherNews(env) {
   // Get existing headlines for dedup
   let existing = [];
   try {
-    existing = await supabase(env, 'GET', '/stories?select=headline&order=created_at.desc&limit=200');
+    existing = await supabase(env, 'GET', '/stories?select=headline&order=created_at.desc&limit=500');
   } catch (e) { log.push(`DB fetch skipped: ${e.message}`); }
   const existingHeadlines = (existing || []).map(r => r.headline);
 
@@ -258,6 +258,7 @@ async function gatherNews(env) {
       status: 'unverified',
       is_breaking: isBreaking,
       source_count: 1,
+      article_fetched: false,
       sourceName: item.sourceName,
       sourceTier: item.sourceTier,
     });
@@ -279,7 +280,7 @@ async function gatherNews(env) {
   let dedupedInsert = toInsert;
   try {
     const existResp = await fetch(
-      `${SUPABASE_URL}/rest/v1/stories?select=external_url&order=created_at.desc&limit=200`,
+      `${SUPABASE_URL}/rest/v1/stories?select=external_url&order=created_at.desc&limit=500`,
       { headers: { 'apikey': env.SUPABASE_SERVICE_KEY, 'Authorization': `Bearer ${env.SUPABASE_SERVICE_KEY}` } }
     );
     if (existResp.ok) {
@@ -290,19 +291,26 @@ async function gatherNews(env) {
     }
   } catch(e) {}
 
-  // Sequential insert
-  let inserted = 0, insertErrors = 0;
+  // Sequential insert - handle duplicates gracefully
+  let inserted = 0, skipped = 0, failed = 0;
   for (const story of dedupedInsert) {
     try {
       await supabase(env, 'POST', '/stories', [story]);
       inserted++;
     } catch (err) {
-      insertErrors++;
+      const msg = err.message || '';
+      if (msg.includes('409') || msg.includes('23505') || msg.includes('duplicate')) {
+        skipped++; // Already exists - not an error
+      } else {
+        failed++;
+        if (failed <= 3) log.push(`⚠ Insert failed: ${msg.substring(0,80)}`);
+      }
     }
   }
 
   if (inserted > 0) log.push(`✓ Inserted: ${inserted}`);
-  if (insertErrors > 0) log.push(`⚠ Errors: ${insertErrors}`);
+  if (skipped > 0) log.push(`⊘ Skipped dupes: ${skipped}`);
+  if (failed > 0) log.push(`⚠ Failed: ${failed}`);
 
   return { inserted, candidates: candidates.length, log };
 }
@@ -316,7 +324,7 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     if (url.pathname === '/health') {
-      return new Response(JSON.stringify({ status: 'ok', service: 'xraynews-gatherer', version: 'v5.3' }), {
+      return new Response(JSON.stringify({ status: 'ok', service: 'xraynews-gatherer', version: 'v5.3.2' }), {
         headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
       });
     }
