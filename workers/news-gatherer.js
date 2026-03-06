@@ -54,16 +54,7 @@ const NITTER_INSTANCES = [
   'https://nitter.fdn.fr',
 ];
 
-const NITTER_SEARCHES = [
-  { query: '#breaking OR #news', name: 'X Breaking News', min_engagement: 100 },
-  { query: '#worldnews OR #international', name: 'X World News', min_engagement: 50 },
-  { query: '#conflict OR #war', name: 'X Conflict', min_engagement: 50 },
-  // NEW ADDITIONS:
-  { query: '#earthquake OR #flood OR #hurricane', name: 'X Disasters', min_engagement: 50 },
-  { query: '#election OR #vote OR #politics', name: 'X Elections', min_engagement: 50 },
-  { query: '#protest OR #demonstration', name: 'X Protests', min_engagement: 50 },
-  { query: '#covid OR #pandemic OR #outbreak', name: 'X Health', min_engagement: 50 },
-];
+const NITTER_SEARCHES = []; // DISABLED - all Nitter instances returning 403/timeout
 
 
 // ---- Content Filter Keywords (simplified for CPU) ----------------------
@@ -334,7 +325,7 @@ async function gatherNews(env) {
     const batch = RSS_SOURCES.slice(i, i + BATCH_SIZE);
     const fetches = batch.map(src =>
       fetch(src.url, {
-        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; XrayNewsBot/1.0)' },
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' },
         signal: AbortSignal.timeout(RSS_TIMEOUT)
       })
       .then(r => r.text())
@@ -363,7 +354,7 @@ async function gatherNews(env) {
     const batch = REDDIT_SOURCES.slice(i, i + 2);
     const fetches = batch.map(src =>
       fetch(src.url, {
-        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; XrayNewsBot/1.0)' },
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' },
         signal: AbortSignal.timeout(RSS_TIMEOUT)
       })
       .then(r => r.text())
@@ -408,7 +399,7 @@ async function gatherNews(env) {
       try {
         const nitterUrl = `${instance}/search/rss?q=${encodeURIComponent(search.query)}`;
         const resp = await fetch(nitterUrl, {
-          headers: { 'User-Agent': 'Mozilla/5.0 (compatible; XrayNewsBot/1.0)' },
+          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' },
           signal: AbortSignal.timeout(RSS_TIMEOUT)
         });
 
@@ -579,7 +570,7 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     if (url.pathname === '/health') {
-      return new Response(JSON.stringify({ status: 'ok', service: 'xraynews-gatherer', version: 'v5.8.0' }), {
+      return new Response(JSON.stringify({ status: 'ok', service: 'xraynews-gatherer', version: 'v5.9.0' }), {
         headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
       });
     }
