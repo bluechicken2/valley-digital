@@ -1,5 +1,5 @@
 // ================================================
-// XrayNews Intelligence Gatherer v5.5
+// XrayNews Intelligence Gatherer v5.6
 // Architecture: Worker = fast headline grab only. Xray = article fetch + verification.
 // Schedule: Every 5 minutes
 // Sources: Reuters, BBC, AP, CNN, Sky, AlJazeera, DW, France24, Guardian, GDELT, Reddit, Nitter/X
@@ -37,6 +37,14 @@ const REDDIT_SOURCES = [
   { url: 'https://www.reddit.com/r/UkrainianConflict/hot.rss', name: 'Reddit Ukraine', tier: 2, type: 'social' },
   { url: 'https://www.reddit.com/r/europe/hot.rss', name: 'Reddit Europe', tier: 2, type: 'social' },
   { url: 'https://www.reddit.com/r/news/hot.rss', name: 'Reddit News', tier: 2, type: 'social' },
+  // Regional news
+  { url: 'https://www.reddit.com/r/UnitedKingdom/hot.rss', name: 'Reddit UK', tier: 2, type: 'social' },
+  { url: 'https://www.reddit.com/r/CanadaPolitics/hot.rss', name: 'Reddit Canada', tier: 2, type: 'social' },
+  { url: 'https://www.reddit.com/r/China/hot.rss', name: 'Reddit China', tier: 2, type: 'social' },
+  { url: 'https://www.reddit.com/r/MiddleEastNews/hot.rss', name: 'Reddit MiddleEast', tier: 2, type: 'social' },
+  // Conflict zones
+  { url: 'https://www.reddit.com/r/IsraelPalestine/hot.rss', name: 'Reddit IsraelPalestine', tier: 2, type: 'social' },
+  { url: 'https://www.reddit.com/r/SyrianRebellion/hot.rss', name: 'Reddit Syria', tier: 2, type: 'social' },
 ];
 // ---- Nitter (Twitter/X) RSS Sources ------------------------------------
 const NITTER_INSTANCES = [
@@ -50,6 +58,11 @@ const NITTER_SEARCHES = [
   { query: '#breaking OR #news', name: 'X Breaking News', min_engagement: 100 },
   { query: '#worldnews OR #international', name: 'X World News', min_engagement: 50 },
   { query: '#conflict OR #war', name: 'X Conflict', min_engagement: 50 },
+  // NEW ADDITIONS:
+  { query: '#earthquake OR #flood OR #hurricane', name: 'X Disasters', min_engagement: 50 },
+  { query: '#election OR #vote OR #politics', name: 'X Elections', min_engagement: 50 },
+  { query: '#protest OR #demonstration', name: 'X Protests', min_engagement: 50 },
+  { query: '#covid OR #pandemic OR #outbreak', name: 'X Health', min_engagement: 50 },
 ];
 
 
@@ -118,7 +131,10 @@ const SOURCE_REPUTATION = {
   'Sky News': 74, 'Euronews': 76, 'RFI': 74,
   'Reddit WorldNews': 65, 'Reddit Geopolitics': 60, 'Reddit Ukraine': 55,
   'Reddit Europe': 55, 'Reddit News': 60,
+  'Reddit UK': 55, 'Reddit Canada': 55, 'Reddit China': 50, 'Reddit MiddleEast': 50,
+  'Reddit IsraelPalestine': 45, 'Reddit Syria': 45,
   'X Breaking News': 50, 'X World News': 45, 'X Conflict': 45,
+  'X Disasters': 50, 'X Elections': 50, 'X Protests': 45, 'X Health': 50,
 };
 
 // ---- Utilities ---------------------------------------------------------
@@ -548,7 +564,7 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     if (url.pathname === '/health') {
-      return new Response(JSON.stringify({ status: 'ok', service: 'xraynews-gatherer', version: 'v5.5.0' }), {
+      return new Response(JSON.stringify({ status: 'ok', service: 'xraynews-gatherer', version: 'v5.6.0' }), {
         headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
       });
     }
@@ -558,6 +574,6 @@ export default {
         headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
       });
     }
-    return new Response('XrayNews Gatherer v5.5 — OK', { status: 200 });
+    return new Response('XrayNews Gatherer v5.6 — OK', { status: 200 });
   }
 };
