@@ -84,28 +84,6 @@
     document.getElementById('sb-close').addEventListener('click', close);
     document.getElementById('sb-overlay').addEventListener('click', close);
 
-    // Enable touch scrolling on sb-list - prevent parent scroll
-    var sbList = document.getElementById('sb-list');
-    if (sbList) {
-      sbList.addEventListener('touchmove', function(e) {
-        var scrollTop = this.scrollTop;
-        var scrollHeight = this.scrollHeight;
-        var clientHeight = this.clientHeight;
-        var atTop = scrollTop === 0;
-        var atBottom = scrollTop + clientHeight >= scrollHeight - 1;
-
-        // Allow scroll within list, prevent only when at boundaries
-        if ((atTop && e.touches[0].clientY > this.lastY) || 
-            (atBottom && e.touches[0].clientY < this.lastY)) {
-          e.preventDefault();
-        }
-        this.lastY = e.touches[0].clientY;
-      }, { passive: false });
-
-      sbList.addEventListener('touchstart', function(e) {
-        this.lastY = e.touches[0].clientY;
-      }, { passive: true });
-    }
   }
 
   function _miniCard(story) {
