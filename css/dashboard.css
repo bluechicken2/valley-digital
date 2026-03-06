@@ -19,19 +19,21 @@
   top: 0;
   left: 0;
   right: 0;
-  height: calc(var(--nav-height) + env(safe-area-inset-top, 0px));
-  padding-top: env(safe-area-inset-top, 0px);
+  height: var(--nav-height);
   z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 1.25rem; padding-top: env(safe-area-inset-top, 0px);
+  padding: 0 1.25rem;
   gap: 1rem;
   background: rgba(8,11,18,0.88);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--glass-border);
   box-shadow: 0 2px 24px rgba(0,0,0,0.5);
+  /* Safe area support for notched phones */
+  padding-top: env(safe-area-inset-top, 0px);
+  height: calc(var(--nav-height) + env(safe-area-inset-top, 0px));
 }
 
 /* Logo */
@@ -859,7 +861,7 @@
 }
 
 @media (max-width: 480px) {
-  .top-nav { padding: 0 0.75rem; gap: 0.5rem; }
+  .top-nav { padding: 0 0.75rem; gap: 0.5rem; padding-top: max(20px, env(safe-area-inset-top, 20px)); height: calc(var(--nav-height) + max(20px, env(safe-area-inset-top, 20px))); }
   .nav-search-wrapper { max-width: 160px; }
   .globe-legend { display: none; }
   .stories-section { padding: 1rem 0.75rem 1.5rem; }
@@ -2015,5 +2017,36 @@
   .load-more-btn {
     padding: 12px 24px;
     font-size: 13px;
+  }
+}
+
+
+/* Mobile Portrait Fix - Aggressive navbar padding */
+@media (max-width: 768px) and (orientation: portrait) {
+  .top-nav {
+    padding-top: 25px !important;
+    height: calc(var(--nav-height) + 25px) !important;
+  }
+  body {
+    padding-top: 25px;
+  }
+  .mobile-menu {
+    top: calc(60px + 25px) !important;
+  }
+}
+
+/* Extra safe area for notched phones */
+@supports (padding-top: env(safe-area-inset-top)) {
+  @media (max-width: 768px) and (orientation: portrait) {
+    .top-nav {
+      padding-top: max(25px, env(safe-area-inset-top)) !important;
+      height: calc(var(--nav-height) + max(25px, env(safe-area-inset-top))) !important;
+    }
+    body {
+      padding-top: max(25px, env(safe-area-inset-top));
+    }
+    .mobile-menu {
+      top: calc(60px + max(25px, env(safe-area-inset-top))) !important;
+    }
   }
 }
