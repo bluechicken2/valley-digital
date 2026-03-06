@@ -52,12 +52,9 @@ async function loadStories(append) {
     } catch(e) { data = null; }
   }
 
-  // Sample fallback only on first load
+  // No sample fallback - require live Supabase data
   if (!append && (!data || data.length === 0)) {
-    try {
-      var r = await fetch('data/sample-stories.json');
-      if (r.ok) data = await r.json();
-    } catch(e) { console.warn('[Feed] Sample fallback failed:', e.message); }
+    console.warn('[Feed] No stories available from Supabase');
   }
 
   var rows = data || [];
