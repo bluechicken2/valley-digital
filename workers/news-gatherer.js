@@ -179,6 +179,13 @@ function parseRedditAtom(text, sourceName) {
       const pubDate = get('updated') || get('published');
       const desc = get('content') || get('summary');
       
+      // Clean Reddit metadata from description too
+      let cleanDesc = desc
+        .replace(/&#(\d+);/g, (m, n) => String.fromCharCode(parseInt(n, 10)))
+        .replace(/\s*submitted by\s*\S+.*$/i, '')
+        .replace(/\s*\[link\]\s*\[comments\].*$/i, '')
+        .replace(/\s+/g, ' ').trim();
+      
       // Extract score from title like "[12345] Article Title"
       let score = 0;
       const scoreMatch = title.match(/^\[(\d+)\]\s*/);
@@ -203,7 +210,7 @@ function parseRedditAtom(text, sourceName) {
       if (cleanTitle && cleanTitle.length > 10) {
         items.push({ 
           title: cleanTitle, 
-          desc: desc.substring(0, 500), 
+          desc: cleanDesc.substring(0, 500), 
           link, 
           pubDate,
           reddit_score: score,
@@ -253,7 +260,7 @@ function parseNitterRss(text, sourceName) {
       if (cleanTitle && cleanTitle.length > 10) {
         items.push({
           title: cleanTitle,
-          desc: desc.substring(0, 500),
+          desc: cleanDesc.substring(0, 500),
           link: link.replace(/nitter\.[^\/]+/, 'twitter.com'), // Convert back to twitter
           pubDate,
           twitter_author: author,
@@ -580,7 +587,7 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     if (url.pathname === '/health') {
-      return new Response(JSON.stringify({ status: 'ok', service: 'xraynews-gatherer', version: 'v5.10.0' }), {
+      return new Response(JSON.stringify({ status: 'ok', service: 'xraynews-gatherer', version: 'v5.11.0' }), {
         headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
       });
     }
