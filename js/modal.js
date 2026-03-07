@@ -144,6 +144,48 @@
     return '<table class="mdl-src-table"><tr>' + cols + '</tr></table>';
   }
 
+
+  // ---- Analysis Preview ----
+  function _analysisPreview(story) {
+    if (!story.xray_analysis) {
+      return '<div class="mdl-analysis-pending">⏳ Independent analysis pending...</div>';
+    }
+    var analysis = story.xray_analysis;
+    // Extract key parts from markdown analysis
+    var verdict = '';
+    var entities = '';
+    var conclusion = '';
+    
+    // Parse VERIFICATION status
+    var vMatch = analysis.match(/\*\*VERIFICATION:\*\*\s*([^*]+)/);
+    if (vMatch) verdict = vMatch[1].trim();
+    
+    // Parse KEY ENTITIES
+    var eMatch = analysis.match(/\*\*KEY ENTITIES:\*\*([\s\S]*?)(?=\*\*(?:CLAIM|SOURCES|CONCLUSION)|$)/);
+    if (eMatch) entities = eMatch[1].trim().replace(/
+/g, ' ').substring(0, 150);
+    
+    // Parse CONCLUSION
+    var cMatch = analysis.match(/\*\*CONCLUSION:\*\*([\s\S]*?)(?=$)/);
+    if (cMatch) conclusion = cMatch[1].trim().replace(/
+/g, ' ').substring(0, 200);
+    
+    var html = '<div class="mdl-analysis-card">';
+    if (verdict) {
+      var vClass = verdict.includes('CONFIRMED') ? 'mdl-v-ok' : verdict.includes('CONTESTED') ? 'mdl-v-warn' : 'mdl-v-unknown';
+      html += '<div class="mdl-verdict ' + vClass + '">' + esc(verdict) + '</div>';
+    }
+    if (entities) {
+      html += '<div class="mdl-entities"><strong>Entities:</strong> ' + esc(entities) + '</div>';
+    }
+    if (conclusion) {
+      html += '<div class="mdl-conclusion">' + esc(conclusion) + '</div>';
+    }
+    html += '<a href="story.html?id=' + story.id + '" class="mdl-analysis-link">View Full Analysis →</a>';
+    html += '</div>';
+    return html;
+  }
+
   // ---- Render ----
   function _render(story) {
     // Update source link visibility
@@ -187,6 +229,7 @@
           '</p>',
           '<p class="mdl-conf-sub">Based on ' + (story.source_count||1) + ' sources across multiple countries</p>',
           story.summary ? '<p class="mdl-summary">' + esc(story.summary) + '</p>' : '',
+        _analysisPreview(story),
         '</div>',
       '</div>',
 

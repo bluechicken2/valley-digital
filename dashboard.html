@@ -9,11 +9,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/main.css?v=67">
-  <link rel="stylesheet" href="css/dashboard.css?v=67">
+  <link rel="stylesheet" href="css/main.css?v=70">
+  <link rel="stylesheet" href="css/dashboard.css?v=70">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <!-- globe.gl loaded async in body -->
-  <script src="js/loader.js?v=67"></script>
+  <script src="js/loader.js?v=70"></script>
   <script>if(window.Loader)Loader.show();</script>
   <style>
   :root {
@@ -178,7 +178,19 @@
   .mdl-src-count{font-family:Orbitron,sans-serif;font-size:13px;font-weight:700;color:#fff;}
   .mdl-src-yes{color:#00ff88;}
   .mdl-src-no{color:#ff4444;margin-left:4px;}
-  .mdl-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;}
+  
+  /* Analysis Preview */
+  .mdl-analysis-pending{color:#888;font-style:italic;padding:12px;text-align:center;}
+  .mdl-analysis-card{background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);border-radius:8px;padding:16px;margin-top:12px;}
+  .mdl-verdict{font-size:14px;font-weight:700;padding:6px 12px;border-radius:4px;margin-bottom:10px;display:inline-block;}
+  .mdl-v-ok{background:rgba(0,255,136,0.2);color:#00ff88;}
+  .mdl-v-warn{background:rgba(255,170,0,0.2);color:#ffaa00;}
+  .mdl-v-unknown{background:rgba(136,136,136,0.2);color:#888;}
+  .mdl-entities{font-size:12px;color:#aaa;margin-bottom:8px;}
+  .mdl-conclusion{font-size:13px;color:#ccc;line-height:1.5;margin-bottom:12px;}
+  .mdl-analysis-link{color:#00d4ff;font-size:12px;text-decoration:none;font-weight:600;}
+  .mdl-analysis-link:hover{text-decoration:underline;}
+.mdl-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;}
   .mdl-action-btn{
     flex:1;min-width:140px;padding:12px 14px;
     background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.22);
@@ -690,13 +702,13 @@
 <!-- ================================================
      SCRIPTS
      ================================================ -->
-<script src="js/supabase-config.js?v=67"></script>
-<script src="js/auth.js?v=67"></script>
-<script src="js/globe.js?v=67"></script>
-<script src="js/news-feed.js?v=67"></script>
-<script src="js/stories.js?v=67"></script>
-<script src="js/modal.js?v=67"></script>
-<script src="js/sidebar.js?v=67"></script>
+<script src="js/supabase-config.js?v=70"></script>
+<script src="js/auth.js?v=70"></script>
+<script src="js/globe.js?v=70"></script>
+<script src="js/news-feed.js?v=70"></script>
+<script src="js/stories.js?v=70"></script>
+<script src="js/modal.js?v=70"></script>
+<script src="js/sidebar.js?v=70"></script>
 <script>
 // ================================================
 // XRAYNEWS — Dashboard Init
