@@ -9,7 +9,7 @@ var _category    = 'all';
 var _status      = 'all';
 var _sort        = 'latest';
 var _offset      = 0;
-var _pageSize    = 20;
+var _pageSize    = 30;
 var _totalLoaded = 0;
 var _isLoading   = false;
 
@@ -95,6 +95,17 @@ function _setLoadMoreBtn(state) {
 function loadMoreStories() {
   loadStories(true);
 }
+
+// Attach click handler to load-more button
+function _attachLoadMoreHandler() {
+  var btn = document.getElementById('load-more-btn');
+  if (btn) {
+    btn.addEventListener('click', loadMoreStories);
+  }
+}
+
+// Attach on DOM ready
+document.addEventListener('DOMContentLoaded', _attachLoadMoreHandler);
 
 // ------------------------------------------------
 // Tickers
