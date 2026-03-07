@@ -204,7 +204,7 @@
         srcLink.style.display = 'none';
       }
     }
-    var sc    = story.confidence_score || 0;
+    var sc = story.xray_score || story.confidence_score || 0;
     var col   = confColor(sc);
     var sm    = STATUS_MAP[story.status] || STATUS_MAP.unverified;
     var fg    = flag(story.country_code);
