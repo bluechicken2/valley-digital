@@ -85,7 +85,7 @@ class TruthEngineV4:
     def fetch_unscored(self, limit: int = 50) -> List[Dict]:
         return self.db.fetch(
             'stories',
-            select='id,headline,summary,country_name,category,source_url',
+            select='id,headline,summary,country_name,category,external_url',
             filters={'or': '(xray_score.is.null,xray_score.eq.0)'},
             order='created_at.desc',
             limit=limit
