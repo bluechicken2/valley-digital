@@ -398,7 +398,30 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 @media (max-width: 768px) {
+    .pinned-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    .pinned-section {
+        padding: 12px;
+    }
+    .pinned-header h3 {
+        font-size: 14px;
+    }
+    .pinned-headline {
+        font-size: 13px;
+    }
+    .pinned-card {
+        padding: 12px;
+    }
 }
+
+@media (max-width: 1024px) {
+    .pinned-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
 
 .pinned-card {
     box-shadow: 0 0 15px rgba(0, 212, 255, 0.3), 0 0 30px rgba(0, 255, 136, 0.2);
