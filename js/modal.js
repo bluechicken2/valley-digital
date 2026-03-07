@@ -144,35 +144,41 @@
     return '<table class="mdl-src-table"><tr>' + cols + '</tr></table>';
   }
 
-
   // ---- Analysis Preview ----
   function _analysisPreview(story) {
     if (!story.xray_analysis) {
-      return '<div class="mdl-analysis-pending">⏳ Independent analysis pending...</div>';
+      return '<div class="mdl-analysis-pending">Analysis pending...</div>';
     }
     var analysis = story.xray_analysis;
-    // Extract key parts from markdown analysis
     var verdict = '';
     var entities = '';
     var conclusion = '';
     
-    // Parse VERIFICATION status
-    var vMatch = analysis.match(/\*\*VERIFICATION:\*\*\s*([^*]+)/);
-    if (vMatch) verdict = vMatch[1].trim();
+    // Parse VERIFICATION status - use simple string search
+    var vIdx = analysis.indexOf('**VERIFICATION:**');
+    if (vIdx !== -1) {
+      var vEnd = analysis.indexOf('**', vIdx + 18);
+      if (vEnd !== -1) verdict = analysis.substring(vIdx + 17, vEnd).trim();
+    }
     
     // Parse KEY ENTITIES
-    var eMatch = analysis.match(/\*\*KEY ENTITIES:\*\*([\s\S]*?)(?=\*\*(?:CLAIM|SOURCES|CONCLUSION)|$)/);
-    if (eMatch) entities = eMatch[1].trim().replace(/
-/g, ' ').substring(0, 150);
+    var eIdx = analysis.indexOf('**KEY ENTITIES:**');
+    if (eIdx !== -1) {
+      var eEnd = analysis.indexOf('**CLAIM', eIdx);
+      if (eEnd === -1) eEnd = analysis.indexOf('**SOURCES', eIdx);
+      if (eEnd === -1) eEnd = analysis.length;
+      entities = analysis.substring(eIdx + 17, eEnd).trim().replace(/\n/g, ' ').substring(0, 120);
+    }
     
     // Parse CONCLUSION
-    var cMatch = analysis.match(/\*\*CONCLUSION:\*\*([\s\S]*?)(?=$)/);
-    if (cMatch) conclusion = cMatch[1].trim().replace(/
-/g, ' ').substring(0, 200);
+    var cIdx = analysis.indexOf('**CONCLUSION:**');
+    if (cIdx !== -1) {
+      conclusion = analysis.substring(cIdx + 15).trim().replace(/\n/g, ' ').substring(0, 180);
+    }
     
     var html = '<div class="mdl-analysis-card">';
     if (verdict) {
-      var vClass = verdict.includes('CONFIRMED') ? 'mdl-v-ok' : verdict.includes('CONTESTED') ? 'mdl-v-warn' : 'mdl-v-unknown';
+      var vClass = verdict.indexOf('CONFIRMED') !== -1 ? 'mdl-v-ok' : verdict.indexOf('CONTESTED') !== -1 ? 'mdl-v-warn' : 'mdl-v-unknown';
       html += '<div class="mdl-verdict ' + vClass + '">' + esc(verdict) + '</div>';
     }
     if (entities) {
@@ -181,7 +187,7 @@
     if (conclusion) {
       html += '<div class="mdl-conclusion">' + esc(conclusion) + '</div>';
     }
-    html += '<a href="story.html?id=' + story.id + '" class="mdl-analysis-link">View Full Analysis →</a>';
+    html += '<a href="story.html?id=' + story.id + '" class="mdl-analysis-link">View Full Analysis</a>';
     html += '</div>';
     return html;
   }
