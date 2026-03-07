@@ -348,3 +348,130 @@ h1, h2, h3, h4, h5, h6 {
   background: var(--glass-border);
   margin: 0.25rem 0;
 }
+
+/* ============================================
+   PINNED STYLES
+   ============================================ */
+
+#pinned-stories {
+    margin-bottom: 24px;
+}
+
+.pinned-section {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.pinned-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.pinned-icon {
+    font-size: 20px;
+}
+
+.pinned-header h3 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    color: #fff;
+}
+
+.pinned-updated {
+    margin-left: auto;
+    font-size: 12px;
+    color: #888;
+}
+
+.pinned-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+@media (max-width: 768px) {
+    .pinned-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.pinned-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.pinned-card:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.pinned-rank {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    font-size: 24px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.15);
+}
+
+.pinned-country {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 8px;
+}
+
+.pinned-headline {
+    font-size: 14px;
+    font-weight: 500;
+    color: #fff;
+    line-height: 1.4;
+    margin-bottom: 12px;
+}
+
+.pinned-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.pinned-category {
+    font-size: 11px;
+    color: #666;
+    text-transform: uppercase;
+}
+
+.pinned-score {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 12px;
+}
+
+.pinned-score.high {
+    background: rgba(0, 255, 136, 0.2);
+    color: #00ff88;
+}
+
+.pinned-score.medium {
+    background: rgba(255, 170, 0, 0.2);
+    color: #ffaa00;
+}
+
+.pinned-score.low {
+    background: rgba(255, 68, 68, 0.2);
+    color: #ff4444;
+}
