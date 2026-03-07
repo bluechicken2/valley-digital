@@ -6,21 +6,38 @@
 class PinnedStories {
     constructor(containerId = 'pinned-stories') {
         this.container = document.getElementById(containerId);
-        this.supabase = window.supabaseClient;
     }
     
     async load() {
         if (!this.container) return;
         
         try {
-            const { data, error } = await this.supabase
-                .from('stories')
-                .select('id, headline, country_name, country_code, category, xray_score, created_at')
-                .eq('is_pinned', true)
-                .order('pin_priority', { ascending: false })
-                .limit(3);
+            // Use XrayNewsDB REST API directly
+            if (!window.XrayNewsDB) {
+                console.warn('[PinnedStories] XrayNewsDB not ready');
+                this.hide();
+                return;
+            }
             
-            if (error) throw error;
+            // Build REST query for pinned stories
+            const url = window.XrayNewsDB.getUrl() + '/rest/v1/stories' +
+                '?select=id,headline,country_name,country_code,category,xray_score,created_at' +
+                '&is_pinned=eq.true' +
+                '&order=pin_priority.desc' +
+                '&limit=3';
+            
+            const response = await fetch(url, {
+                headers: {
+                    'apikey': window.XrayNewsDB.getKey(),
+                    'Authorization': 'Bearer ' + window.XrayNewsDB.getKey()
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to fetch pinned stories: ' + response.status);
+            }
+            
+            const data = await response.json();
             
             if (data && data.length > 0) {
                 this.render(data);
@@ -28,8 +45,14 @@ class PinnedStories {
                 this.hide();
             }
         } catch (err) {
-            console.error('Error loading pinned stories:', err);
+            console.error('[PinnedStories] Error:', err);
             this.hide();
+        }
+    }
+    
+    hide() {
+        if (this.container) {
+            this.container.style.display = 'none';
         }
     }
     
@@ -78,24 +101,22 @@ class PinnedStories {
         `;
     }
     
-    hide() {
-        if (this.container) {
-            this.container.style.display = 'none';
-        }
+    truncate(str, len) {
+        if (!str) return '';
+        return str.length > len ? str.substring(0, len) + '...' : str;
     }
     
-    truncate(text, maxLength) {
-        if (!text) return '';
-        return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
-    }
-    
-    getTimeAgo(dateString) {
-        const date = new Date(dateString);
+    getTimeAgo(dateStr) {
+        if (!dateStr) return 'recently';
+        const date = new Date(dateStr);
         const now = new Date();
-        const minutes = Math.floor((now - date) / 60000);
+        const diffMs = now - date;
+        const diffMins = Math.floor(diffMs / 60000);
         
-        if (minutes < 60) return `${minutes}m ago`;
-        const hours = Math.floor(minutes / 60);
+        if (diffMins < 1) return 'just now';
+        if (diffMins < 60) return `${diffMins}m ago`;
+        
+        const hours = Math.floor(diffMins / 60);
         if (hours < 24) return `${hours}h ago`;
         return `${Math.floor(hours / 24)}d ago`;
     }
@@ -110,12 +131,14 @@ class PinnedStories {
     }
 }
 
-// Initialize on DOM ready
+// Initialize after a short delay to ensure XrayNewsDB is ready
 document.addEventListener('DOMContentLoaded', () => {
-    window.pinnedStories = new PinnedStories('pinned-stories');
-    if (window.pinnedStories) {
-        window.pinnedStories.load();
-    }
+    setTimeout(() => {
+        window.pinnedStories = new PinnedStories('pinned-stories');
+        if (window.pinnedStories) {
+            window.pinnedStories.load();
+        }
+    }, 500); // Wait 500ms for XrayNewsDB to initialize
 });
 
 // Global function to open story
