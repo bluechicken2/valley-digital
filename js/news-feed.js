@@ -139,7 +139,7 @@ function _buildVerifiedTicker(stories) {
   var src  = pool.length > 0 ? pool : stories;
   var html = src.map(function(s) {
     var flag  = getCountryFlag(s.country_code);
-    var score = s.confidence_score || 0;
+    var score = s.xray_score || s.confidence_score || 0;
     var flagHtml = flag ? '<span class="ticker-flag">' + flag + '</span>' : '';
     return '<span class="ticker-item">'
       + '<span style="color:#00ff88;font-weight:700">&#10003;</span>'
@@ -160,7 +160,7 @@ function _applyAll() {
   if (_category !== 'all') list = list.filter(function(s){ return s.category===_category; });
   if (_status   !== 'all') list = list.filter(function(s){ return s.status===_status; });
   switch (_sort) {
-    case 'confidence': list.sort(function(a,b){ return (b.confidence_score||0)-(a.confidence_score||0); }); break;
+    case 'confidence': list.sort(function(a,b){ return (b.xray_score||b.confidence_score||0)-(a.xray_score||a.confidence_score||0); }); break;
     case 'sources':    list.sort(function(a,b){ return (b.source_count||0)-(a.source_count||0); }); break;
     case 'breaking':   list.sort(function(a,b){ return (b.is_breaking?1:0)-(a.is_breaking?1:0); }); break;
     default:           list.sort(function(a,b){ return new Date(b.created_at)-new Date(a.created_at); }); break;
