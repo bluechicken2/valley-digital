@@ -32,7 +32,39 @@ function scheduleSpinResume() {
 // ------------------------------------------------
 // Overlay colour schemes
 // ------------------------------------------------
-var OVERLAYS = {
+// Glowing border colors based on activity
+var STROKE_COLORS = {
+  all: function(heat) {
+    if (heat === 0) return 'rgba(0,150,180,0.15)';
+    if (heat < 3) return 'rgba(0,200,220,0.45)';
+    if (heat < 8) return 'rgba(0,220,255,0.65)';
+    return 'rgba(100,240,255,0.90)';  // Bright cyan glow for hot zones
+  },
+  density: function(heat) {
+    if (heat === 0) return 'rgba(80,120,180,0.12)';
+    if (heat < 3) return 'rgba(100,150,200,0.40)';
+    if (heat < 8) return 'rgba(120,180,230,0.60)';
+    return 'rgba(150,200,255,0.85)';
+  },
+  conflicts: function(heat) {
+    if (heat === 0) return 'rgba(180,80,80,0.12)';
+    if (heat < 3) return 'rgba(220,100,100,0.45)';
+    if (heat < 8) return 'rgba(255,120,120,0.65)';
+    return 'rgba(255,150,150,0.90)';  // Bright red glow
+  },
+  weather: function(heat) {
+    if (heat === 0) return 'rgba(80,150,120,0.12)';
+    if (heat < 3) return 'rgba(100,200,150,0.40)';
+    if (heat < 8) return 'rgba(120,230,180,0.60)';
+    return 'rgba(150,255,200,0.85)';  // Bright green glow
+  },
+  elections: function(heat) {
+    if (heat === 0) return 'rgba(100,50,150,0.12)';
+    if (heat < 3) return 'rgba(140,70,200,0.40)';
+    if (heat < 8) return 'rgba(180,100,255,0.60)';
+    return 'rgba(200,140,255,0.85)';  // Bright purple glow
+  }
+};var OVERLAYS = {
   all: function(heat) {
     if (heat === 0)  return 'rgba(0,0,0,0)';  // inactive
     if (heat <= 2)   return 'rgba(0,200,230,0.25)';   // purple — low
@@ -71,6 +103,11 @@ function getSideColor(feat) {
   var code = (feat.properties && feat.properties.ISO_A2) || '';
   var heat = (countryMap[code] && countryMap[code].story_count) || 0;
   return heat > 0 ? 'rgba(0,212,255,0.12)' : 'rgba(255,255,255,0.04)';
+}
+function getStrokeColor(feat) {
+  var code = (feat.properties && feat.properties.ISO_A2) || '';
+  var heat = (countryMap[code] && countryMap[code].story_count) || 0;
+  return (STROKE_COLORS[currentOverlay] || STROKE_COLORS.all)(heat);
 }
 function getAltitude(feat) {
   var code = (feat.properties && feat.properties.ISO_A2) || '';
@@ -339,11 +376,12 @@ function updateCountryStatsFromStories(stories) {
 
 function _refreshColors() {
   if (!globeInst || !geoData) return;
-  // Pins-only mode — polygons stay transparent
+  // Glowing borders mode — subtle fill with bright borders
   globeInst
-    .polygonCapColor(function() { return 'rgba(0,0,0,0)'; })
-    .polygonSideColor(function() { return 'rgba(0,0,0,0)'; })
-    .polygonAltitude(0.001);
+    .polygonCapColor(getCapColor)
+    .polygonSideColor(getSideColor)
+    .polygonStrokeColor(getStrokeColor)
+    .polygonAltitude(getAltitude);
 }
 
 // ------------------------------------------------
