@@ -12,6 +12,7 @@ Usage:
 """
 
 import os
+import re
 import sys
 import json
 import fcntl

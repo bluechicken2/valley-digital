@@ -35,34 +35,34 @@ function scheduleSpinResume() {
 // Glowing border colors based on activity
 var STROKE_COLORS = {
   all: function(heat) {
-    if (heat === 0) return 'rgba(0,150,180,0.15)';
-    if (heat < 3) return 'rgba(0,200,220,0.45)';
-    if (heat < 8) return 'rgba(0,220,255,0.65)';
-    return 'rgba(100,240,255,0.90)';  // Bright cyan glow for hot zones
+    if (heat === 0) return 'rgba(0,150,200,0.08)';      // Very dim - barely visible
+    if (heat < 3) return 'rgba(0,230,255,0.95)';        // Bright!
+    if (heat < 8) return 'rgba(100,245,255,1.0)';       // Very bright!
+    return 'rgba(180,255,255,1.0)';                      // MAXIMUM!
   },
   density: function(heat) {
-    if (heat === 0) return 'rgba(80,120,180,0.12)';
-    if (heat < 3) return 'rgba(100,150,200,0.40)';
-    if (heat < 8) return 'rgba(120,180,230,0.60)';
-    return 'rgba(150,200,255,0.85)';
+    if (heat === 0) return 'rgba(80,120,180,0.08)';     // Very dim
+    if (heat < 3) return 'rgba(120,180,255,0.95)';      // Bright
+    if (heat < 8) return 'rgba(180,220,255,1.0)';       // Very bright
+    return 'rgba(220,240,255,1.0)';                      // Maximum
   },
   conflicts: function(heat) {
-    if (heat === 0) return 'rgba(180,80,80,0.12)';
-    if (heat < 3) return 'rgba(220,100,100,0.45)';
-    if (heat < 8) return 'rgba(255,120,120,0.65)';
-    return 'rgba(255,150,150,0.90)';  // Bright red glow
+    if (heat === 0) return 'rgba(150,60,60,0.08)';      // Very dim
+    if (heat < 3) return 'rgba(255,100,100,0.95)';      // Bright red
+    if (heat < 8) return 'rgba(255,150,150,1.0)';       // Very bright
+    return 'rgba(255,200,200,1.0)';                      // Maximum
   },
   weather: function(heat) {
-    if (heat === 0) return 'rgba(80,150,120,0.12)';
-    if (heat < 3) return 'rgba(100,200,150,0.40)';
-    if (heat < 8) return 'rgba(120,230,180,0.60)';
-    return 'rgba(150,255,200,0.85)';  // Bright green glow
+    if (heat === 0) return 'rgba(60,150,100,0.08)';     // Very dim
+    if (heat < 3) return 'rgba(100,255,180,0.95)';      // Bright green
+    if (heat < 8) return 'rgba(150,255,200,1.0)';       // Very bright
+    return 'rgba(200,255,220,1.0)';                      // Maximum  // Bright green glow
   },
   elections: function(heat) {
-    if (heat === 0) return 'rgba(100,50,150,0.12)';
-    if (heat < 3) return 'rgba(140,70,200,0.40)';
-    if (heat < 8) return 'rgba(180,100,255,0.60)';
-    return 'rgba(200,140,255,0.85)';  // Bright purple glow
+    if (heat === 0) return 'rgba(120,60,150,0.08)';     // Very dim
+    if (heat < 3) return 'rgba(180,100,255,0.95)';      // Bright purple
+    if (heat < 8) return 'rgba(210,150,255,1.0)';       // Very bright
+    return 'rgba(240,200,255,1.0)';                      // Maximum  // Bright purple glow
   }
 };var OVERLAYS = {
   all: function() { return 'rgba(0,0,0,0)'; },
