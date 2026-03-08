@@ -360,11 +360,12 @@ function updateCountryStatsFromStories(stories) {
 
 function _refreshColors() {
   if (!globeInst || !geoData) return;
-  // Pins-only mode — polygons transparent, borders only on hover
+  // Glowing borders mode — transparent fill, bright borders
   globeInst
-    .polygonCapColor(function() { return 'rgba(0,0,0,0)'; })
-    .polygonSideColor(function() { return 'rgba(0,0,0,0)'; })
-    .polygonAltitude(0.001);
+    .polygonCapColor(getCapColor)
+    .polygonSideColor(getSideColor)
+    .polygonStrokeColor(getStrokeColor)
+    .polygonAltitude(getAltitude);
 }
 
 // ------------------------------------------------
