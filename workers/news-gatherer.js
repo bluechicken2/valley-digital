@@ -616,7 +616,7 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     if (url.pathname === '/health') {
-      return new Response(JSON.stringify({ status: 'ok', service: 'xraynews-gatherer', version: 'v5.12.0' }), {
+      return new Response(JSON.stringify({ status: 'ok', service: 'xraynews-gatherer', version: 'v5.13.0' }), {
         headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
       });
     }
@@ -626,6 +626,6 @@ export default {
         headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
       });
     }
-    return new Response('XrayNews Gatherer v5.12.0 — OK', { status: 200 });
+    return new Response('XrayNews Gatherer v5.13.0 — OK', { status: 200 });
   }
 };
