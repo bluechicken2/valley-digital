@@ -35,16 +35,16 @@ function scheduleSpinResume() {
 // Glowing border colors based on activity
 var STROKE_COLORS = {
   all: function(heat) {
-    if (heat === 0) return 'rgba(0,150,200,0.08)';      // Very dim - barely visible
-    if (heat < 3) return 'rgba(0,230,255,0.95)';        // Bright!
-    if (heat < 8) return 'rgba(100,245,255,1.0)';       // Very bright!
-    return 'rgba(180,255,255,1.0)';                      // MAXIMUM!
+    if (heat === 0) return 'rgba(0,150,200,0.35)';      // Subtle border
+    if (heat < 3) return 'rgba(0,200,230,0.35)';        // Subtle border
+    if (heat < 8) return 'rgba(0,220,250,0.35)';        // Subtle border
+    return 'rgba(100,240,255,0.35)';                     // Subtle border
   },
   density: function(heat) {
-    if (heat === 0) return 'rgba(80,120,180,0.08)';     // Very dim
-    if (heat < 3) return 'rgba(120,180,255,0.95)';      // Bright
-    if (heat < 8) return 'rgba(180,220,255,1.0)';       // Very bright
-    return 'rgba(220,240,255,1.0)';                      // Maximum
+    if (heat === 0) return 'rgba(80,120,180,0.35)';     // Subtle border
+    if (heat < 3) return 'rgba(100,150,200,0.35)';      // Subtle border
+    if (heat < 8) return 'rgba(120,170,220,0.35)';      // Subtle border
+    return 'rgba(150,190,240,0.35)';                     // Subtle border
   },
   conflicts: function(heat) {
     if (heat === 0) return 'rgba(150,60,60,0.08)';      // Very dim
@@ -67,20 +67,35 @@ var STROKE_COLORS = {
 };
 
 var OVERLAYS = {
-  all: function() {
-    return 'rgba(0,0,0,0)';// Fully transparent for click compatibility
+  all: function(heat) {
+    if (heat === 0) return 'rgba(0,0,0,0)';
+    if (heat < 3) return 'rgba(0,200,230,0.25)';
+    if (heat < 8) return 'rgba(0,210,240,0.35)';
+    return 'rgba(100,240,255,0.50)';
   },
-  density: function() {
-    return 'rgba(0,0,0,0)';
+  density: function(heat) {
+    if (heat === 0) return 'rgba(0,0,0,0)';
+    if (heat < 3) return 'rgba(80,150,200,0.25)';
+    if (heat < 8) return 'rgba(120,180,220,0.35)';
+    return 'rgba(160,200,240,0.45)';
   },
-  conflicts: function() {
-    return 'rgba(0,0,0,0)';
+  conflicts: function(heat) {
+    if (heat === 0) return 'rgba(0,0,0,0)';
+    if (heat < 3) return 'rgba(200,80,80,0.25)';
+    if (heat < 8) return 'rgba(220,100,100,0.35)';
+    return 'rgba(240,120,120,0.50)';
   },
-  weather: function() {
-    return 'rgba(0,0,0,0)';
+  weather: function(heat) {
+    if (heat === 0) return 'rgba(0,0,0,0)';
+    if (heat < 3) return 'rgba(80,180,100,0.25)';
+    if (heat < 8) return 'rgba(100,200,120,0.35)';
+    return 'rgba(120,220,140,0.45)';
   },
-  elections: function() {
-    return 'rgba(0,0,0,0)';
+  elections: function(heat) {
+    if (heat === 0) return 'rgba(0,0,0,0)';
+    if (heat < 3) return 'rgba(160,100,180,0.25)';
+    if (heat < 8) return 'rgba(180,120,200,0.35)';
+    return 'rgba(200,140,220,0.45)';
   }
 };
 
@@ -250,7 +265,7 @@ function _applyPolygons(g, geoJson, onCountryClick) {
    })
    // Add stroke AFTER click handler to avoid blocking clicks
    .polygonStrokeColor(getStrokeColor)
-   .polygonStrokeWidth(2.5);
+   .polygonStrokeWidth(1.5);
 }
 
 function _heatLabel(h) {
@@ -377,7 +392,7 @@ function _refreshColors() {
   // This keeps clicks working (altitude 0.001, transparent fill)
   globeInst
     .polygonStrokeColor(getStrokeColor)
-    .polygonStrokeWidth(2.5);
+    .polygonStrokeWidth(1.5);
 }
 
 // ------------------------------------------------
