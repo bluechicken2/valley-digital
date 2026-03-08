@@ -426,13 +426,14 @@ h1, h2, h3, h4, h5, h6 {
 .pinned-card {
     box-shadow: 0 0 15px rgba(0, 212, 255, 0.3), 0 0 30px rgba(0, 255, 136, 0.2);
     position: relative;
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(11, 15, 25, 0.95);
     border-radius: 12px;
     padding: 16px;
     cursor: pointer;
     transition: all 0.3s ease;
-    position: relative;
     border: 1px solid rgba(255, 255, 255, 0.05);
+    overflow: hidden;
+    z-index: 0;
 }
 
 .pinned-card:hover {
@@ -523,7 +524,7 @@ h1, h2, h3, h4, h5, h6 {
     left: 0;
     right: 0;
     bottom: 0;
-    background: inherit;
+    background: rgba(11, 15, 25, 0.95);
     border-radius: 12px;
     z-index: -1;
 }

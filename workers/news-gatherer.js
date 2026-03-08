@@ -1,11 +1,15 @@
 // ================================================
-// XrayNews Intelligence Gatherer v5.8
+// XrayNews Intelligence Gatherer v5.12.0
 // Architecture: Worker = fast headline grab only. Xray = article fetch + verification.
 // Schedule: Every 5 minutes
-// Sources: Reuters, BBC, AP, CNN, Sky, AlJazeera, DW, France24, Guardian, GDELT, Reddit, Nitter/X
-// Features: Article body fetching, cross-source corroboration, dedup, Xray-ready
-// v5.4: Added Reddit RSS integration with Atom parser for social news sources
-// v5.5: Added Nitter (Twitter/X) RSS integration with instance rotation
+// Sources: BBC, Guardian, NPR, AlJazeera, DW, France24, Sky, WSJ, Euronews, RFI + 11 Reddit subs
+// Features: Social source mixing, Reddit Atom parser, clean title/summary, dedup
+// v5.4: Reddit RSS integration
+// v5.5: Nitter (disabled - all instances blocked)
+// v5.8: Social source shuffle + MAX_STORIES 50
+// v5.9: Reddit User-Agent fix
+// v5.11: Reddit title/summary metadata cleaning
+// v5.12: Audit fixes (openStory modal, CSS glow, PostgREST filter)
 // ================================================
 
 // SUPABASE_URL accessed via env parameter
@@ -587,7 +591,7 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     if (url.pathname === '/health') {
-      return new Response(JSON.stringify({ status: 'ok', service: 'xraynews-gatherer', version: 'v5.11.0' }), {
+      return new Response(JSON.stringify({ status: 'ok', service: 'xraynews-gatherer', version: 'v5.12.0' }), {
         headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
       });
     }
@@ -597,6 +601,6 @@ export default {
         headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
       });
     }
-    return new Response('XrayNews Gatherer v5.8 — OK', { status: 200 });
+    return new Response('XrayNews Gatherer v5.12.0 — OK', { status: 200 });
   }
 };

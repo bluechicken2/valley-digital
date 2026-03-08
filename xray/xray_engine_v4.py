@@ -191,7 +191,7 @@ class AnalysisEngineV4:
         return self.db.fetch(
             'stories',
             select='id,headline,summary,country_name,category',
-            filters={'or': '(xray_analysis.is.null,xray_analysis.eq."",xray_analysis_version.lt.4)'},
+            filters={'or': '(xray_analysis.is.null,xray_analysis.eq.,xray_analysis_version.lt.4)'},
             order='created_at.desc',
             limit=limit
         )

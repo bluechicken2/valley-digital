@@ -43,3 +43,6 @@ config/local-*.js
 __pycache__/
 *.pyc
 *.pyo
+# Backup files
+*.bak
+*.tmp
