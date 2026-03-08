@@ -100,7 +100,7 @@ function getStrokeColor(feat) {
 function getAltitude(feat) {
   var code = (feat.properties && feat.properties.ISO_A2) || '';
   var heat = (countryMap[code] && countryMap[code].story_count) || 0;
-  return 0.001 + Math.min(heat/20, 1) * 0.01;
+  return 0.02 + Math.min(heat/20, 1) * 0.015;
 }
 
 // ------------------------------------------------
@@ -224,7 +224,7 @@ function _applyPolygons(g, geoJson, onCountryClick) {
   g.polygonsData(geoJson.features)
    .polygonCapColor(function() { return 'rgba(0,0,0,0.01)'; })
    .polygonSideColor(function() { return 'rgba(0,0,0,0.01)'; })
-   .polygonAltitude(0.003)
+   .polygonAltitude(0.02)
    .polygonStrokeColor(getStrokeColor)
    .polygonStrokeWidth(2.5)
    .onPolygonHover(function(feat) {
@@ -424,11 +424,11 @@ function switchOverlay(mode) {
   // Conflicts/elections: flat polygons (no altitude extrusion — avoids fuzzy
   // edge artifacts on large countries like Russia, USA, Canada, China)
   if (mode === 'conflicts' || mode === 'elections') {
-    globeInst.polygonAltitude(0.003);
+    globeInst.polygonAltitude(0.02);
     globeInst.polygonSideColor(function() { return 'rgba(0,0,0,0.01)'; });
   } else if (mode === 'all' || mode === 'density' || mode === 'weather') {
     // Pins-only mode — keep polygons transparent
-    globeInst.polygonAltitude(0.003);
+    globeInst.polygonAltitude(0.02);
     globeInst.polygonSideColor(function() { return 'rgba(0,0,0,0.01)'; });
   }
   _refreshColors();
@@ -849,7 +849,7 @@ function toggleOutlineMode() {
     globeInst.polygonStrokeColor(function() { return 'rgba(0,212,255,0.95)'; });
     globeInst.polygonCapColor(function()    { return 'rgba(0,212,255,0.04)'; });
     globeInst.polygonSideColor(function()   { return 'rgba(0,212,255,0.12)'; });
-    globeInst.polygonAltitude(0.004);
+    globeInst.polygonAltitude(0.025);
   } else {
     // SAT IMAGERY mode: restore opaque sphere — instant, no reload
     if (mat) {
@@ -862,7 +862,7 @@ function toggleOutlineMode() {
     globeInst.polygonStrokeColor(function() { return 'rgba(0,212,255,0.06)'; });
     globeInst.polygonCapColor(function() { return 'rgba(0,0,0,0.01)'; });
     globeInst.polygonSideColor(function() { return 'rgba(0,0,0,0.01)'; });
-    globeInst.polygonAltitude(0.003);
+    globeInst.polygonAltitude(0.02);
   }
 
   var btn = document.getElementById('outline-mode-btn');
