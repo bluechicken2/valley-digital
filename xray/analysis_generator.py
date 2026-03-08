@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Professional Analysis Generator v4
-Generates journalist-quality analysis from research data
+Professional Analysis Generator v5
+Generates human-like journalist analysis from research data
 """
 
 import re
@@ -73,7 +73,7 @@ class ProfessionalAnalysisGenerator:
                 worthiness += 2
             
             # Contains named entities
-            entity_words = ['iran', 'israel', 'russia', 'ukraine', 'china', 'us', 'trump', 'biden', 
+            entity_words = ['iran', 'israel', 'russia', 'ukraine', 'china', 'us', 'trump', 'biden',
                           'putin', 'zelenskyy', 'netanyahu', 'nato', 'un', 'eu']
             for word in entity_words:
                 if word in sentence.lower():
@@ -141,9 +141,9 @@ class ProfessionalAnalysisGenerator:
         
         return claims
     
-    def generate_analysis(self, headline: str, summary: str, research: Dict, 
+    def generate_analysis(self, headline: str, summary: str, research: Dict,
                           related_stories: List[Dict] = None) -> str:
-        """Generate professional analysis output"""
+        """Generate human-like journalistic analysis"""
         
         entities = research.get('entities', {})
         sources = research.get('sources', [])
@@ -156,196 +156,152 @@ class ProfessionalAnalysisGenerator:
         # Calculate confidence
         confidence = self.calculate_confidence(research, claims)
         
-        # Build output sections
-        lines = []
+        # Build natural paragraphs
+        paragraphs = []
         
-        # ============================================
-        # EXECUTIVE SUMMARY
-        # ============================================
-        lines.append("## 📰 EXECUTIVE SUMMARY")
-        lines.append("")
+        # --- Opening: The Story So Far ---
+        opening = self._write_natural_opening(headline, summary, entities, confidence)
+        paragraphs.append(opening)
         
-        # Generate 1-2 sentence summary
-        exec_summary = self._generate_exec_summary(headline, summary, entities)
-        lines.append(exec_summary)
-        lines.append("")
-        
-        # ============================================
-        # CONFIDENCE SCORE
-        # ============================================
-        confidence_emoji = "🟢" if confidence >= 70 else "🟡" if confidence >= 50 else "🔴"
-        lines.append(f"**{confidence_emoji} CONFIDENCE: {confidence}%**")
-        lines.append("")
-        
-        # ============================================
-        # WHAT WE KNOW
-        # ============================================
+        # --- What We Know (confirmed facts) ---
         confirmed_claims = [c for c in claims if c['status'] in ['confirmed', 'partially_confirmed']]
         if confirmed_claims:
-            lines.append("## ✅ WHAT WE KNOW")
-            lines.append("")
-            for claim in confirmed_claims[:5]:
-                status_icon = "✓" if claim['status'] == 'confirmed' else "~"
-                claim_text = claim['text'][:100] + "..." if len(claim['text']) > 100 else claim['text']
-                sources_count = claim.get('sources', 0)
-                lines.append(f"• {status_icon} {claim_text}")
-                lines.append(f"  _({sources_count} sources confirm)_")
-            lines.append("")
+            known_para = self._write_what_we_know(confirmed_claims)
+            paragraphs.append(known_para)
         
-        # ============================================
-        # WHAT WE DON'T KNOW
-        # ============================================
+        # --- What's Still Unclear ---
         unconfirmed_claims = [c for c in claims if c['status'] in ['unverified', 'contested']]
         if unconfirmed_claims or not confirmed_claims:
-            lines.append("## ❓ WHAT WE DON'T KNOW")
-            lines.append("")
-            if unconfirmed_claims:
-                for claim in unconfirmed_claims[:3]:
-                    claim_text = claim['text'][:80] + "..." if len(claim['text']) > 80 else claim['text']
-                    lines.append(f"• {claim_text} - **Unconfirmed**")
+            unknown_para = self._write_what_we_dont_know(unconfirmed_claims, headline)
+            paragraphs.append(unknown_para)
+        
+        # --- The Players (key entities) ---
+        if entities and (entities.get('people') or entities.get('countries') or entities.get('organizations')):
+            entities_para = self._write_entities_section(entities)
+            paragraphs.append(entities_para)
+        
+        # --- Behind the Headlines (context) ---
+        if context:
+            context_para = self._write_context_section(context)
+            if context_para:
+                paragraphs.append(context_para)
+        
+        # --- The Bigger Picture (related) ---
+        if related_stories:
+            related_para = self._write_related_section(related_stories)
+            paragraphs.append(related_para)
+        
+        # --- Sources Note (subtle, at end) ---
+        sources_note = self._write_sources_note(research, sources)
+        paragraphs.append(sources_note)
+        
+        return "\n\n".join(paragraphs)
+    
+    def _write_natural_opening(self, headline, summary, entities, confidence):
+        """Write a natural opening paragraph"""
+        country = ""
+        if entities.get('countries'):
+            country = entities['countries'][0]['name']
+        
+        # Natural confidence phrase
+        if confidence >= 70:
+            conf_phrase = "This story checks out."
+        elif confidence >= 50:
+            conf_phrase = "The picture is still coming together."
+        else:
+            conf_phrase = "Details remain sketchy."
+        
+        # Build opening
+        if country:
+            opening = f"This story involves {country}. {headline[:100]}"
+        else:
+            opening = headline[:120]
+        
+        if summary and len(summary) > 20:
+            summary_bit = summary[:150].rsplit('.', 1)[0]
+            if summary_bit and summary_bit != headline[:150]:
+                opening += f" {summary_bit}."
+        
+        opening += f" {conf_phrase}"
+        return opening
+
+    def _write_what_we_know(self, confirmed_claims):
+        """Write natural what we know section"""
+        lines = ["What we know:"]
+        for claim in confirmed_claims[:4]:
+            claim_text = claim['text'][:90].rstrip('.')
+            sources_count = claim.get('sources', 1)
+            if sources_count >= 2:
+                lines.append(f"- {claim_text} (backed by {sources_count} sources)")
             else:
-                lines.append("• Specific details are still emerging")
-                lines.append("• Official statements may be pending")
-            lines.append("")
-        
-        # ============================================
-        # KEY ENTITIES
-        # ============================================
-        if entities:
-            lines.append("## 🔍 KEY ENTITIES")
-            lines.append("")
-            
-            if entities.get('people'):
-                people = entities['people'][:3]
-                people_str = ' | '.join([f"{p['name']} ({p.get('role', 'Official')})" for p in people])
-                lines.append(f"**People:** {people_str}")
-            
-            if entities.get('countries'):
-                countries = entities['countries'][:3]
-                countries_str = ' | '.join([c['name'] for c in countries])
-                lines.append(f"**Countries:** {countries_str}")
-            
-            if entities.get('organizations'):
-                orgs = entities['organizations'][:3]
-                orgs_str = ' | '.join([o['full'] for o in orgs])
-                lines.append(f"**Organizations:** {orgs_str}")
-            
-            lines.append("")
-        
-        # ============================================
-        # SOURCE ANALYSIS
-        # ============================================
-        lines.append("## 📊 SOURCE ANALYSIS")
-        lines.append("")
-        
+                lines.append(f"- {claim_text}")
+        return "\n".join(lines)
+
+    def _write_what_we_dont_know(self, unconfirmed_claims, headline):
+        """Write natural what we don't know section"""
+        lines = ["What we don't know yet:"]
+        if unconfirmed_claims:
+            for claim in unconfirmed_claims[:3]:
+                claim_text = claim['text'][:80].rstrip('.')
+                lines.append(f"- {claim_text} (still unconfirmed)")
+        else:
+            lines.append("- Full details are still emerging")
+            lines.append("- We're waiting for more official confirmation")
+        return "\n".join(lines)
+
+    def _write_entities_section(self, entities):
+        """Write natural entities section"""
+        parts = []
+        if entities.get('people'):
+            people = entities['people'][:2]
+            people_str = ", ".join([p['name'] for p in people])
+            parts.append(f"Key figures: {people_str}")
+        if entities.get('countries'):
+            countries = entities['countries'][:3]
+            countries_str = ", ".join([c['name'] for c in countries])
+            parts.append(f"Countries involved: {countries_str}")
+        if entities.get('organizations'):
+            orgs = entities['organizations'][:2]
+            orgs_str = ", ".join([o.get('full', o.get('name', '')) for o in orgs])
+            parts.append(f"Organizations: {orgs_str}")
+        return "\n".join(parts)
+
+    def _write_context_section(self, context):
+        """Write natural context/background section"""
+        for entity, wiki_data in list(context.items())[:1]:
+            extract = wiki_data.get('extract', '')[:180]
+            if extract:
+                extract = extract.rstrip('.')
+                return f"Background: {extract}."
+        return ""
+
+    def _write_related_section(self, related_stories):
+        """Write related stories section"""
+        lines = ["Related coverage:"]
+        for story in related_stories[:3]:
+            country = story.get('country_name', 'World')
+            story_headline = story.get('headline', '')[:70].rstrip('.')
+            lines.append(f"- [{country}] {story_headline}")
+        return "\n".join(lines)
+
+    def _write_sources_note(self, research, sources):
+        """Write subtle sources note at end"""
         tier1 = research.get('tier1_count', 0)
-        tier2 = sources.__len__() - tier1 if sources else 0
+        total = len(sources) if sources else 0
         fact_check = research.get('fact_check_count', 0)
         official = research.get('official_count', 0)
         
-        source_table = [
-            "| Source Type | Count |",
-            "|-------------|-------|",
-            f"| Tier 1 (Reuters, AP, BBC, etc.) | {tier1} |",
-            f"| Other sources | {tier2} |",
-            f"| Fact-checkers | {fact_check} |",
-            f"| Official (.gov) | {official} |"
-        ]
-        lines.extend(source_table)
-        lines.append("")
+        note_parts = []
+        if tier1 > 0:
+            note_parts.append(f"{tier1} major outlets")
+        if official > 0:
+            note_parts.append(f"{official} official sources")
+        if fact_check > 0:
+            note_parts.append(f"{fact_check} fact-checks")
         
-        # ============================================
-        # CONTEXT
-        # ============================================
-        if context:
-            lines.append("## 📜 BACKGROUND")
-            lines.append("")
-            for entity, wiki_data in list(context.items())[:1]:
-                extract = wiki_data.get('extract', '')[:200]
-                if extract:
-                    lines.append(f"**{entity}:** {extract}...")
-            lines.append("")
-        
-        # ============================================
-        # RELATED STORIES
-        # ============================================
-        if related_stories:
-            lines.append("## 🔗 RELATED STORIES")
-            lines.append("")
-            for story in related_stories[:3]:
-                lines.append(f"• [{story.get('country_name', 'World')}] {story.get('headline', '')[:60]}...")
-            lines.append("")
-        
-        # ============================================
-        # FOOTER
-        # ============================================
-        lines.append("---")
-        lines.append(f"_Analysis generated {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M')} UTC by Xray v4_")
-        
-        return "\n".join(lines)
-    
-    def _generate_exec_summary(self, headline: str, summary: str, entities: Dict) -> str:
-        """Generate executive summary"""
-        
-        # Build context-aware summary
-        parts = []
-        
-        # Extract the key action/event
-        headline_lower = headline.lower()
-        
-        # Action verbs
-        actions = {
-            'launches': 'has launched',
-            'attacks': 'has attacked',
-            'announces': 'has announced',
-            'signs': 'has signed',
-            'rejects': 'has rejected',
-            'confirms': 'confirmed',
-            'reports': 'reported',
-            'says': 'stated'
-        }
-        
-        # Get key entities
-        countries = entities.get('countries', [])
-        people = entities.get('people', [])
-        orgs = entities.get('organizations', [])
-        
-        # Build summary
-        if countries:
-            country_names = [c['name'] for c in countries[:2]]
-            parts.append(f"This story involves {' and '.join(country_names)}.")
-        
-        if people:
-            person = people[0]
-            parts.append(f"Key figure: {person['name']} ({person.get('role', 'official')}).")
-        
-        # Add headline essence
-        parts.append(f"**{headline}**")
-        
-        return " ".join(parts)
-
-
-if __name__ == '__main__':
-    # Test the generator
-    from research_engine import ResearchEngine
-    
-    generator = ProfessionalAnalysisGenerator()
-    research_engine = ResearchEngine()
-    
-    test_headline = "Iran launches missile attack on Israel following general's assassination"
-    test_summary = "Missiles fired from Iranian territory toward Tel Aviv, air defense systems activated"
-    
-    # Get research
-    research = research_engine.research_story(test_headline, test_summary)
-    
-    # Generate analysis
-    analysis = generator.generate_analysis(
-        headline=test_headline,
-        summary=test_summary,
-        research=research
-    )
-    
-    print("\n" + "="*60)
-    print("GENERATED ANALYSIS")
-    print("="*60)
-    print(analysis)
+        if note_parts:
+            return f"Sources: {', '.join(note_parts)}."
+        elif total > 0:
+            return f"Based on {total} sources."
+        else:
+            return "Sources: Limited corroboration available."
