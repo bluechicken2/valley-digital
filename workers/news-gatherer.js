@@ -63,9 +63,33 @@ const NITTER_SEARCHES = []; // DISABLED - all Nitter instances returning 403/tim
 
 // ---- Content Filter Keywords (simplified for CPU) ----------------------
 const JUNK_PATTERNS = [
+  // Entertainment/Celebrity
   /\b(bachelor|kardashian|taylor swift|celebrity|gossip|reality tv|deadliest catch)\b/i,
   /\b(nfl|nba|nhl|mlb|super bowl|oscars|grammys|box office)\b/i,
   /\b(recipe|tiktok|influencer|horoscope|lottery|viral video|meme)\b/i,
+  // Personal advice (learned from cleanup)
+  /\b(pick.*name|choose.*name|help me.*choose|which.*should i|should i.*or)\b/i,
+  /\b(living with.*in.*law|thoughts on.*professor|what do you think)\b/i,
+  /\b(am i the.*asshole|\baita\b|relationship.*advice|dating.*advice|need.*advice)\b/i,
+  /\b(career.*advice|job.*advice|interview.*tips|resume.*help)\b/i,
+  // Discussion threads (learned from cleanup)
+  /\b(megathread|daily.*thread|weekly.*thread|discussion.*thread)\b/i,
+  /\b(free talk|casual.*conversation|just.*curious|anyone.*else|does anyone)\b/i,
+  // PSA/Mod posts
+  /^psa:|^note:|^reminder:|^meta:|\bmod.*post\b|\bsubreddit.*rule\b|\boff-topic\b/i,
+  // Requests
+  /\b(translate.*please|translation.*request|what does.*mean|can someone.*explain)\b/i,
+  /\b(question about|looking for.*recommendation|suggest.*me)\b/i,
+  // Travel/Living
+  /\b(travel.*tips|travel.*itinerary|tourist.*advice|trip.*planning)\b/i,
+  /\b(cost of living|apartment.*search|housing.*advice|best.*neighborhood|where.*live|moving to)\b/i,
+  // Education/Career
+  /\b(study.*abroad|student.*visa|university.*admission|college.*application)\b/i,
+  /\b(how.*get.*job|salary.*question|work.*culture)\b/i,
+  // Shopping/Reviews
+  /\b(worth.*buying|should.*buy|review.*my|rate my|is it.*worth)\b/i,
+  // Low-quality indicators
+  /\b(unpopular opinion|what.*your.*favorite|do you.*prefer)\b/i,
 ];
 
 // ---- Country Detection (simplified for CPU) ---------------------------

@@ -153,17 +153,64 @@ class TruthEngineV4:
         
         return min(score, 100), verdict, research
     
+    # Non-news patterns learned from cleanup (March 2026)
+    NON_NEWS_PATTERNS = [
+        # Personal advice
+        r'pick.*name', r'choose.*name', r'help me.*choose', r'which.*should i',
+        r'should i.*or', r'living with.*in.*law', r'thoughts on.*professor',
+        r'what do you think', r'am i the.*asshole', r'aita',
+        r'relationship.*advice', r'dating.*advice', r'need.*advice',
+        r'career.*advice', r'job.*advice', r'interview.*tips',
+        # Discussion threads
+        r'megathread', r'daily.*thread', r'weekly.*thread', r'discussion.*thread',
+        r'free talk', r'casual.*conversation', r'just.*curious',
+        r'anyone.*else', r'does anyone', r'what.*your.*favorite',
+        # PSA/Mod posts
+        r'^psa:', r'^note:', r'^reminder:', r'^meta:', r'mod.*post',
+        r'subreddit.*rule', r'off-topic',
+        # Requests
+        r'translate.*please', r'translation.*request', r'what does.*mean',
+        r'can someone.*explain', r'question about', r'looking for.*recommendation',
+        # Travel/Living
+        r'travel.*tips', r'travel.*itinerary', r'tourist.*advice',
+        r'cost of living', r'apartment.*search', r'housing.*advice',
+        r'best.*neighborhood', r'where.*live', r'moving to',
+        # Education/Career
+        r'study.*abroad', r'student.*visa', r'university.*admission',
+        r'college.*application', r'how.*get.*job', r'salary.*question',
+        # Shopping/Reviews
+        r'worth.*buying', r'should.*buy', r'review.*my', r'rate my',
+        r'is it.*worth',
+    ]
+    NON_NEWS_COMPILED = None  # Compiled at runtime
+
     def is_quality_story(self, story: Dict) -> bool:
         """Filter out low-quality/junk stories before expensive research"""
         headline = story.get('headline', '') or ''
+        summary = story.get('summary', '') or ''
+        combined = (headline + ' ' + summary).lower()
+
+        # Compile patterns once
+        if self.__class__.NON_NEWS_COMPILED is None:
+            self.__class__.NON_NEWS_COMPILED = [
+                re.compile(p, re.IGNORECASE) for p in self.__class__.NON_NEWS_PATTERNS
+            ]
+
         # Skip very short headlines
         if len(headline) < 15:
             return False
+
+        # Check non-news patterns
+        for pattern in self.__class__.NON_NEWS_COMPILED:
+            if pattern.search(combined):
+                return False
+
         # Skip social posts with no country context (Reddit junk)
         source_type = story.get('source_type', 'legacy')
         country = story.get('country_name', '') or ''
         if source_type == 'social' and country in ['', 'World', None]:
             return False
+
         return True
 
     def score_story(self, story: Dict) -> bool:
