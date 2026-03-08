@@ -247,7 +247,10 @@ function _applyPolygons(g, geoJson, onCountryClick) {
         _showFilterBadge(name);
         if (typeof onCountryClick === 'function') onCountryClick(code, name);
       }
-   });
+   })
+   // Add stroke AFTER click handler to avoid blocking clicks
+   .polygonStrokeColor(getStrokeColor)
+   .polygonStrokeWidth(2.5);
 }
 
 function _heatLabel(h) {
