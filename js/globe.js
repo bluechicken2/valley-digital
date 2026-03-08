@@ -65,33 +65,11 @@ var STROKE_COLORS = {
     return 'rgba(200,140,255,0.85)';  // Bright purple glow
   }
 };var OVERLAYS = {
-  all: function(heat) {
-    if (heat === 0)  return 'rgba(0,0,0,0)';  // inactive
-    if (heat <= 2)   return 'rgba(0,200,230,0.25)';   // purple — low
-    if (heat <= 6)   return 'rgba(0,210,240,0.35)';    // yellow — medium
-    if (heat <= 14)  return 'rgba(0,220,250,0.40)';    // orange — high
-    return 'rgba(100,240,255,0.50)';                      // red — max
-  },
-  density: function(heat) {
-    if (heat === 0) return 'rgba(0,0,0,0.02)';
-    var t = Math.min(heat / 20, 1);
-    return 'rgba(' + Math.round(t*255) + ',' + Math.round((1-t)*120) + ',' + Math.round((1-t)*255) + ',' + (0.15+t*0.5) + ')';
-  },
-  conflicts: function(heat, code) {
-    // Tier 1 — active warzone (brightest red)
-    var DEEP  = { UA:1,PS:1,IL:1,SY:1,YE:1,SD:1,MM:1,SO:1 };
-    // Tier 2 — heavily involved / adjacent (medium red)
-    var MED   = { RU:1,IR:1,LB:1,IQ:1,LY:1,AF:1,ET:1,CD:1,ML:1,NE:1,AZ:1,PK:1 };
-    if (DEEP[code])  return 'rgba(255,55,55,0.75)';
-    if (MED[code])   return 'rgba(255,100,60,0.40)';
-    return 'rgba(255,255,255,0.015)';
-  },
-  weather: function(heat) {
-    return heat === 0 ? 'rgba(0,150,255,0.05)' : 'rgba(0,180,255,' + (0.08+Math.min(heat/15,1)*0.42) + ')';
-  },
-  elections: function(heat) {
-    return heat === 0 ? 'rgba(123,47,255,0.04)' : 'rgba(123,47,255,' + (0.08+Math.min(heat/15,1)*0.5) + ')';
-  }
+  all: function() { return 'rgba(0,0,0,0)'; },
+  density: function() { return 'rgba(0,0,0,0)'; },
+  conflicts: function() { return 'rgba(0,0,0,0)'; },
+  weather: function() { return 'rgba(0,0,0,0)'; },
+  elections: function() { return 'rgba(0,0,0,0)'; }
 };
 
 function getCapColor(feat) {
