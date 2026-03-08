@@ -100,9 +100,7 @@ function getCapColor(feat) {
   return (OVERLAYS[currentOverlay] || OVERLAYS.all)(heat, code);
 }
 function getSideColor(feat) {
-  var code = (feat.properties && feat.properties.ISO_A2) || '';
-  var heat = (countryMap[code] && countryMap[code].story_count) || 0;
-  return heat > 0 ? 'rgba(0,212,255,0.12)' : 'rgba(255,255,255,0.04)';
+  return 'rgba(0,0,0,0)';  // Transparent sides
 }
 function getStrokeColor(feat) {
   var code = (feat.properties && feat.properties.ISO_A2) || '';
