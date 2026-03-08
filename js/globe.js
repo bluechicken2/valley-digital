@@ -64,12 +64,24 @@ var STROKE_COLORS = {
     if (heat < 8) return 'rgba(210,150,255,1.0)';       // Very bright
     return 'rgba(240,200,255,1.0)';                      // Maximum  // Bright purple glow
   }
-};var OVERLAYS = {
-  all: function() { return 'rgba(0,0,0,0)'; },
-  density: function() { return 'rgba(0,0,0,0)'; },
-  conflicts: function() { return 'rgba(0,0,0,0)'; },
-  weather: function() { return 'rgba(0,0,0,0)'; },
-  elections: function() { return 'rgba(0,0,0,0)'; }
+};
+
+var OVERLAYS = {
+  all: function() {
+    return 'rgba(0,0,0,0.01)'; // Barely visible to catch clicks
+  },
+  density: function() {
+    return 'rgba(0,0,0,0.01)';
+  },
+  conflicts: function() {
+    return 'rgba(0,0,0,0.01)';
+  },
+  weather: function() {
+    return 'rgba(0,0,0,0.01)';
+  },
+  elections: function() {
+    return 'rgba(0,0,0,0.01)';
+  }
 };
 
 function getCapColor(feat) {
@@ -78,7 +90,7 @@ function getCapColor(feat) {
   return (OVERLAYS[currentOverlay] || OVERLAYS.all)(heat, code);
 }
 function getSideColor(feat) {
-  return 'rgba(0,0,0,0)';  // Transparent sides
+  return 'rgba(0,0,0,0.01)';  // Barely visible to catch clicks  // Transparent sides
 }
 function getStrokeColor(feat) {
   var code = (feat.properties && feat.properties.ISO_A2) || '';
@@ -210,9 +222,9 @@ function _wireSpinBtn() {
 
 function _applyPolygons(g, geoJson, onCountryClick) {
   g.polygonsData(geoJson.features)
-   .polygonCapColor(function() { return 'rgba(0,0,0,0)'; })
-   .polygonSideColor(function() { return 'rgba(0,0,0,0)'; })
-   .polygonAltitude(0.001)
+   .polygonCapColor(function() { return 'rgba(0,0,0,0.01)'; })
+   .polygonSideColor(function() { return 'rgba(0,0,0,0.01)'; })
+   .polygonAltitude(0.003)
    .polygonStrokeColor(getStrokeColor)
    .polygonStrokeWidth(2.5)
    .onPolygonHover(function(feat) {
@@ -412,12 +424,12 @@ function switchOverlay(mode) {
   // Conflicts/elections: flat polygons (no altitude extrusion — avoids fuzzy
   // edge artifacts on large countries like Russia, USA, Canada, China)
   if (mode === 'conflicts' || mode === 'elections') {
-    globeInst.polygonAltitude(0.001);
-    globeInst.polygonSideColor(function() { return 'rgba(0,0,0,0)'; });
+    globeInst.polygonAltitude(0.003);
+    globeInst.polygonSideColor(function() { return 'rgba(0,0,0,0.01)'; });
   } else if (mode === 'all' || mode === 'density' || mode === 'weather') {
     // Pins-only mode — keep polygons transparent
-    globeInst.polygonAltitude(0.001);
-    globeInst.polygonSideColor(function() { return 'rgba(0,0,0,0)'; });
+    globeInst.polygonAltitude(0.003);
+    globeInst.polygonSideColor(function() { return 'rgba(0,0,0,0.01)'; });
   }
   _refreshColors();
 }
@@ -848,9 +860,9 @@ function toggleOutlineMode() {
     globeInst.atmosphereAltitude(0.22);
     globeInst.atmosphereColor('rgba(0,150,255,0.13)');
     globeInst.polygonStrokeColor(function() { return 'rgba(0,212,255,0.06)'; });
-    globeInst.polygonCapColor(function() { return 'rgba(0,0,0,0)'; });
-    globeInst.polygonSideColor(function() { return 'rgba(0,0,0,0)'; });
-    globeInst.polygonAltitude(0.001);
+    globeInst.polygonCapColor(function() { return 'rgba(0,0,0,0.01)'; });
+    globeInst.polygonSideColor(function() { return 'rgba(0,0,0,0.01)'; });
+    globeInst.polygonAltitude(0.003);
   }
 
   var btn = document.getElementById('outline-mode-btn');
