@@ -359,12 +359,11 @@ function updateCountryStatsFromStories(stories) {
 
 function _refreshColors() {
   if (!globeInst || !geoData) return;
-  // Glowing borders mode — subtle fill with bright borders
+  // Pins-only mode — polygons transparent, borders only on hover
   globeInst
-    .polygonCapColor(getCapColor)
-    .polygonSideColor(getSideColor)
-    .polygonStrokeColor(getStrokeColor)
-    .polygonAltitude(getAltitude);
+    .polygonCapColor(function() { return 'rgba(0,0,0,0)'; })
+    .polygonSideColor(function() { return 'rgba(0,0,0,0)'; })
+    .polygonAltitude(0.001);
 }
 
 // ------------------------------------------------
@@ -414,8 +413,9 @@ function switchOverlay(mode) {
     globeInst.polygonAltitude(0.001);
     globeInst.polygonSideColor(function() { return 'rgba(0,0,0,0)'; });
   } else if (mode === 'all' || mode === 'density' || mode === 'weather') {
-    globeInst.polygonAltitude(getAltitude);
-    globeInst.polygonSideColor(getSideColor);
+    // Pins-only mode — keep polygons transparent
+    globeInst.polygonAltitude(0.001);
+    globeInst.polygonSideColor(function() { return 'rgba(0,0,0,0)'; });
   }
   _refreshColors();
 }

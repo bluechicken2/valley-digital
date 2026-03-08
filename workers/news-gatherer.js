@@ -1,5 +1,5 @@
 // ================================================
-// XrayNews Intelligence Gatherer v5.12.0
+// XrayNews Intelligence Gatherer v5.13.0
 // Architecture: Worker = fast headline grab only. Xray = article fetch + verification.
 // Schedule: Every 5 minutes
 // Sources: BBC, Guardian, NPR, AlJazeera, DW, France24, Sky, WSJ, Euronews, RFI + 11 Reddit subs
@@ -8,6 +8,7 @@
 // v5.5: Nitter (disabled - all instances blocked)
 // v5.8: Social source shuffle + MAX_STORIES 50
 // v5.9: Reddit User-Agent fix
+// v5.13: Comprehensive junk filtering (40+ patterns) at source + engine
 // v5.11: Reddit title/summary metadata cleaning
 // v5.12: Audit fixes (openStory modal, CSS glow, PostgREST filter)
 // ================================================
