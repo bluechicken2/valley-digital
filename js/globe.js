@@ -1,5 +1,5 @@
 // ================================================
-// XRAYNEWS - Globe.gl Engine v2 — audited & patched
+// XRAYNEWS - Globe.gl Engine v3 — pins-only cinematic mode
 // ================================================
 
 var GEOJSON_URL = 'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson';
@@ -109,8 +109,8 @@ function initDashboardGlobe(containerId, onCountryClick) {
         .width(w)
         .height(h)
         .backgroundColor('rgba(0,0,0,0)')
-        .atmosphereColor('rgba(0,212,255,0.9)')
-        .atmosphereAltitude(0.32)
+        .atmosphereColor('rgba(0,150,255,0.13)')
+        .atmosphereAltitude(0.22)
         .globeImageUrl(EARTH_IMG);
 
       g(el);
@@ -119,7 +119,7 @@ function initDashboardGlobe(containerId, onCountryClick) {
       // Controls
       var ctrl = g.controls();
       ctrl.autoRotate      = true;
-      ctrl.autoRotateSpeed = 0.4;
+      ctrl.autoRotateSpeed = 0.18;
       ctrl.enableDamping   = true;
       ctrl.dampingFactor   = 0.08;
       ctrl.minDistance     = 160;
@@ -197,10 +197,10 @@ function _wireSpinBtn() {
 
 function _applyPolygons(g, geoJson, onCountryClick) {
   g.polygonsData(geoJson.features)
-   .polygonCapColor(getCapColor)
-   .polygonSideColor(getSideColor)
-   .polygonAltitude(getAltitude)
-   .polygonStrokeColor(function() { return 'rgba(0,200,230,0.35)'; })
+   .polygonCapColor(function() { return 'rgba(0,0,0,0)'; })
+   .polygonSideColor(function() { return 'rgba(0,0,0,0)'; })
+   .polygonAltitude(0.001)
+   .polygonStrokeColor(function() { return 'rgba(0,212,255,0.06)'; })
    .onPolygonHover(function(feat) {
       var tip = document.getElementById('globe-tooltip');
       if (!tip) return;
@@ -249,27 +249,75 @@ var CAT_COLORS = {
 
 function updateStoryPins(stories) {
   if (!globeInst) return;
-  var pins = stories
-    .filter(function(s) { return s.lat != null && s.lng != null && (s.lat !== 0 || s.lng !== 0); })
-    .map(function(s) {
-      return {
-        id:    s.id,
-        lat:   +s.lat,
-        lng:   +s.lng,
-        size:  s.is_breaking ? 0.85 : (s.confidence_score >= 71 ? 0.60 : (s.confidence_score >= 41 ? 0.45 : 0.30)),
-        color: s.is_breaking ? '#ffffff' : (s.confidence_score >= 71 ? '#00d4ff' : (s.confidence_score >= 41 ? '#ffaa00' : '#ff4444')),
-        label: s.headline
-      };
-    });
+  var validStories = stories.filter(function(s) {
+    return s.lat != null && s.lng != null && (s.lat !== 0 || s.lng !== 0);
+  });
+
+  // --- Pins ---
+  var pins = validStories.map(function(s) {
+    var catColor = CAT_COLORS[s.category] || '#00d4ff';
+    var size = s.is_breaking         ? 0.90
+             : s.xray_score >= 80   ? 0.65
+             : s.xray_score >= 60   ? 0.50
+             : s.confidence_score >= 71 ? 0.55
+             : s.confidence_score >= 41 ? 0.40
+             : 0.28;
+    return {
+      id:    s.id,
+      lat:   +s.lat,
+      lng:   +s.lng,
+      size:  size,
+      color: s.is_breaking ? '#ffffff' : catColor,
+      label: s.headline,
+      cat:   s.category || ''
+    };
+  });
+
   globeInst
     .pointsData(pins)
-    .pointLat(function(d) { return d.lat; })
-    .pointLng(function(d) { return d.lng; })
-    .pointColor(function(d) { return d.color; })
-    .pointAltitude(0.015)
+    .pointLat(function(d)    { return d.lat; })
+    .pointLng(function(d)    { return d.lng; })
+    .pointColor(function(d)  { return d.color; })
+    .pointAltitude(0.012)
     .pointRadius(function(d) { return d.size; })
+    .pointResolution(10)
     .pointLabel(function(d) {
-      return '<div style="background:rgba(13,17,23,0.92);border:1px solid rgba(0,212,255,0.25);border-radius:8px;padding:7px 11px;font-family:Inter,sans-serif;font-size:12px;color:#e8eaf0;max-width:220px;line-height:1.4">' + d.label + '</div>';
+      var cc = CAT_COLORS[d.cat] || '#00d4ff';
+      return '<div style="background:rgba(8,11,18,0.95);border:1px solid ' + cc + '40;'  +
+             'border-radius:8px;padding:7px 11px;font-family:Inter,sans-serif;font-size:12px;'  +
+             'color:#e8eaf0;max-width:240px;line-height:1.45;box-shadow:0 4px 20px rgba(0,0,0,0.6)">'  +
+             d.label + '</div>';
+    });
+
+  // --- Pulsing rings for breaking stories ---
+  var rings = validStories
+    .filter(function(s) { return s.is_breaking; })
+    .slice(0, 6)
+    .map(function(s) {
+      return {
+        lat:              +s.lat,
+        lng:              +s.lng,
+        maxR:             3.5,
+        propagationSpeed: 1.2,
+        repeatPeriod:     900,
+        color:            CAT_COLORS[s.category] || '#ff4444'
+      };
+    });
+
+  globeInst
+    .ringsData(rings)
+    .ringLat(function(d)              { return d.lat; })
+    .ringLng(function(d)              { return d.lng; })
+    .ringMaxRadius(function(d)        { return d.maxR; })
+    .ringPropagationSpeed(function(d) { return d.propagationSpeed; })
+    .ringRepeatPeriod(function(d)     { return d.repeatPeriod; })
+    .ringColor(function(d) {
+      var hex = d.color;
+      return function(t) {
+        // fade out toward ring edge
+        var alpha = Math.round((1 - t) * 180).toString(16).padStart(2, '0');
+        return hex + alpha;
+      };
     });
 }
 
@@ -291,7 +339,11 @@ function updateCountryStatsFromStories(stories) {
 
 function _refreshColors() {
   if (!globeInst || !geoData) return;
-  globeInst.polygonCapColor(getCapColor).polygonSideColor(getSideColor).polygonAltitude(getAltitude);
+  // Pins-only mode — polygons stay transparent
+  globeInst
+    .polygonCapColor(function() { return 'rgba(0,0,0,0)'; })
+    .polygonSideColor(function() { return 'rgba(0,0,0,0)'; })
+    .polygonAltitude(0.001);
 }
 
 // ------------------------------------------------
@@ -770,12 +822,12 @@ function toggleOutlineMode() {
       mat.opacity = 1;
       mat.needsUpdate = true;
     }
-    globeInst.atmosphereAltitude(0.32);
-    globeInst.atmosphereColor('rgba(0,212,255,0.9)');
-    globeInst.polygonStrokeColor(function() { return 'rgba(0,200,230,0.35)'; });
-    globeInst.polygonCapColor(getCapColor);
-    globeInst.polygonSideColor(getSideColor);
-    globeInst.polygonAltitude(getAltitude);
+    globeInst.atmosphereAltitude(0.22);
+    globeInst.atmosphereColor('rgba(0,150,255,0.13)');
+    globeInst.polygonStrokeColor(function() { return 'rgba(0,212,255,0.06)'; });
+    globeInst.polygonCapColor(function() { return 'rgba(0,0,0,0)'; });
+    globeInst.polygonSideColor(function() { return 'rgba(0,0,0,0)'; });
+    globeInst.polygonAltitude(0.001);
   }
 
   var btn = document.getElementById('outline-mode-btn');
