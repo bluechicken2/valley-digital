@@ -213,7 +213,8 @@ function _applyPolygons(g, geoJson, onCountryClick) {
    .polygonCapColor(function() { return 'rgba(0,0,0,0)'; })
    .polygonSideColor(function() { return 'rgba(0,0,0,0)'; })
    .polygonAltitude(0.001)
-   .polygonStrokeColor(function() { return 'rgba(0,212,255,0.06)'; })
+   .polygonStrokeColor(getStrokeColor)
+   .polygonStrokeWidth(2.5)
    .onPolygonHover(function(feat) {
       var tip = document.getElementById('globe-tooltip');
       if (!tip) return;
