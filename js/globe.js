@@ -286,14 +286,20 @@ function updateStoryPins(stories) {
     };
   });
 
+  // Custom point rendering with glow
   globeInst
     .pointsData(pins)
     .pointLat(function(d)    { return d.lat; })
     .pointLng(function(d)    { return d.lng; })
-    .pointColor(function(d)  { return d.color; })
-    .pointAltitude(0.012)
-    .pointRadius(function(d) { return d.size; })
-    .pointResolution(10)
+    .pointColor(function(d)  {
+      // Add inner glow effect - lighter center
+      var c = d.color;
+      return c;
+    })
+    .pointAltitude(0.015)
+    .pointRadius(function(d) { return d.size * 1.1; })
+    .pointResolution(64)
+    .pointsMerge(true)
     .pointLabel(function(d) {
       var cc = CAT_COLORS[d.cat] || '#00d4ff';
       return '<div style="background:rgba(8,11,18,0.95);border:1px solid ' + cc + '40;'  +
@@ -302,23 +308,22 @@ function updateStoryPins(stories) {
              d.label + '</div>';
     });
 
-  // --- Pulsing rings for breaking stories ---
-  var rings = validStories
-    .filter(function(s) { return s.is_breaking; })
-    .slice(0, 6)
-    .map(function(s) {
-      return {
-        lat:              +s.lat,
-        lng:              +s.lng,
-        maxR:             3.5,
-        propagationSpeed: 1.2,
-        repeatPeriod:     900,
-        color:            CAT_COLORS[s.category] || '#ff4444'
-      };
-    });
+  // --- Glow rings for ALL pins (premium look) ---
+  var glowRings = validStories.map(function(s) {
+    var catColor = CAT_COLORS[s.category] || '#00d4ff';
+    return {
+      lat:              +s.lat,
+      lng:              +s.lng,
+      maxR:             s.is_breaking ? 4.0 : 2.0,  // Larger for breaking
+      propagationSpeed: s.is_breaking ? 2.0 : 0.5,  // Faster for breaking
+      repeatPeriod:     s.is_breaking ? 700 : 2500, // More frequent for breaking
+      color:            s.is_breaking ? '#ffffff' : catColor,
+      isBreaking:       s.is_breaking
+    };
+  });
 
   globeInst
-    .ringsData(rings)
+    .ringsData(glowRings)
     .ringLat(function(d)              { return d.lat; })
     .ringLng(function(d)              { return d.lng; })
     .ringMaxRadius(function(d)        { return d.maxR; })
@@ -327,8 +332,10 @@ function updateStoryPins(stories) {
     .ringColor(function(d) {
       var hex = d.color;
       return function(t) {
-        // fade out toward ring edge
-        var alpha = Math.round((1 - t) * 180).toString(16).padStart(2, '0');
+        // Smooth fade with more visible glow
+        var alpha = d.isBreaking 
+          ? Math.round((1 - t) * 220).toString(16).padStart(2, '0')
+          : Math.round((1 - t) * 100).toString(16).padStart(2, '0');
         return hex + alpha;
       };
     });
