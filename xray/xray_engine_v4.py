@@ -14,9 +14,25 @@ Usage:
 import os
 import sys
 import json
+import fcntl
 import requests
 from datetime import datetime, timezone
 from typing import List, Dict, Any
+
+# Lockfile to prevent concurrent runs
+LOCKFILE = '/tmp/xray_engine_v4.lock'
+
+def acquire_lock():
+    """Acquire exclusive lock to prevent concurrent runs"""
+    lock_file = open(LOCKFILE, 'w')
+    try:
+        fcntl.flock(lock_file, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        lock_file.write(str(os.getpid()))
+        lock_file.flush()
+        return lock_file
+    except IOError:
+        lock_file.close()
+        return None
 
 # Import v4 components
 from research_engine import ResearchEngine
@@ -137,10 +153,28 @@ class TruthEngineV4:
         
         return min(score, 100), verdict, research
     
+    def is_quality_story(self, story: Dict) -> bool:
+        """Filter out low-quality/junk stories before expensive research"""
+        headline = story.get('headline', '') or ''
+        # Skip very short headlines
+        if len(headline) < 15:
+            return False
+        # Skip social posts with no country context (Reddit junk)
+        source_type = story.get('source_type', 'legacy')
+        country = story.get('country_name', '') or ''
+        if source_type == 'social' and country in ['', 'World', None]:
+            return False
+        return True
+
     def score_story(self, story: Dict) -> bool:
         """Score a single story"""
         story_id = story['id']
         headline = story.get('headline', '')
+        
+        # Skip junk stories
+        if not self.is_quality_story(story):
+            print(f"[TRUTH] Skipping junk: {headline[:50]}")
+            return False
         
         print(f"[TRUTH] Scoring: {headline[:50]}...")
         
@@ -190,7 +224,7 @@ class AnalysisEngineV4:
     def fetch_unanalyzed(self, limit: int = 10) -> List[Dict]:
         return self.db.fetch(
             'stories',
-            select='id,headline,summary,country_name,category',
+            select='id,headline,summary,country_name,country_code,category,source_type',
             filters={'or': '(xray_analysis.is.null,xray_analysis.eq.,xray_analysis_version.lt.4)'},
             order='created_at.desc',
             limit=limit
