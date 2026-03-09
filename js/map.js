@@ -44,21 +44,23 @@
       zoomControl:         false,
       scrollWheelZoom:     true,
       worldCopyJump:       false,
-      maxBounds:           [[-90, -200], [90, 200]],
-      maxBoundsViscosity:  0.85,
+      maxBounds:           [[-85.051129, -185], [85.051129, 185]],
+      maxBoundsViscosity:  1.0,
       attributionControl:  false
     });
 
     // Dark no-label tiles (no Chinese, no any-language text)
+    var WORLD_BOUNDS = [[-85.051129, -180], [85.051129, 180]];
     L.tileLayer(
       'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png',
       {
         subdomains:        'abcd',
         maxZoom:           10,
         noWrap:            true,
+        bounds:            WORLD_BOUNDS,
         updateWhenZooming: false,
         updateWhenIdle:    false,
-        keepBuffer:        6
+        keepBuffer:        2
       }
     ).addTo(mapInstance);
 

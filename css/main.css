@@ -779,7 +779,10 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* ── Leaflet 2D Map — Dark Theme ────────────────────────────────────────── */
-#globe-container .leaflet-container { background: #080b12; font-family: inherit; }
+#globe-container .leaflet-container {
+  background: #080b12 !important;
+  font-family: inherit;
+}
 .leaflet-tile-pane { opacity: 0.92; }
 .leaflet-control-zoom a {
   background: rgba(8,11,18,0.9);
@@ -826,7 +829,7 @@ h1, h2, h3, h4, h5, h6 {
   background: #080b12;
 }
 .leaflet-container {
-  background: #080b12;
+  background: #080b12 !important;
   font-family: inherit;
 }
 .leaflet-tile-pane {
@@ -898,3 +901,7 @@ h1, h2, h3, h4, h5, h6 {
   pointer-events: none;
   z-index: 500;
 }
+
+/* Force dark background on empty tile areas */
+.leaflet-tile-pane { background: #080b12; }
+.leaflet-tile { background: #080b12; }
