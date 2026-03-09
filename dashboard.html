@@ -559,6 +559,14 @@
       <span class="stories-count" id="stories-count" aria-live="polite">Loading&#8230;</span>
     </div>
     <div class="stories-controls" role="group" aria-label="Filter and sort controls">
+      <select class="control-select" id="pagesize-select" aria-label="Stories to load" title="Stories to load" onchange="if(window.NewsFeed && window.NewsFeed.setPageSize) window.NewsFeed.setPageSize(this.value)">
+        <option value="50" selected>Show 50</option>
+        <option value="100">Show 100</option>
+        <option value="150">Show 150</option>
+        <option value="200">Show 200</option>
+        <option value="250">Show 250</option>
+        <option value="300">Show 300</option>
+      </select>
       <select class="control-select" id="country-filter-select" aria-label="Filter by country">
         <option value="all">&#127758; All Countries</option>
       </select>
@@ -595,7 +603,7 @@
 <script src="js/auth.js?v142"></script>
 <script src="js/globe.js?v=144"></script>
 <script src="js/pinned-stories.js?v142"></script>
-        <script src="js/news-feed.js?v142"></script>
+        <script src="js/news-feed.js?v143"></script>
 <script src="js/stories.js?v142"></script>
 <script src="js/modal.js?v142"></script>
 <script src="js/sidebar.js?v143"></script>

@@ -9,7 +9,7 @@ var _category    = 'all';
 var _status      = 'all';
 var _sort        = 'latest';
 var _offset      = 0;
-var _pageSize    = 30;
+var _pageSize    = 50;
 var _totalLoaded = 0;
 var _isLoading   = false;
 
@@ -469,8 +469,26 @@ function setupRealtime() {
 // Auto-refresh fallback every 5 minutes
 // ------------------------------------------------
 function startAutoRefresh() {
-  setInterval(function() {
-    loadStories();
+  // Auto-refresh silently checks for new stories without wiping current loaded list
+  // Real-time subscription already handles adding new stories one-by-one
+  // This fallback just ensures if realtime fails, we still get new stories
+  setInterval(async function() {
+    if (!window.XrayNewsDB || _isLoading) return;
+    try {
+      // Only fetch the latest 10 to check for new ones, do not reset offset or wipe
+      var fresh = await window.XrayNewsDB.getStories({ limit: 10, offset: 0 });
+      if (!fresh || !fresh.length) return;
+      var existingIds = new Set(_allStories.map(function(s) { return s.id; }));
+      var newStories = fresh.filter(function(s) { return !existingIds.has(s.id); });
+      if (newStories.length > 0) {
+        newStories.forEach(function(s) { _allStories.unshift(s); });
+        _applyAll();
+        if (window.GlobeAPI) {
+          if (window.GlobeAPI.updatePins) window.GlobeAPI.updatePins(_allStories);
+          if (window.GlobeAPI.updateCountryStatsFromStories) window.GlobeAPI.updateCountryStatsFromStories(_allStories);
+        }
+      }
+    } catch(e) { /* silent fail */ }
   }, 5 * 60 * 1000);
 }
 
@@ -509,6 +527,12 @@ function updateStatsBar(stories) {
 // Public API
 // ------------------------------------------------
 window.NewsFeed = {
+  setPageSize: function(n) {
+    _pageSize = parseInt(n, 10) || 50;
+    _offset = 0;
+    _allStories = [];
+    loadStories();
+  },
   load:               loadStories,
   populateTickers:    populateTickers,
   setupRealtime:      setupRealtime,
