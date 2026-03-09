@@ -290,6 +290,7 @@ var CAT_COLORS = {
 };
 
 function updateStoryPins(stories) {
+  console.log("[GLOBE] updateStoryPins called with", stories.length, "stories");
   if (!globeInst) return;
   var validStories = stories.filter(function(s) {
     return s.lat != null && s.lng != null && (s.lat !== 0 || s.lng !== 0);

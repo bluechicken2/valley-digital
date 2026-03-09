@@ -39,6 +39,7 @@ function timeAgo(iso) {
 // Load stories from Supabase
 // ------------------------------------------------
 async function loadStories(append) {
+  console.log("[FEED] loadStories called, append:", append);
   if (_isLoading) return _allStories;
   _isLoading = true;
   _setLoadMoreBtn('loading');
@@ -93,6 +94,7 @@ function _setLoadMoreBtn(state) {
 }
 
 function loadMoreStories() {
+  console.log("[FEED] loadMoreStories called");
   loadStories(true);
 }
 
