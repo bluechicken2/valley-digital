@@ -75,11 +75,28 @@ async function loadStories(append) {
   _filtered = _allStories.slice();
   _applyAll();
   updateStatsBar(_allStories);
-  if (window.GlobeAPI) {
+
+  // Update globe pins if available
+  if (window.GlobeAPI && window.GlobeAPI.updatePins) {
     window.GlobeAPI.updatePins(_allStories);
     window.GlobeAPI.updateCountryStatsFromStories(_allStories);
-    console.log("[FEED] Called updateCountryStatsFromStories with", _allStories.length, "stories");
+    console.log("[FEED] Called GlobeAPI with", _allStories.length, "stories");
   }
+
+  // Always update HUD directly (fallback + ensures update)
+  var hudTotal = document.getElementById("hud-total");
+  var hudVerified = document.getElementById("hud-verified");
+  var hudPending = document.getElementById("hud-pending");
+  if (hudTotal) hudTotal.textContent = _allStories.length;
+  if (hudVerified) {
+    var verified = _allStories.filter(function(s){return s.status==="verified";}).length;
+    hudVerified.textContent = verified;
+  }
+  if (hudPending) {
+    var pending = _allStories.filter(function(s){return s.status!=="verified";}).length;
+    hudPending.textContent = pending;
+  }
+  console.log("[FEED] HUD updated to", _allStories.length, "stories" );
   if (!append) populateTickers(_allStories);
   if (window.checkSpaceStories) window.checkSpaceStories(_allStories);
   return _allStories;
@@ -431,9 +448,18 @@ function setupRealtime() {
     }
     _applyAll();
     updateStatsBar(_allStories);
-    if (window.GlobeAPI) {
+    if (window.GlobeAPI && window.GlobeAPI.updatePins) {
       window.GlobeAPI.updatePins(_allStories);
       window.GlobeAPI.updateCountryStatsFromStories(_allStories);
+    }
+    // Fallback: Always update HUD directly
+    var hudTotal = document.getElementById("hud-total");
+    var hudVerified = document.getElementById("hud-verified");
+    var hudPending = document.getElementById("hud-pending");
+    if (hudTotal) hudTotal.textContent = _allStories.length;
+    if (hudVerified) hudVerified.textContent = _allStories.filter(function(s){return s.status==="verified";}).length;
+    if (hudPending) hudPending.textContent = _allStories.filter(function(s){return s.status!=="verified";}).length;
+    if (!window.GlobeAPI || !window.GlobeAPI.updatePins) {
     console.log("[FEED] Called updateCountryStatsFromStories with", _allStories.length, "stories");
     }
     populateTickers(_allStories);
