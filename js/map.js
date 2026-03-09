@@ -63,10 +63,9 @@
         subdomains:        'abcd',
         maxZoom:           10,
         noWrap:            true,
-        bounds:            [[-85.051129, -180], [85.051129, 180]],
+        errorTileUrl:      'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
         updateWhenZooming: false,
-        updateWhenIdle:    false,
-        keepBuffer:        2
+        keepBuffer:        4
       }
     ).addTo(mapInstance);
 
