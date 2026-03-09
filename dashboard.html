@@ -13,7 +13,8 @@
   <link rel="stylesheet" href="css/dashboard.css?v142">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <!-- globe.gl loaded async in body -->
-  <script src="js/loader.js?v142"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV/XN2GEiY=" crossorigin=""></script>
+<script src="js/loader.js?v142"></script>
   <script>if(window.Loader)Loader.show();</script>
   <style>
   :root {
@@ -312,6 +313,7 @@
     .nav-hamburger{display:flex!important;}
   }
   </style>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
 </head>
 <body class="dashboard-page">
 
@@ -453,7 +455,7 @@
      GLOBE SECTION
      ================================================ -->
 <section class="globe-section" aria-label="Global story map">
-  <div id="globe-container" role="img" aria-label="Interactive 3D globe showing global news activity">
+  <div id="globe-container" role="img" aria-label="Interactive 2D world map showing global news activity">
   <div id="globe-placeholder" style="display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:16px;pointer-events:none;">
     <div style="width:80px;height:80px;border:2px solid rgba(0,212,255,0.3);border-top-color:#00d4ff;border-radius:50%;animation:gwl-spin 1s linear infinite;"></div>
     <span style="font-family:Orbitron,sans-serif;font-size:11px;color:rgba(0,212,255,0.6);letter-spacing:.1em;">LOADING GLOBE...</span>
@@ -601,7 +603,7 @@
      ================================================ -->
 <script src="js/supabase-config.js?v142"></script>
 <script src="js/auth.js?v142"></script>
-<script src="js/globe.js?v=144"></script>
+<script src="js/map.js?v=1"></script>
 <script src="js/pinned-stories.js?v142"></script>
         <script src="js/news-feed.js?v143"></script>
 <script src="js/stories.js?v142"></script>
@@ -618,43 +620,20 @@
   'use strict';
 
   // ================================================
-  // GLOBE CALLBACKS — defined immediately, no await
-  // so CDN onload can fire at any time safely
+  // MAP INIT — Leaflet 2D (replaces Globe.gl)
+  // map.js auto-inits on DOMContentLoaded.
+  // GlobeAPI is interface-compatible with globe.js.
   // ================================================
   function initGlobeWhenReady() {
-    if (typeof Globe === 'undefined') {
-      console.warn('[Globe] Globe.gl not available yet');
-      return;
-    }
-    window.GlobeAPI.init('globe-container', function onCountryClick(code, name) {
-      window.NewsFeed.filterByCountry(code);
-      var sel = document.getElementById('country-filter-select');
-      if (sel) sel.value = code;
-      var filtered = window.NewsFeed.getAll().filter(function (s) {
-        return s.country_code === code;
-      });
-      if (window.CountrySidebar) window.CountrySidebar.open(code, name, filtered);
-    });
-    // Feed any already-loaded stories to globe
+    // Map initialises via map.js. Feed any already-loaded stories.
     var s = (window.NewsFeed && window.NewsFeed.getAll()) || window._globeStories || [];
     if (s.length) {
       if (window.GlobeAPI.updatePins)                    window.GlobeAPI.updatePins(s);
       if (window.GlobeAPI.updateCountryStatsFromStories) window.GlobeAPI.updateCountryStatsFromStories(s);
-      if (window.GlobeAPI.updateArcs)                   window.GlobeAPI.updateArcs(s);
     }
-    console.log('[Globe] Initialised OK');
+    console.log('[Map] Leaflet 2D map ready — Globe.gl replaced');
   }
-
-  // This is called by the CDN onload script below
-  window._onGlobeLoaded = function () {
-    console.log('[Globe] CDN loaded — initialising');
-    initGlobeWhenReady();
-  };
-
-  // If globe.gl was already cached and loaded before this ran
-  if (typeof Globe !== 'undefined') {
-    initGlobeWhenReady();
-  }
+  initGlobeWhenReady();
 
   // ================================================
   // AUTH — auto-guest if no session
@@ -890,22 +869,6 @@
 })();
 </script>
 
-  <!-- globe.gl — async, non-blocking -->
-  <script>
-    (function () {
-      var s = document.createElement('script');
-      s.src = 'https://unpkg.com/globe.gl';
-      s.async = true;
-      s.onload = function () {
-        if (typeof window._onGlobeLoaded === 'function') window._onGlobeLoaded();
-      };
-      s.onerror = function () {
-        console.warn('[Globe] CDN failed to load');
-        var gc = document.getElementById('globe-container');
-        if (gc) gc.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-muted);flex-direction:column;gap:12px"><span style="font-size:48px">🌍</span><span style="font-family:Orbitron,sans-serif;font-size:12px;letter-spacing:.08em">GLOBE UNAVAILABLE</span></div>';
-      };
-      document.head.appendChild(s);
-    })();
-  </script>
+
 </body>
 </html>
