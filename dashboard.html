@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/main.css?v140">
+  <link rel="stylesheet" href="css/main.css?v141">
   <link rel="stylesheet" href="css/dashboard.css?v=110">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <!-- globe.gl loaded async in body -->
@@ -220,7 +220,7 @@
   .sb-panel{
     position:absolute;top:0;right:0;bottom:0;width:340px;
     padding-top: env(safe-area-inset-top, 0px);
-    touch-action:none;overscroll-behavior:none;
+    touch-action:auto;overscroll-behavior:contain;
     display:flex;flex-direction:column;overflow:hidden;
     background:rgba(9,13,21,.98);border-left:1px solid rgba(0,212,255,.15);
     backdrop-filter:blur(22px);

@@ -81,8 +81,15 @@
       '</div>'
     ].join('');
     document.body.appendChild(el);
-    document.getElementById('sb-close').addEventListener('click', close);
-    document.getElementById('sb-overlay').addEventListener('click', close);
+    document.getElementById('sb-close').addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      close();
+    });
+    document.getElementById('sb-overlay').addEventListener('click', function(e) {
+      e.preventDefault();
+      close();
+    });
 
   }
 
