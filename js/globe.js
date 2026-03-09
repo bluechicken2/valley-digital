@@ -298,12 +298,12 @@ function updateStoryPins(stories) {
   // --- Pins ---
   var pins = validStories.map(function(s) {
     var catColor = CAT_COLORS[s.category] || '#00d4ff';
-    var size = s.is_breaking         ? 0.90
-             : s.xray_score >= 80   ? 0.65
-             : s.xray_score >= 60   ? 0.50
-             : s.confidence_score >= 71 ? 0.55
-             : s.confidence_score >= 41 ? 0.40
-             : 0.28;
+    var size = s.is_breaking         ? 0.45
+             : s.xray_score >= 80   ? 0.35
+             : s.xray_score >= 60   ? 0.28
+             : s.confidence_score >= 71 ? 0.30
+             : s.confidence_score >= 41 ? 0.25
+             : 0.18;
     return {
       id:    s.id,
       lat:   +s.lat,
@@ -326,8 +326,8 @@ function updateStoryPins(stories) {
       return c;
     })
     .pointAltitude(0.015)
-    .pointRadius(function(d) { return d.size * 1.1; })
-    .pointResolution(64)
+    .pointRadius(function(d) { return d.size; })
+    .pointResolution(32)
     .pointsMerge(true)
     .pointLabel(function(d) {
       var cc = CAT_COLORS[d.cat] || '#00d4ff';
@@ -335,38 +335,6 @@ function updateStoryPins(stories) {
              'border-radius:8px;padding:7px 11px;font-family:Inter,sans-serif;font-size:12px;'  +
              'color:#e8eaf0;max-width:240px;line-height:1.45;box-shadow:0 4px 20px rgba(0,0,0,0.6)">'  +
              d.label + '</div>';
-    });
-
-  // --- Glow rings for ALL pins (premium look) ---
-  var glowRings = validStories.map(function(s) {
-    var catColor = CAT_COLORS[s.category] || '#00d4ff';
-    return {
-      lat:              +s.lat,
-      lng:              +s.lng,
-      maxR:             s.is_breaking ? 4.0 : 2.0,  // Larger for breaking
-      propagationSpeed: s.is_breaking ? 2.0 : 0.5,  // Faster for breaking
-      repeatPeriod:     s.is_breaking ? 700 : 2500, // More frequent for breaking
-      color:            s.is_breaking ? '#ffffff' : catColor,
-      isBreaking:       s.is_breaking
-    };
-  });
-
-  globeInst
-    .ringsData(glowRings)
-    .ringLat(function(d)              { return d.lat; })
-    .ringLng(function(d)              { return d.lng; })
-    .ringMaxRadius(function(d)        { return d.maxR; })
-    .ringPropagationSpeed(function(d) { return d.propagationSpeed; })
-    .ringRepeatPeriod(function(d)     { return d.repeatPeriod; })
-    .ringColor(function(d) {
-      var hex = d.color;
-      return function(t) {
-        // Smooth fade with more visible glow
-        var alpha = d.isBreaking 
-          ? Math.round((1 - t) * 220).toString(16).padStart(2, '0')
-          : Math.round((1 - t) * 100).toString(16).padStart(2, '0');
-        return hex + alpha;
-      };
     });
 }
 
