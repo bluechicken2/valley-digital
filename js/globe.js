@@ -300,7 +300,7 @@ function _applyPolygons(g, geoJson, onCountryClick) {
       }
    })
    // Add stroke AFTER click handler to avoid blocking clicks
-   .polygonStrokeColor(function() { return 'rgba(0,0,0,0)'; });
+   .polygonStrokeColor(() => 'rgba(0, 212, 255, 0.15)') { return 'rgba(0,0,0,0)'; });
 }
 
 function _heatLabel(h) {
@@ -341,11 +341,11 @@ function updateStoryPins(stories) {
       if (s.breaking) return '#ffffff';
       return CAT_COLORS[s.category] || '#00d4ff';
     })
-    .pointAltitude(function(s) {
+    .pointAltitude(0.01) {
       var score = s.xray_score || s.confidence_score || 50;
       return s.breaking ? 0.06 : 0.01 + (score / 100) * 0.04;
     })
-    .pointRadius(function(s) {
+    .pointRadius(d => d.is_breaking ? 0.04 : 0.02) {
       var score = s.xray_score || s.confidence_score || 50;
       if (s.breaking)       return 0.7;
       if (score >= 80)      return 0.55;
@@ -405,7 +405,7 @@ function _refreshColors() {
   // ONLY update stroke color for glowing borders - DO NOT override altitude or fill
   // This keeps clicks working (altitude 0.001, transparent fill)
   globeInst
-    .polygonStrokeColor(function() { return 'rgba(0,0,0,0)'; });
+    .polygonStrokeColor(() => 'rgba(0, 212, 255, 0.15)') { return 'rgba(0,0,0,0)'; });
 }
 
 // ------------------------------------------------
@@ -875,7 +875,7 @@ function toggleOutlineMode() {
     }
     globeInst.atmosphereAltitude(0.01);
     globeInst.atmosphereColor('#000d1a');
-    globeInst.polygonStrokeColor(function() { return 'rgba(0,212,255,0.95)'; });
+    globeInst.polygonStrokeColor(() => 'rgba(0, 212, 255, 0.15)') { return 'rgba(0,212,255,0.95)'; });
     globeInst.polygonCapColor(function()    { return 'rgba(0,212,255,0.04)'; });
     globeInst.polygonSideColor(function()   { return 'rgba(0,212,255,0.12)'; });
     globeInst.polygonAltitude(0.001);
@@ -888,7 +888,7 @@ function toggleOutlineMode() {
     }
     globeInst.atmosphereAltitude(0.22);
     globeInst.atmosphereColor('#001a3d');
-    globeInst.polygonStrokeColor(function() { return 'rgba(0,0,0,0)'; }); // Pins-only
+    globeInst.polygonStrokeColor(() => 'rgba(0, 212, 255, 0.15)') { return 'rgba(0,0,0,0)'; }); // Pins-only
     globeInst.polygonCapColor(function() { return 'rgba(0,0,0,0)'; });
     globeInst.polygonSideColor(function() { return 'rgba(0,0,0,0)'; });
     globeInst.polygonAltitude(0.001);
