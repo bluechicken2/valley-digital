@@ -143,15 +143,34 @@
         zIndexOffset: isBreaking ? 1000 : score
       });
 
-      var cat   = story.category || 'News';
-      var title = (story.title || story.headline || '').substring(0,90);
-      marker.bindTooltip(
-        '<div class="map-tooltip">'
-        + '<span class="map-tooltip-cat" style="color:' + color + '">' + cat.toUpperCase() + (isBreaking?' ⚡':'') + '</span>'
-        + '<div class="map-tooltip-title">' + title + '</div>'
-        + '</div>',
-        { sticky:true, opacity:1, className:'map-tooltip-wrapper', offset:[10,0] }
-      );
+      var cat      = story.category || 'News';
+      var title    = (story.title || story.headline || '').substring(0, 100);
+      var country  = story.country_name || story.country_code || '';
+      var score    = story.xray_score || story.confidence_score || null;
+      var scoreBar = '';
+      if (score) {
+        var barColor = score >= 80 ? '#00ff88' : score >= 60 ? '#f59e0b' : '#ff4444';
+        scoreBar = '<div class="map-tip-score">'
+          + '<span class="map-tip-score-label">TRUTH</span>'
+          + '<div class="map-tip-score-track"><div class="map-tip-score-fill" style="width:' + score + '%;background:' + barColor + '"></div></div>'
+          + '<span class="map-tip-score-val" style="color:' + barColor + '">' + score + '</span>'
+          + '</div>';
+      }
+      var tipHtml = '<div class="map-tip">'
+        + '<div class="map-tip-header">'
+        + '<span class="map-tip-cat" style="color:' + color + ';border-color:' + color + '">' + (isBreaking ? '⚡ BREAKING' : cat.toUpperCase()) + '</span>'
+        + (country ? '<span class="map-tip-country">' + country + '</span>' : '')
+        + '</div>'
+        + '<div class="map-tip-title">' + title + (title.length >= 100 ? '…' : '') + '</div>'
+        + scoreBar
+        + '<div class="map-tip-cta">Click to read →</div>'
+        + '</div>';
+      marker.bindTooltip(tipHtml, {
+        sticky: true,
+        opacity: 1,
+        className: 'map-tip-wrapper',
+        offset: [14, 0]
+      });
 
       marker.on('click', function(){
         if (story.id) window.location.href = 'story.html?id=' + story.id;
