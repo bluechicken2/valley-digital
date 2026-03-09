@@ -46,26 +46,26 @@
       zoomControl:         false,
       scrollWheelZoom:     true,
       worldCopyJump:       false,
-      maxBounds:           [[-85.051129, -180], [85.051129, 180]],
-      maxBoundsViscosity:  1.0,
+      maxBounds:           [[-85, -220], [85, 220]],
+      maxBoundsViscosity:  0.7,
       attributionControl:  false
     });
 
-    // fitWorld fills the container exactly with no white bars on any screen
+    // fitWorld fills the container with the world
     mapInstance.fitWorld({ animate: false });
-    // Lock minZoom to whatever zoom fitWorld calculated so user can't zoom out past full world
+    // Lock minZoom so user cannot zoom out past world fill
     mapInstance.options.minZoom = mapInstance.getZoom();
 
     // Dark no-label tiles (no Chinese, no any-language text)
+    // noWrap is NOT set — tiles repeat to fill container at low zoom
+    // maxBounds on the map itself controls where the user can pan
     L.tileLayer(
       'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png',
       {
         subdomains:        'abcd',
         maxZoom:           10,
-        noWrap:            true,
-        errorTileUrl:      'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
         updateWhenZooming: false,
-        keepBuffer:        4
+        keepBuffer:        3
       }
     ).addTo(mapInstance);
 
