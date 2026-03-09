@@ -867,46 +867,6 @@
   .stories-section { padding: 1rem 0.75rem 1.5rem; }
 }
 
-/* ================================
-   XrayNews — Spin Toggle
-   ================================ */
-.spin-toggle-wrap {
-  position: absolute;
-  left: 16px;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 600;
-}
-.spin-toggle-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 10px 8px;
-  background: rgba(8,11,18,0.75);
-  border: 1px solid rgba(0,212,255,0.25);
-  border-radius: 10px;
-  color: rgba(0,212,255,0.7);
-  font-family: Orbitron, sans-serif;
-  font-size: 9px;
-  letter-spacing: .08em;
-  cursor: pointer;
-  transition: all .2s ease;
-  backdrop-filter: blur(8px);
-}
-.spin-toggle-btn:hover {
-  border-color: rgba(0,212,255,0.6);
-  color: #00d4ff;
-  box-shadow: 0 0 12px rgba(0,212,255,0.2);
-}
-.spin-toggle-btn.spin-off {
-  border-color: rgba(255,255,255,0.12);
-  color: rgba(255,255,255,0.3);
-}
-.spin-toggle-btn.spin-off .spin-icon { opacity: 0.3; }
-.spin-icon { font-size: 14px; }
-
-
 /* ---- Fresh badge ---- */
 .fresh-badge {
   display: inline-flex;
@@ -1100,20 +1060,7 @@
   z-index: 2;
 }
 
-/* Spin toggle improvements */
-.spin-toggle-btn {
-  transition: all 0.25s ease;
-  box-shadow: 0 0 12px rgba(0,212,255,0.15);
-}
-.spin-toggle-btn:hover {
-  box-shadow: 0 0 20px rgba(0,212,255,0.3);
-  transform: scale(1.05);
-}
-.spin-toggle-btn.spin-off {
-  border-color: rgba(255,100,100,0.4) !important;
-  color: rgba(255,100,100,0.8) !important;
-  box-shadow: 0 0 12px rgba(255,100,100,0.15);
-}
+
 
 /* Card improvements */
 .story-card {
@@ -1124,103 +1071,9 @@
   box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,212,255,0.15);
 }
 
-/* Story grid gap tighten */
-.stories-grid {
-  gap: 1rem;
-}
 
-  50%       { opacity: 0.55; }
-}
 
-/* ================================================
-   Space Elements v2 — Canvas Moon + Satellites
-   ================================================ */
 
-/* Body starfield canvas */
-#xray-starfield {
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* Make nav/content above starfield */
-/* z-index: starfield now inside .globe-section, no body-level override needed */
-
-/* Moon canvas wrapper — free-floating */
-#globe-moon-wrap {
-  position: absolute;
-  top: 10%;
-  right: 10%;
-  width: 54px;
-  height: 54px;
-  pointer-events: none;
-  z-index: 8;
-  animation: moonFloat 7s ease-in-out infinite;
-}
-
-#globe-moon {
-  width: 54px;
-  height: 54px;
-  border-radius: 50%;
-  opacity: 0.55;
-  transition: opacity 1.4s ease, filter 1.4s ease;
-  display: block;
-}
-
-@keyframes moonFloat {
-  0%, 100% { transform: translateY(0) rotate(-2deg); }
-  50%       { transform: translateY(-9px) rotate(2deg); }
-}
-
-/* Satellites — slightly larger, cleaner */
-.globe-satellite {
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  pointer-events: none;
-  z-index: 7;
-  opacity: 0.65;
-  transition: opacity 0.8s ease;
-}
-
-/* Satellite body */
-.globe-satellite::before {
-  content: '';
-  position: absolute;
-  top: 2px; left: 2px;
-  width: 6px; height: 6px;
-  background: #8ecfff;
-  border-radius: 2px;
-  box-shadow: 0 0 5px rgba(142,207,255,0.6);
-}
-
-/* Solar panels */
-.globe-satellite::after {
-  content: '';
-  position: absolute;
-  top: 4px; left: -5px;
-  width: 20px; height: 2px;
-  background: linear-gradient(90deg, transparent, #4499cc 20%, #66bbff 50%, #4499cc 80%, transparent);
-  opacity: 0.75;
-}
-
-.globe-satellite.sat-active {
-  opacity: 0.95;
-  animation: satBlink 1.8s ease-in-out infinite;
-}
-.globe-satellite.sat-active::before {
-  background: #00d4ff;
-  box-shadow: 0 0 8px rgba(0,212,255,0.95), 0 0 16px rgba(0,212,255,0.5);
-}
-.globe-satellite.sat-active::after {
-  background: linear-gradient(90deg, transparent, #00aaff 20%, #00ffff 50%, #00aaff 80%, transparent);
-  opacity: 1;
-}
-
-@keyframes satBlink {
-  0%, 100% { opacity: 0.95; }
   50%       { opacity: 0.45; }
 }
 
@@ -2072,4 +1925,90 @@
 .sources-empty-sub {
   font-size: 12px;
   color: rgba(232, 234, 240, 0.4);
+}
+
+/* ================================================
+   VISUAL POLISH v2026-03-09
+   ================================================ */
+
+/* Category-colored left accent border on cards */
+.story-card {
+  border-left: 3px solid var(--card-accent, rgba(0,212,255,0.4));
+}
+.story-card:hover {
+  border-left-color: var(--card-accent, var(--accent-cyan));
+}
+
+/* Confidence row — xray badge + score grouped right */
+.confidence-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.conf-pct {
+  font-size: 0.58em;
+  opacity: 0.4;
+  font-weight: 400;
+}
+
+/* Card footer: left meta / right actions */
+.card-meta-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+.card-meta-right {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+/* Sidebar mini score bar */
+.sb-score-bar-track {
+  flex: 1;
+  height: 3px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 99px;
+  overflow: hidden;
+  min-width: 36px;
+  max-width: 72px;
+}
+.sb-score-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.4s ease;
+}
+
+/* Sidebar close polish */
+.sb-close {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  line-height: 1;
+  font-weight: 700;
+}
+.sb-close:hover {
+  background: rgba(255,68,68,0.25) !important;
+  color: #ff6b6b;
+}
+
+/* Sidebar view-all Orbitron */
+.sb-view-all {
+  font-family: 'Orbitron', sans-serif !important;
+  font-size: 10px !important;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+/* HUD stat gradient */
+.stat-value {
+  background: linear-gradient(135deg, var(--accent-cyan), #a78bfa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }

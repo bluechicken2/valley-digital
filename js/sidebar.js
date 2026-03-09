@@ -98,7 +98,6 @@
     var sc   = story.confidence_score || 0;
     var col  = confColor(sc);
     var catC = CAT_COLORS[story.category] || '#00d4ff';
-    var dots = '';
     
     // Thread badge
     var threadBadgeHtml = '';
@@ -122,7 +121,6 @@
       }
     }
     
-    for (var i = 0; i < 5; i++) dots += '<span class="sb-dot' + (sc/20 > i ? ' sb-dot-on' : '') + '"></span>';
     return '<div class="sb-card" data-id="' + esc(story.id) + '" tabindex="0" role="button" aria-label="' + esc(story.headline) + '">'
       + '<div class="sb-card-top">'
         + '<span class="sb-cat" style="border-color:' + catC + ';color:' + catC + '">' + esc(story.category||'') + '</span>'
@@ -133,7 +131,7 @@
       + '<div class="sb-card-hl">' + esc(story.headline) + '</div>'
       + '<div class="sb-card-foot">'
         + '<span style="color:' + col + ';font-weight:700;font-size:12px">' + sc + '%</span>'
-        + '<span class="sb-dots">' + dots + '</span>'
+        + '<div class="sb-score-bar-track"><div class="sb-score-bar-fill" style="width:' + Math.round(sc) + '%;background:' + col + '"></div></div>'
         + '<span class="status-badge ' + sm.cls + '" style="font-size:9px;padding:2px 6px">' + sm.icon + ' ' + sm.label + '</span>'
         + '<span class="sb-age">' + timeAgo(story.created_at) + '</span>'
         + '<span class="sb-srcs">&#128225; ' + (story.source_count||1) + '</span>'

@@ -224,7 +224,8 @@
     getInstance: function(){ return mapInstance; },
     updatePins: function(stories){
       if (!mapInstance) initDashboardMap();
-      renderMarkers(stories||[]);
+      _allStories = stories || [];  // populate cache for country sidebar
+      renderMarkers(_allStories);
     },
     updateCountryStatsFromStories: function(stories){ updateHUD(stories||[]); },
     clearFilter: function() {

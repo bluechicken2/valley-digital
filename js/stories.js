@@ -188,7 +188,7 @@ function renderStoryCard(story) {
   var sourceBadgeHtml = srcName
     ? '<span class="source-badge">' + escHtml(srcName.slice(0, 24)) + '</span>' : '';
 
-  return '<article class="story-card" data-id="' + escHtml(story.id) + '" data-thread="' + escHtml(story.story_thread_id || '') + '" tabindex="0">'
+  return '<article class="story-card" data-id="' + escHtml(story.id) + '" data-thread="' + escHtml(story.story_thread_id || '') + '" tabindex="0" style="--card-accent:' + catColor + '">'
     + '<div class="card-top">'
       + '<div class="card-meta-row">'
         + '<span class="category-badge" style="--cat-color:' + catColor + '">' + catIcon + ' ' + escHtml(story.category || 'General') + '</span>'
@@ -207,7 +207,7 @@ function renderStoryCard(story) {
     + '</div>'
     + '<div class="confidence-wrap">'
       + '<div class="confidence-label-row">'
-        + '<span class="confidence-label">CONFIDENCE</span>' + xrayBadge
+        + '<span class="confidence-label">TRUTH SCORE</span>' + xrayBadge
         + '<span class="confidence-score" style="color:' + confColor + '">' + score + '%</span>'
       + '</div>'
       + '<div class="confidence-track">'

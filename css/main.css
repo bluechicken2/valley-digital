@@ -301,8 +301,6 @@ h1, h2, h3, h4, h5, h6 {
   animation: spin 0.8s linear infinite;
   display: inline-block;
 }
-@keyframes spin { to { transform: rotate(360deg); } }
-
 /* Dropdown menus (shared) */
 .dropdown-menu {
   display: none;
