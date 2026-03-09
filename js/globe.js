@@ -66,37 +66,37 @@ var STROKE_COLORS = {
   }
 };
 
-// Fill colors - subtle cyan glow (proven approach)
+// Fill colors - no holes, subtle base + cyan glow
 var FILL_COLORS = {
   all: function(heat) {
-    if (heat === 0) return 'rgba(0,0,0,0)';           // Transparent - show earth texture
-    if (heat < 3) return 'rgba(0,200,230,0.25)';      // Subtle cyan
-    if (heat < 8) return 'rgba(0,210,240,0.35)';      // Medium cyan
-    return 'rgba(100,240,255,0.50)';                   // Bright cyan for hot
+    if (heat === 0) return 'rgba(0,20,40,0.15)';      // Subtle dark base (no holes)
+    if (heat < 3) return 'rgba(0,80,100,0.40)';       // Low activity
+    if (heat < 8) return 'rgba(0,100,120,0.55)';       // Medium activity
+    return 'rgba(0,140,160,0.70)';                      // High activity
   },
   density: function(heat) {
-    if (heat === 0) return 'rgba(0,0,0,0)';
-    if (heat < 3) return 'rgba(0,200,230,0.25)';
-    if (heat < 8) return 'rgba(0,210,240,0.35)';
-    return 'rgba(100,240,255,0.50)';
+    if (heat === 0) return 'rgba(0,20,40,0.15)';
+    if (heat < 3) return 'rgba(0,80,100,0.40)';
+    if (heat < 8) return 'rgba(0,100,120,0.55)';
+    return 'rgba(0,140,160,0.70)';
   },
   conflicts: function(heat) {
-    if (heat === 0) return 'rgba(0,0,0,0)';
-    if (heat < 3) return 'rgba(220,80,80,0.25)';
-    if (heat < 8) return 'rgba(240,100,100,0.35)';
-    return 'rgba(255,120,120,0.50)';
+    if (heat === 0) return 'rgba(30,10,10,0.15)';
+    if (heat < 3) return 'rgba(100,40,40,0.40)';
+    if (heat < 8) return 'rgba(130,50,50,0.55)';
+    return 'rgba(160,60,60,0.70)';
   },
   weather: function(heat) {
-    if (heat === 0) return 'rgba(0,0,0,0)';
-    if (heat < 3) return 'rgba(80,200,100,0.25)';
-    if (heat < 8) return 'rgba(100,220,120,0.35)';
-    return 'rgba(120,240,140,0.50)';
+    if (heat === 0) return 'rgba(10,30,15,0.15)';
+    if (heat < 3) return 'rgba(40,90,50,0.40)';
+    if (heat < 8) return 'rgba(50,110,60,0.55)';
+    return 'rgba(60,130,70,0.70)';
   },
   elections: function(heat) {
-    if (heat === 0) return 'rgba(0,0,0,0)';
-    if (heat < 3) return 'rgba(160,100,220,0.25)';
-    if (heat < 8) return 'rgba(180,120,240,0.35)';
-    return 'rgba(200,140,255,0.50)';
+    if (heat === 0) return 'rgba(20,10,30,0.15)';
+    if (heat < 3) return 'rgba(70,40,100,0.40)';
+    if (heat < 8) return 'rgba(90,50,120,0.55)';
+    return 'rgba(110,60,140,0.70)';
   }
 };;
 
