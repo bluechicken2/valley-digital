@@ -7,6 +7,7 @@
   var mapInstance  = null;
   var markerLayer  = null;
   var borderLayer  = null;
+  var _allStories  = [];  // cache for country click sidebar
 
   var CAT_COLORS = {
     'War & Conflict':     '#ff4444',
@@ -87,11 +88,37 @@
       .then(function(r){ return r.json(); })
       .then(function(data){
         borderLayer = L.geoJSON(data, {
-          style: {
-            color:       '#00bfff',
-            weight:      0.8,
-            opacity:     0.45,
-            fillOpacity: 0
+          style: function(feature) {
+            return {
+              color:       '#00bfff',
+              weight:      0.8,
+              opacity:     0.4,
+              fillOpacity: 0,
+              fillColor:   '#00bfff'
+            };
+          },
+          onEachFeature: function(feature, layer) {
+            layer.on({
+              mouseover: function(e) {
+                e.target.setStyle({ weight: 1.8, opacity: 0.9, fillOpacity: 0.05 });
+              },
+              mouseout: function(e) {
+                borderLayer.resetStyle(e.target);
+              },
+              click: function(e) {
+                var props = feature.properties || {};
+                var code  = props.ISO_A2 || props.ADM0_A3 || '';
+                var name  = props.ADMIN || props.NAME || props.NAME_EN || code;
+                if (!code || !name) return;
+                // Filter stories for this country
+                var countryStories = _allStories.filter(function(s) {
+                  return (s.country_code || '').toUpperCase() === code.toUpperCase();
+                });
+                if (window.CountrySidebar) {
+                  window.CountrySidebar.open(code, name, countryStories);
+                }
+              }
+            });
           }
         });
         borderLayer.addTo(mapInstance);
@@ -200,8 +227,24 @@
       renderMarkers(stories||[]);
     },
     updateCountryStatsFromStories: function(stories){ updateHUD(stories||[]); },
-    clearFilter:     function(){},
-    filterByCountry: function(){},
+    clearFilter: function() {
+      if (borderLayer) {
+        borderLayer.eachLayer(function(l) { borderLayer.resetStyle(l); });
+      }
+    },
+    filterByCountry: function(code) {
+      // Highlight matching country border
+      if (borderLayer) {
+        borderLayer.eachLayer(function(l) {
+          var c = (l.feature && l.feature.properties && l.feature.properties.ISO_A2) || '';
+          if (c.toUpperCase() === (code||'').toUpperCase()) {
+            l.setStyle({ weight: 2.5, opacity: 1, fillOpacity: 0.08 });
+          } else {
+            borderLayer.resetStyle(l);
+          }
+        });
+      }
+    },
     updateArcs:      function(){},
     switchOverlay:   function(){}
   };
