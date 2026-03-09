@@ -185,7 +185,7 @@ function initDashboardGlobe(containerId, onCountryClick) {
         .width(w)
         .height(h)
         .backgroundColor('rgba(0,0,0,0)')
-        .atmosphereColor('rgba(0,150,255,0.13)')
+        .atmosphereColor('#001a3d')
         .atmosphereAltitude(0.22)
         .globeImageUrl(EARTH_IMG);
 
@@ -327,10 +327,61 @@ var CAT_COLORS = {
 function updateStoryPins(stories) {
   console.log("[GLOBE] updateStoryPins called with", stories.length, "stories");
   if (!globeInst) return;
+
   var validStories = stories.filter(function(s) {
     return s.lat != null && s.lng != null && (s.lat !== 0 || s.lng !== 0);
   });
 
+  // Render points
+  globeInst
+    .pointsData(validStories)
+    .pointLat(function(s) { return s.lat; })
+    .pointLng(function(s) { return s.lng; })
+    .pointColor(function(s) {
+      if (s.breaking) return '#ffffff';
+      return CAT_COLORS[s.category] || '#00d4ff';
+    })
+    .pointAltitude(function(s) {
+      var score = s.xray_score || s.confidence_score || 50;
+      return s.breaking ? 0.06 : 0.01 + (score / 100) * 0.04;
+    })
+    .pointRadius(function(s) {
+      var score = s.xray_score || s.confidence_score || 50;
+      if (s.breaking)       return 0.7;
+      if (score >= 80)      return 0.55;
+      if (score >= 60)      return 0.4;
+      return 0.28;
+    })
+    .pointLabel(function(s) {
+      var color = s.breaking ? '#ffffff' : (CAT_COLORS[s.category] || '#00d4ff');
+      return '<div style="background:rgba(8,11,18,0.92);border:1px solid ' + color + ';border-radius:6px;padding:8px 12px;max-width:220px;font-family:sans-serif">' +
+        '<div style="color:' + color + ';font-size:10px;font-weight:700;letter-spacing:1px;margin-bottom:4px">' + (s.category || 'NEWS') + (s.breaking ? ' ⚡ BREAKING' : '') + '</div>' +
+        '<div style="color:#e0e8f8;font-size:12px;line-height:1.4">' + (s.title || '').substring(0, 80) + '</div>' +
+        '</div>';
+    });
+
+  // Pulsing rings for breaking / top-scored stories
+  var ringStories = validStories
+    .filter(function(s) { return s.breaking || (s.xray_score && s.xray_score >= 80); })
+    .slice(0, 6);
+
+  globeInst
+    .ringsData(ringStories)
+    .ringLat(function(s) { return s.lat; })
+    .ringLng(function(s) { return s.lng; })
+    .ringColor(function(s) {
+      var hex = s.breaking ? '#ffffff' : (CAT_COLORS[s.category] || '#00d4ff');
+      return function(t) {
+        var alpha = Math.max(0, 1 - t).toFixed(2);
+        var r = parseInt(hex.slice(1,3),16);
+        var g = parseInt(hex.slice(3,5),16);
+        var b = parseInt(hex.slice(5,7),16);
+        return 'rgba(' + r + ',' + g + ',' + b + ',' + alpha + ')';
+      };
+    })
+    .ringMaxRadius(3.5)
+    .ringPropagationSpeed(1.5)
+    .ringRepeatPeriod(900);
 }
 
 // ------------------------------------------------
@@ -823,7 +874,7 @@ function toggleOutlineMode() {
       mat.needsUpdate = true;
     }
     globeInst.atmosphereAltitude(0.01);
-    globeInst.atmosphereColor('rgba(0,212,255,0.08)');
+    globeInst.atmosphereColor('#000d1a');
     globeInst.polygonStrokeColor(function() { return 'rgba(0,212,255,0.95)'; });
     globeInst.polygonCapColor(function()    { return 'rgba(0,212,255,0.04)'; });
     globeInst.polygonSideColor(function()   { return 'rgba(0,212,255,0.12)'; });
@@ -836,7 +887,7 @@ function toggleOutlineMode() {
       mat.needsUpdate = true;
     }
     globeInst.atmosphereAltitude(0.22);
-    globeInst.atmosphereColor('rgba(0,150,255,0.13)');
+    globeInst.atmosphereColor('#001a3d');
     globeInst.polygonStrokeColor(function() { return 'rgba(0,0,0,0)'; }); // Pins-only
     globeInst.polygonCapColor(function() { return 'rgba(0,0,0,0)'; });
     globeInst.polygonSideColor(function() { return 'rgba(0,0,0,0)'; });
