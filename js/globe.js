@@ -32,39 +32,91 @@ function scheduleSpinResume() {
 // ------------------------------------------------
 // Overlay colour schemes
 // ------------------------------------------------
-// Glowing border colors based on activity
+// Heat map gradient colors
 var STROKE_COLORS = {
   all: function(heat) {
-    if (heat === 0) return 'rgba(0,150,200,0.35)';      // Subtle border
-    if (heat < 3) return 'rgba(0,200,230,0.35)';        // Subtle border
-    if (heat < 8) return 'rgba(0,220,250,0.35)';        // Subtle border
-    return 'rgba(100,240,255,0.35)';                     // Subtle border
+    if (heat === 0) return 'rgba(30,60,100,0.20)';
+    if (heat < 2) return 'rgba(50,120,200,0.90)';
+    if (heat < 4) return 'rgba(40,180,220,0.92)';
+    if (heat < 8) return 'rgba(80,200,120,0.95)';
+    if (heat < 15) return 'rgba(240,200,60,0.97)';
+    if (heat < 25) return 'rgba(255,130,40,1.0)';
+    return 'rgba(255,70,70,1.0)';
   },
   density: function(heat) {
-    if (heat === 0) return 'rgba(80,120,180,0.35)';     // Subtle border
-    if (heat < 3) return 'rgba(100,150,200,0.35)';      // Subtle border
-    if (heat < 8) return 'rgba(120,170,220,0.35)';      // Subtle border
-    return 'rgba(150,190,240,0.35)';                     // Subtle border
+    if (heat === 0) return 'rgba(40,50,80,0.20)';
+    if (heat < 2) return 'rgba(60,100,180,0.90)';
+    if (heat < 4) return 'rgba(50,160,200,0.92)';
+    if (heat < 8) return 'rgba(100,180,140,0.95)';
+    if (heat < 15) return 'rgba(220,190,80,0.97)';
+    if (heat < 25) return 'rgba(240,140,60,1.0)';
+    return 'rgba(240,80,80,1.0)';
   },
   conflicts: function(heat) {
-    if (heat === 0) return 'rgba(150,60,60,0.08)';      // Very dim
-    if (heat < 3) return 'rgba(255,100,100,0.95)';      // Bright red
-    if (heat < 8) return 'rgba(255,150,150,1.0)';       // Very bright
-    return 'rgba(255,200,200,1.0)';                      // Maximum
+    if (heat === 0) return 'rgba(60,30,30,0.20)';
+    if (heat < 2) return 'rgba(200,80,80,0.90)';
+    if (heat < 4) return 'rgba(220,100,80,0.92)';
+    if (heat < 8) return 'rgba(240,120,60,0.95)';
+    return 'rgba(255,60,60,1.0)';
   },
   weather: function(heat) {
-    if (heat === 0) return 'rgba(60,150,100,0.08)';     // Very dim
-    if (heat < 3) return 'rgba(100,255,180,0.95)';      // Bright green
-    if (heat < 8) return 'rgba(150,255,200,1.0)';       // Very bright
-    return 'rgba(200,255,220,1.0)';                      // Maximum  // Bright green glow
+    if (heat === 0) return 'rgba(30,50,40,0.20)';
+    if (heat < 2) return 'rgba(60,160,120,0.90)';
+    if (heat < 4) return 'rgba(80,180,140,0.92)';
+    if (heat < 8) return 'rgba(100,200,160,0.95)';
+    return 'rgba(180,240,180,1.0)';
   },
   elections: function(heat) {
-    if (heat === 0) return 'rgba(120,60,150,0.08)';     // Very dim
-    if (heat < 3) return 'rgba(180,100,255,0.95)';      // Bright purple
-    if (heat < 8) return 'rgba(210,150,255,1.0)';       // Very bright
-    return 'rgba(240,200,255,1.0)';                      // Maximum  // Bright purple glow
+    if (heat === 0) return 'rgba(50,30,60,0.20)';
+    if (heat < 2) return 'rgba(140,80,180,0.90)';
+    if (heat < 4) return 'rgba(160,100,200,0.92)';
+    if (heat < 8) return 'rgba(180,120,220,0.95)';
+    return 'rgba(220,160,255,1.0)';
   }
 };
+
+// Fill colors for heat map
+var FILL_COLORS = {
+  all: function(heat) {
+    if (heat === 0) return 'rgba(10,20,35,0.08)';
+    if (heat < 2) return 'rgba(30,80,160,0.40)';
+    if (heat < 4) return 'rgba(25,140,180,0.45)';
+    if (heat < 8) return 'rgba(60,180,100,0.50)';
+    if (heat < 15) return 'rgba(200,170,50,0.55)';
+    if (heat < 25) return 'rgba(230,120,30,0.60)';
+    return 'rgba(240,60,60,0.65)';
+  },
+  density: function(heat) {
+    if (heat === 0) return 'rgba(15,20,30,0.08)';
+    if (heat < 2) return 'rgba(40,70,150,0.40)';
+    if (heat < 4) return 'rgba(35,130,170,0.45)';
+    if (heat < 8) return 'rgba(80,160,120,0.50)';
+    if (heat < 15) return 'rgba(180,160,70,0.55)';
+    if (heat < 25) return 'rgba(210,130,50,0.60)';
+    return 'rgba(220,70,70,0.65)';
+  },
+  conflicts: function(heat) {
+    if (heat === 0) return 'rgba(20,15,15,0.08)';
+    if (heat < 2) return 'rgba(160,60,60,0.40)';
+    if (heat < 4) return 'rgba(180,80,60,0.45)';
+    if (heat < 8) return 'rgba(200,100,50,0.50)';
+    return 'rgba(240,50,50,0.60)';
+  },
+  weather: function(heat) {
+    if (heat === 0) return 'rgba(15,25,20,0.08)';
+    if (heat < 2) return 'rgba(50,140,100,0.40)';
+    if (heat < 4) return 'rgba(60,160,120,0.45)';
+    if (heat < 8) return 'rgba(80,180,140,0.50)';
+    return 'rgba(160,220,170,0.60)';
+  },
+  elections: function(heat) {
+    if (heat === 0) return 'rgba(25,15,30,0.08)';
+    if (heat < 2) return 'rgba(120,60,150,0.40)';
+    if (heat < 4) return 'rgba(140,80,170,0.45)';
+    if (heat < 8) return 'rgba(160,100,190,0.50)';
+    return 'rgba(200,140,230,0.60)';
+  }
+};;
 
 var OVERLAYS = {
   all: function(heat) {
@@ -112,6 +164,12 @@ function getStrokeColor(feat) {
   var heat = (countryMap[code] && countryMap[code].story_count) || 0;
   return (STROKE_COLORS[currentOverlay] || STROKE_COLORS.all)(heat);
 }
+function getFillColor(feat) {
+  var code = (feat.properties && feat.properties.ISO_A2) || '';
+  var heat = (countryMap[code] && countryMap[code].story_count) || 0;
+  return (FILL_COLORS[currentOverlay] || FILL_COLORS.all)(heat);
+}
+
 function getAltitude(feat) {
   var code = (feat.properties && feat.properties.ISO_A2) || '';
   var heat = (countryMap[code] && countryMap[code].story_count) || 0;
@@ -237,7 +295,7 @@ function _wireSpinBtn() {
 
 function _applyPolygons(g, geoJson, onCountryClick) {
   g.polygonsData(geoJson.features)
-   .polygonCapColor(function() { return 'rgba(0,0,0,0)'; })
+   .polygonCapColor(getFillColor)
    .polygonSideColor(function() { return 'rgba(0,0,0,0)'; })
    .polygonAltitude(0.001)
    .onPolygonHover(function(feat) {
@@ -295,74 +353,6 @@ function updateStoryPins(stories) {
     return s.lat != null && s.lng != null && (s.lat !== 0 || s.lng !== 0);
   });
 
-  // --- Pins with jitter to prevent stacking ---
-  // First, group stories by coordinates
-  var coordMap = {};
-  validStories.forEach(function(s) {
-    var key = s.lat + ',' + s.lng;
-    if (!coordMap[key]) coordMap[key] = [];
-    coordMap[key].push(s);
-  });
-  
-  // Apply jitter to overlapping pins
-  var pins = [];
-  Object.keys(coordMap).forEach(function(key) {
-    var stories = coordMap[key];
-    var baseLat = +stories[0].lat;
-    var baseLng = +stories[0].lng;
-    
-    stories.forEach(function(s, i) {
-      var catColor = CAT_COLORS[s.category] || '#00d4ff';
-      var size = s.is_breaking         ? 0.45
-               : s.xray_score >= 80   ? 0.35
-               : s.xray_score >= 60   ? 0.28
-               : s.confidence_score >= 71 ? 0.30
-               : s.confidence_score >= 41 ? 0.25
-               : 0.18;
-      
-      // Jitter offset for overlapping pins (spread in a circle)
-      var jitterLat = baseLat;
-      var jitterLng = baseLng;
-      if (stories.length > 1) {
-        var angle = (2 * Math.PI * i) / stories.length;
-        var offset = 1.5; // degrees offset
-        jitterLat = baseLat + Math.cos(angle) * offset;
-        jitterLng = baseLng + Math.sin(angle) * offset;
-      }
-      
-      pins.push({
-        id:    s.id,
-        lat:   jitterLat,
-        lng:   jitterLng,
-        size:  size,
-        color: s.is_breaking ? '#ffffff' : catColor,
-        label: s.headline,
-        cat:   s.category || ''
-      });
-    });
-  });
-
-  // Custom point rendering with glow
-  globeInst
-    .pointsData(pins)
-    .pointLat(function(d)    { return d.lat; })
-    .pointLng(function(d)    { return d.lng; })
-    .pointColor(function(d)  {
-      // Add inner glow effect - lighter center
-      var c = d.color;
-      return c;
-    })
-    .pointAltitude(0.015)
-    .pointRadius(function(d) { return d.size; })
-    .pointResolution(32)
-    .pointsMerge(true)
-    .pointLabel(function(d) {
-      var cc = CAT_COLORS[d.cat] || '#00d4ff';
-      return '<div style="background:rgba(8,11,18,0.95);border:1px solid ' + cc + '40;'  +
-             'border-radius:8px;padding:7px 11px;font-family:Inter,sans-serif;font-size:12px;'  +
-             'color:#e8eaf0;max-width:240px;line-height:1.45;box-shadow:0 4px 20px rgba(0,0,0,0.6)">'  +
-             d.label + '</div>';
-    });
 }
 
 // ------------------------------------------------
@@ -870,7 +860,7 @@ function toggleOutlineMode() {
     globeInst.atmosphereAltitude(0.22);
     globeInst.atmosphereColor('rgba(0,150,255,0.13)');
     globeInst.polygonStrokeColor(function() { return 'rgba(0,212,255,0.06)'; });
-    globeInst.polygonCapColor(function() { return 'rgba(0,0,0,0)'; });
+    globeInst.polygonCapColor(getFillColor);
     globeInst.polygonSideColor(function() { return 'rgba(0,0,0,0)'; });
     globeInst.polygonAltitude(0.001);
   }
