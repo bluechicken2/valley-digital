@@ -264,8 +264,7 @@ function _applyPolygons(g, geoJson, onCountryClick) {
       }
    })
    // Add stroke AFTER click handler to avoid blocking clicks
-   .polygonStrokeColor(getStrokeColor)
-   .polygonStrokeWidth(1.5);
+   .polygonStrokeColor(getStrokeColor);
 }
 
 function _heatLabel(h) {
@@ -392,8 +391,7 @@ function _refreshColors() {
   // ONLY update stroke color for glowing borders - DO NOT override altitude or fill
   // This keeps clicks working (altitude 0.001, transparent fill)
   globeInst
-    .polygonStrokeColor(getStrokeColor)
-    .polygonStrokeWidth(1.5);
+    .polygonStrokeColor(getStrokeColor);
 }
 
 // ------------------------------------------------

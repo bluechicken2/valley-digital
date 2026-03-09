@@ -459,9 +459,7 @@ function setupRealtime() {
     if (hudTotal) hudTotal.textContent = _allStories.length;
     if (hudVerified) hudVerified.textContent = _allStories.filter(function(s){return s.status==="verified";}).length;
     if (hudPending) hudPending.textContent = _allStories.filter(function(s){return s.status!=="verified";}).length;
-    if (!window.GlobeAPI || !window.GlobeAPI.updatePins) {
-    console.log("[FEED] Called updateCountryStatsFromStories with", _allStories.length, "stories");
-    }
+    console.log("[FEED] Realtime update: HUD set to", _allStories.length, "stories");
     populateTickers(_allStories);
   });
 }
