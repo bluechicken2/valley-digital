@@ -127,7 +127,8 @@
     L.control.zoom({ position:'bottomright' }).addTo(mapInstance);
 
     // Fill container
-    mapInstance.fitWorld({ animate:false });
+    // fitBounds to show the full world including Oceania without hitting antimeridian
+    mapInstance.fitBounds([[-55, -170], [75, 175]], { animate: false, padding: [0, 0] });
     mapInstance.options.minZoom = mapInstance.getZoom();
 
     // Force dark background
@@ -190,10 +191,11 @@
         + '<div class="map-tip-cta">Click to read →</div>'
         + '</div>';
       marker.bindTooltip(tipHtml, {
-        sticky: true,
+        sticky: false,
+        direction: 'auto',
         opacity: 1,
         className: 'map-tip-wrapper',
-        offset: [14, 0]
+        offset: [10, -20]
       });
 
       marker.on('click', function(){

@@ -957,16 +957,20 @@ h1, h2, h3, h4, h5, h6 {
 .map-tip-wrapper.leaflet-tooltip::before { display: none !important; }
 
 .map-tip {
-  background: rgba(6, 8, 18, 0.96);
+  background: rgba(6, 8, 18, 0.97);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(0, 212, 255, 0.2);
   border-radius: 12px;
   padding: 12px 14px;
-  min-width: 220px;
-  max-width: 280px;
+  width: 260px;
+  max-width: 260px;
+  min-width: 0;
   pointer-events: none;
   box-shadow: 0 8px 32px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04) inset;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  overflow: hidden;
 }
 
 .map-tip-header {
@@ -1005,6 +1009,9 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 500;
   line-height: 1.5;
   margin-bottom: 10px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
 }
 
 .map-tip-score {
