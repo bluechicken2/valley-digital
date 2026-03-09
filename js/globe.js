@@ -75,46 +75,46 @@ var STROKE_COLORS = {
   }
 };
 
-// Fill colors for heat map
+// Fill colors for heat map - solid professional look
 var FILL_COLORS = {
   all: function(heat) {
-    if (heat === 0) return 'rgba(10,20,35,0.08)';
-    if (heat < 2) return 'rgba(30,80,160,0.40)';
-    if (heat < 4) return 'rgba(25,140,180,0.45)';
-    if (heat < 8) return 'rgba(60,180,100,0.50)';
-    if (heat < 15) return 'rgba(200,170,50,0.55)';
-    if (heat < 25) return 'rgba(230,120,30,0.60)';
-    return 'rgba(240,60,60,0.65)';
+    if (heat === 0) return 'rgba(8,15,25,0.50)';      // Solid dark base
+    if (heat < 2) return 'rgba(20,60,140,0.70)';      // Solid blue
+    if (heat < 4) return 'rgba(15,120,160,0.75)';     // Solid cyan
+    if (heat < 8) return 'rgba(40,160,80,0.80)';      // Solid green
+    if (heat < 15) return 'rgba(190,160,40,0.82)';    // Solid yellow
+    if (heat < 25) return 'rgba(220,110,25,0.85)';    // Solid orange
+    return 'rgba(230,50,50,0.88)';                     // Solid red
   },
   density: function(heat) {
-    if (heat === 0) return 'rgba(15,20,30,0.08)';
-    if (heat < 2) return 'rgba(40,70,150,0.40)';
-    if (heat < 4) return 'rgba(35,130,170,0.45)';
-    if (heat < 8) return 'rgba(80,160,120,0.50)';
-    if (heat < 15) return 'rgba(180,160,70,0.55)';
-    if (heat < 25) return 'rgba(210,130,50,0.60)';
-    return 'rgba(220,70,70,0.65)';
+    if (heat === 0) return 'rgba(10,15,25,0.50)';
+    if (heat < 2) return 'rgba(30,55,130,0.70)';
+    if (heat < 4) return 'rgba(25,110,150,0.75)';
+    if (heat < 8) return 'rgba(60,140,100,0.80)';
+    if (heat < 15) return 'rgba(160,140,55,0.82)';
+    if (heat < 25) return 'rgba(190,115,40,0.85)';
+    return 'rgba(200,55,55,0.88)';
   },
   conflicts: function(heat) {
-    if (heat === 0) return 'rgba(20,15,15,0.08)';
-    if (heat < 2) return 'rgba(160,60,60,0.40)';
-    if (heat < 4) return 'rgba(180,80,60,0.45)';
-    if (heat < 8) return 'rgba(200,100,50,0.50)';
-    return 'rgba(240,50,50,0.60)';
+    if (heat === 0) return 'rgba(15,10,10,0.50)';
+    if (heat < 2) return 'rgba(140,45,45,0.70)';
+    if (heat < 4) return 'rgba(160,65,45,0.75)';
+    if (heat < 8) return 'rgba(180,85,40,0.80)';
+    return 'rgba(220,35,35,0.88)';
   },
   weather: function(heat) {
-    if (heat === 0) return 'rgba(15,25,20,0.08)';
-    if (heat < 2) return 'rgba(50,140,100,0.40)';
-    if (heat < 4) return 'rgba(60,160,120,0.45)';
-    if (heat < 8) return 'rgba(80,180,140,0.50)';
-    return 'rgba(160,220,170,0.60)';
+    if (heat === 0) return 'rgba(10,20,15,0.50)';
+    if (heat < 2) return 'rgba(35,120,80,0.70)';
+    if (heat < 4) return 'rgba(45,140,100,0.75)';
+    if (heat < 8) return 'rgba(60,160,120,0.80)';
+    return 'rgba(140,200,150,0.88)';
   },
   elections: function(heat) {
-    if (heat === 0) return 'rgba(25,15,30,0.08)';
-    if (heat < 2) return 'rgba(120,60,150,0.40)';
-    if (heat < 4) return 'rgba(140,80,170,0.45)';
-    if (heat < 8) return 'rgba(160,100,190,0.50)';
-    return 'rgba(200,140,230,0.60)';
+    if (heat === 0) return 'rgba(20,12,25,0.50)';
+    if (heat < 2) return 'rgba(100,50,130,0.70)';
+    if (heat < 4) return 'rgba(120,70,150,0.75)';
+    if (heat < 8) return 'rgba(140,90,170,0.80)';
+    return 'rgba(180,130,210,0.88)';
   }
 };;
 
