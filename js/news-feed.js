@@ -78,6 +78,7 @@ async function loadStories(append) {
   if (window.GlobeAPI) {
     window.GlobeAPI.updatePins(_allStories);
     window.GlobeAPI.updateCountryStatsFromStories(_allStories);
+    console.log("[FEED] Called updateCountryStatsFromStories with", _allStories.length, "stories");
   }
   if (!append) populateTickers(_allStories);
   if (window.checkSpaceStories) window.checkSpaceStories(_allStories);
@@ -433,6 +434,7 @@ function setupRealtime() {
     if (window.GlobeAPI) {
       window.GlobeAPI.updatePins(_allStories);
       window.GlobeAPI.updateCountryStatsFromStories(_allStories);
+    console.log("[FEED] Called updateCountryStatsFromStories with", _allStories.length, "stories");
     }
     populateTickers(_allStories);
   });

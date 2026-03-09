@@ -420,6 +420,7 @@ function animateCounter(el, target, duration) {
 }
 
 function _updateHUD(stories) {
+  console.log("[GLOBE] _updateHUD called with", stories.length, "stories");
   var total    = stories.length;
   var verified = stories.filter(function(s){return s.status==='verified';}).length;
   var pending  = stories.filter(function(s){return s.status!=='verified';}).length;
