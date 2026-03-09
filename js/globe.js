@@ -134,28 +134,24 @@ var OVERLAYS = {
 };
 
 function getCapColor(feat) {
-  var code = (feat.properties && feat.properties.ISO_A2) || '';
-  var heat = (countryMap[code] && countryMap[code].story_count) || 0;
-  return (OVERLAYS[currentOverlay] || OVERLAYS.all)(heat, code);
+  // Pins-only: always transparent
+  return 'rgba(0,0,0,0)';
 }
 function getSideColor(feat) {
   return 'rgba(0,0,0,0)';// Fully transparent for click compatibility  // Transparent sides
 }
 function getStrokeColor(feat) {
-  var code = (feat.properties && feat.properties.ISO_A2) || '';
-  var heat = (countryMap[code] && countryMap[code].story_count) || 0;
-  return (STROKE_COLORS[currentOverlay] || STROKE_COLORS.all)(heat);
+  // Pins-only: no border strokes
+  return 'rgba(0,0,0,0)';
 }
 function getFillColor(feat) {
-  var code = (feat.properties && feat.properties.ISO_A2) || '';
-  var heat = (countryMap[code] && countryMap[code].story_count) || 0;
-  return (FILL_COLORS[currentOverlay] || FILL_COLORS.all)(heat);
+  // Pins-only: always transparent
+  return 'rgba(0,0,0,0)';
 }
 
 function getAltitude(feat) {
-  var code = (feat.properties && feat.properties.ISO_A2) || '';
-  var heat = (countryMap[code] && countryMap[code].story_count) || 0;
-  return 0.05 + Math.min(heat/20, 1) * 0.015;
+  // Pins-only: flat, no extrusion
+  return 0.001;
 }
 
 // ------------------------------------------------
@@ -277,7 +273,7 @@ function _wireSpinBtn() {
 
 function _applyPolygons(g, geoJson, onCountryClick) {
   g.polygonsData(geoJson.features)
-   .polygonCapColor(getFillColor)
+   .polygonCapColor(function() { return 'rgba(0,0,0,0)'; })
    .polygonSideColor(function() { return 'rgba(0,0,0,0)'; })
    .polygonAltitude(0.001)
    .onPolygonHover(function(feat) {
@@ -304,7 +300,7 @@ function _applyPolygons(g, geoJson, onCountryClick) {
       }
    })
    // Add stroke AFTER click handler to avoid blocking clicks
-   .polygonStrokeColor(getStrokeColor);
+   .polygonStrokeColor(function() { return 'rgba(0,0,0,0)'; });
 }
 
 function _heatLabel(h) {
@@ -358,7 +354,7 @@ function _refreshColors() {
   // ONLY update stroke color for glowing borders - DO NOT override altitude or fill
   // This keeps clicks working (altitude 0.001, transparent fill)
   globeInst
-    .polygonStrokeColor(getStrokeColor);
+    .polygonStrokeColor(function() { return 'rgba(0,0,0,0)'; });
 }
 
 // ------------------------------------------------
@@ -841,8 +837,8 @@ function toggleOutlineMode() {
     }
     globeInst.atmosphereAltitude(0.22);
     globeInst.atmosphereColor('rgba(0,150,255,0.13)');
-    globeInst.polygonStrokeColor(function() { return 'rgba(0,212,255,0.06)'; });
-    globeInst.polygonCapColor(getFillColor);
+    globeInst.polygonStrokeColor(function() { return 'rgba(0,0,0,0)'; }); // Pins-only
+    globeInst.polygonCapColor(function() { return 'rgba(0,0,0,0)'; });
     globeInst.polygonSideColor(function() { return 'rgba(0,0,0,0)'; });
     globeInst.polygonAltitude(0.001);
   }
