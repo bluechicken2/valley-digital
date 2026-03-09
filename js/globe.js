@@ -32,89 +32,71 @@ function scheduleSpinResume() {
 // ------------------------------------------------
 // Overlay colour schemes
 // ------------------------------------------------
-// Heat map gradient colors
+// Border colors - subtle cyan glow (35% opacity)
 var STROKE_COLORS = {
   all: function(heat) {
-    if (heat === 0) return 'rgba(30,60,100,0.20)';
-    if (heat < 2) return 'rgba(50,120,200,0.90)';
-    if (heat < 4) return 'rgba(40,180,220,0.92)';
-    if (heat < 8) return 'rgba(80,200,120,0.95)';
-    if (heat < 15) return 'rgba(240,200,60,0.97)';
-    if (heat < 25) return 'rgba(255,130,40,1.0)';
-    return 'rgba(255,70,70,1.0)';
+    if (heat === 0) return 'rgba(0,100,150,0.20)';    // Dim inactive border
+    if (heat < 3) return 'rgba(0,200,230,0.35)';     // Visible cyan
+    if (heat < 8) return 'rgba(0,210,240,0.50)';     // Brighter
+    return 'rgba(50,230,255,0.70)';                   // Bright cyan glow
   },
   density: function(heat) {
-    if (heat === 0) return 'rgba(40,50,80,0.20)';
-    if (heat < 2) return 'rgba(60,100,180,0.90)';
-    if (heat < 4) return 'rgba(50,160,200,0.92)';
-    if (heat < 8) return 'rgba(100,180,140,0.95)';
-    if (heat < 15) return 'rgba(220,190,80,0.97)';
-    if (heat < 25) return 'rgba(240,140,60,1.0)';
-    return 'rgba(240,80,80,1.0)';
+    if (heat === 0) return 'rgba(0,100,150,0.20)';
+    if (heat < 3) return 'rgba(0,200,230,0.35)';
+    if (heat < 8) return 'rgba(0,210,240,0.50)';
+    return 'rgba(50,230,255,0.70)';
   },
   conflicts: function(heat) {
-    if (heat === 0) return 'rgba(60,30,30,0.20)';
-    if (heat < 2) return 'rgba(200,80,80,0.90)';
-    if (heat < 4) return 'rgba(220,100,80,0.92)';
-    if (heat < 8) return 'rgba(240,120,60,0.95)';
-    return 'rgba(255,60,60,1.0)';
+    if (heat === 0) return 'rgba(80,40,40,0.20)';
+    if (heat < 3) return 'rgba(200,80,80,0.35)';
+    if (heat < 8) return 'rgba(220,100,100,0.50)';
+    return 'rgba(255,120,120,0.70)';
   },
   weather: function(heat) {
-    if (heat === 0) return 'rgba(30,50,40,0.20)';
-    if (heat < 2) return 'rgba(60,160,120,0.90)';
-    if (heat < 4) return 'rgba(80,180,140,0.92)';
-    if (heat < 8) return 'rgba(100,200,160,0.95)';
-    return 'rgba(180,240,180,1.0)';
+    if (heat === 0) return 'rgba(40,80,60,0.20)';
+    if (heat < 3) return 'rgba(80,200,100,0.35)';
+    if (heat < 8) return 'rgba(100,220,120,0.50)';
+    return 'rgba(120,240,140,0.70)';
   },
   elections: function(heat) {
-    if (heat === 0) return 'rgba(50,30,60,0.20)';
-    if (heat < 2) return 'rgba(140,80,180,0.90)';
-    if (heat < 4) return 'rgba(160,100,200,0.92)';
-    if (heat < 8) return 'rgba(180,120,220,0.95)';
-    return 'rgba(220,160,255,1.0)';
+    if (heat === 0) return 'rgba(60,40,80,0.20)';
+    if (heat < 3) return 'rgba(160,100,220,0.35)';
+    if (heat < 8) return 'rgba(180,120,240,0.50)';
+    return 'rgba(200,140,255,0.70)';
   }
 };
 
-// Fill colors for heat map - fully opaque to cover earth texture
+// Fill colors - subtle cyan glow (proven approach)
 var FILL_COLORS = {
   all: function(heat) {
-    if (heat === 0) return 'rgba(8,15,28,0.92)';      // Nearly opaque dark base
-    if (heat < 2) return 'rgba(15,55,130,0.94)';      // Near-opaque blue
-    if (heat < 4) return 'rgba(10,115,150,0.95)';     // Near-opaque cyan
-    if (heat < 8) return 'rgba(35,150,70,0.96)';      // Near-opaque green
-    if (heat < 15) return 'rgba(180,150,30,0.97)';    // Near-opaque yellow
-    if (heat < 25) return 'rgba(210,100,20,0.98)';    // Near-opaque orange
-    return 'rgba(220,40,40,0.99)';                     // Near-opaque red
+    if (heat === 0) return 'rgba(0,0,0,0)';           // Transparent - show earth texture
+    if (heat < 3) return 'rgba(0,200,230,0.25)';      // Subtle cyan
+    if (heat < 8) return 'rgba(0,210,240,0.35)';      // Medium cyan
+    return 'rgba(100,240,255,0.50)';                   // Bright cyan for hot
   },
   density: function(heat) {
-    if (heat === 0) return 'rgba(8,12,22,0.92)';
-    if (heat < 2) return 'rgba(25,50,120,0.94)';
-    if (heat < 4) return 'rgba(20,100,140,0.95)';
-    if (heat < 8) return 'rgba(50,130,90,0.96)';
-    if (heat < 15) return 'rgba(150,130,45,0.97)';
-    if (heat < 25) return 'rgba(180,105,30,0.98)';
-    return 'rgba(190,45,45,0.99)';
+    if (heat === 0) return 'rgba(0,0,0,0)';
+    if (heat < 3) return 'rgba(0,200,230,0.25)';
+    if (heat < 8) return 'rgba(0,210,240,0.35)';
+    return 'rgba(100,240,255,0.50)';
   },
   conflicts: function(heat) {
-    if (heat === 0) return 'rgba(12,8,8,0.92)';
-    if (heat < 2) return 'rgba(130,40,40,0.94)';
-    if (heat < 4) return 'rgba(150,55,35,0.95)';
-    if (heat < 8) return 'rgba(170,75,30,0.96)';
-    return 'rgba(210,25,25,0.99)';
+    if (heat === 0) return 'rgba(0,0,0,0)';
+    if (heat < 3) return 'rgba(220,80,80,0.25)';
+    if (heat < 8) return 'rgba(240,100,100,0.35)';
+    return 'rgba(255,120,120,0.50)';
   },
   weather: function(heat) {
-    if (heat === 0) return 'rgba(8,15,12,0.92)';
-    if (heat < 2) return 'rgba(30,110,70,0.94)';
-    if (heat < 4) return 'rgba(40,130,90,0.95)';
-    if (heat < 8) return 'rgba(50,150,110,0.96)';
-    return 'rgba(130,190,140,0.99)';
+    if (heat === 0) return 'rgba(0,0,0,0)';
+    if (heat < 3) return 'rgba(80,200,100,0.25)';
+    if (heat < 8) return 'rgba(100,220,120,0.35)';
+    return 'rgba(120,240,140,0.50)';
   },
   elections: function(heat) {
-    if (heat === 0) return 'rgba(15,10,20,0.92)';
-    if (heat < 2) return 'rgba(90,45,120,0.94)';
-    if (heat < 4) return 'rgba(110,60,140,0.95)';
-    if (heat < 8) return 'rgba(130,80,160,0.96)';
-    return 'rgba(170,120,200,0.99)';
+    if (heat === 0) return 'rgba(0,0,0,0)';
+    if (heat < 3) return 'rgba(160,100,220,0.25)';
+    if (heat < 8) return 'rgba(180,120,240,0.35)';
+    return 'rgba(200,140,255,0.50)';
   }
 };;
 
