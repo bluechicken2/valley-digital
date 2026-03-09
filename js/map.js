@@ -36,9 +36,9 @@
     }
     if (mapInstance) return;
 
-    var WORLD_BOUNDS = [[-75, -170], [80, 170]];
-
     mapInstance = L.map('globe-container', {
+      center:              [20, 0],
+      zoom:                2,
       minZoom:             1,
       maxZoom:             10,
       zoomSnap:            0.1,
@@ -51,8 +51,10 @@
       attributionControl:  false
     });
 
-    // fitBounds fills the container exactly — no white bars at any screen size
-    mapInstance.fitBounds(WORLD_BOUNDS, { padding: [0, 0], animate: false });
+    // fitWorld fills the container exactly with no white bars on any screen
+    mapInstance.fitWorld({ animate: false });
+    // Lock minZoom to whatever zoom fitWorld calculated so user can't zoom out past full world
+    mapInstance.options.minZoom = mapInstance.getZoom();
 
     // Dark no-label tiles (no Chinese, no any-language text)
     L.tileLayer(
