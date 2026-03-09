@@ -295,24 +295,51 @@ function updateStoryPins(stories) {
     return s.lat != null && s.lng != null && (s.lat !== 0 || s.lng !== 0);
   });
 
-  // --- Pins ---
-  var pins = validStories.map(function(s) {
-    var catColor = CAT_COLORS[s.category] || '#00d4ff';
-    var size = s.is_breaking         ? 0.45
-             : s.xray_score >= 80   ? 0.35
-             : s.xray_score >= 60   ? 0.28
-             : s.confidence_score >= 71 ? 0.30
-             : s.confidence_score >= 41 ? 0.25
-             : 0.18;
-    return {
-      id:    s.id,
-      lat:   +s.lat,
-      lng:   +s.lng,
-      size:  size,
-      color: s.is_breaking ? '#ffffff' : catColor,
-      label: s.headline,
-      cat:   s.category || ''
-    };
+  // --- Pins with jitter to prevent stacking ---
+  // First, group stories by coordinates
+  var coordMap = {};
+  validStories.forEach(function(s) {
+    var key = s.lat + ',' + s.lng;
+    if (!coordMap[key]) coordMap[key] = [];
+    coordMap[key].push(s);
+  });
+  
+  // Apply jitter to overlapping pins
+  var pins = [];
+  Object.keys(coordMap).forEach(function(key) {
+    var stories = coordMap[key];
+    var baseLat = +stories[0].lat;
+    var baseLng = +stories[0].lng;
+    
+    stories.forEach(function(s, i) {
+      var catColor = CAT_COLORS[s.category] || '#00d4ff';
+      var size = s.is_breaking         ? 0.45
+               : s.xray_score >= 80   ? 0.35
+               : s.xray_score >= 60   ? 0.28
+               : s.confidence_score >= 71 ? 0.30
+               : s.confidence_score >= 41 ? 0.25
+               : 0.18;
+      
+      // Jitter offset for overlapping pins (spread in a circle)
+      var jitterLat = baseLat;
+      var jitterLng = baseLng;
+      if (stories.length > 1) {
+        var angle = (2 * Math.PI * i) / stories.length;
+        var offset = 1.5; // degrees offset
+        jitterLat = baseLat + Math.cos(angle) * offset;
+        jitterLng = baseLng + Math.sin(angle) * offset;
+      }
+      
+      pins.push({
+        id:    s.id,
+        lat:   jitterLat,
+        lng:   jitterLng,
+        size:  size,
+        color: s.is_breaking ? '#ffffff' : catColor,
+        label: s.headline,
+        cat:   s.category || ''
+      });
+    });
   });
 
   // Custom point rendering with glow
