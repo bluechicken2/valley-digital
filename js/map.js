@@ -75,6 +75,13 @@
     // Init empty marker layer
     markerLayer = L.layerGroup().addTo(mapInstance);
 
+    // Force dark background on ALL map panes directly — defeats Leaflet default white
+    var dark = '#080b12';
+    mapInstance.getContainer().style.background = dark;
+    ['tilePane','shadowPane','overlayPane','markerPane','tooltipPane','popupPane'].forEach(function(p) {
+      try { mapInstance.getPane(p).style.background = dark; } catch(e) {}
+    });
+
     // Hide loading overlays
     var spinner = document.getElementById('globe-spinner');
     if (spinner) spinner.style.display = 'none';
