@@ -932,3 +932,17 @@ h1, h2, h3, h4, h5, h6 {
   background: #080b12 !important;
   overflow: hidden;
 }
+
+/* ================================================
+   Map Pins v10 — Glowing SVG Pins
+   ================================================ */
+.map-pin-pulse {
+  animation: mapPinPulse 1.4s ease-in-out infinite;
+  display: inline-block;
+}
+@keyframes mapPinPulse {
+  0%   { transform: scale(1);   opacity: 1; }
+  50%  { transform: scale(1.35); opacity: 0.75; }
+  100% { transform: scale(1);   opacity: 1; }
+}
+.leaflet-marker-icon { cursor: pointer; }

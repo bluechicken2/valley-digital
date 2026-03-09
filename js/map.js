@@ -1,23 +1,22 @@
 // ================================================
-// XRAYNEWS — Flat 2D Leaflet Map (v2)
+// XRAYNEWS — Flat 2D Leaflet Map (v10)
 // window.GlobeAPI is 100% interface-compatible
-// with globe.js so that news-feed.js needs no changes.
 // ================================================
 (function () {
 
   var mapInstance  = null;
   var markerLayer  = null;
-  var _onCountryClick = null;
+  var borderLayer  = null;
 
   var CAT_COLORS = {
     'War & Conflict':     '#ff4444',
-    'Politics':           '#7b2fff',
-    'Weather & Disaster': '#ffaa00',
+    'Politics':           '#a855f7',
+    'Weather & Disaster': '#f59e0b',
     'Economy':            '#00d4ff',
     'Science & Tech':     '#00ff88',
-    'Health':             '#ff6b9d',
-    'Elections':          '#a78bfa',
-    'Environment':        '#40e0a0'
+    'Health':             '#f472b6',
+    'Elections':          '#818cf8',
+    'Environment':        '#34d399'
   };
 
   function storyColor(story) {
@@ -25,9 +24,26 @@
     return CAT_COLORS[story.category] || '#00d4ff';
   }
 
-  // ------------------------------------------------
-  // Init map
-  // ------------------------------------------------
+  function makePinIcon(color, radius, isBreaking) {
+    var size = radius * 2 + 16;
+    var half = size / 2;
+    var glow = isBreaking ? 6 : 3;
+    var pulse = isBreaking ? ' class="map-pin-pulse"' : '';
+    var html = '<div' + pulse + ' style="width:' + size + 'px;height:' + size + 'px">'
+      + '<svg xmlns="http://www.w3.org/2000/svg" width="' + size + '" height="' + size + '">'
+      + '<defs><filter id="g"><feGaussianBlur stdDeviation="' + glow + '"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>'
+      + '<circle cx="' + half + '" cy="' + half + '" r="' + (radius+3) + '" fill="' + color + '" opacity="0.18"/>'
+      + '<circle cx="' + half + '" cy="' + half + '" r="' + radius + '" fill="' + color + '" filter="url(#g)" opacity="0.92"/>'
+      + '</svg></div>';
+    return L.divIcon({
+      html: html,
+      className: '',
+      iconSize:    [size, size],
+      iconAnchor:  [half, half],
+      tooltipAnchor: [half + 4, 0]
+    });
+  }
+
   function initDashboardMap() {
     var el = document.getElementById('globe-container');
     if (!el || typeof L === 'undefined') {
@@ -37,154 +53,140 @@
     if (mapInstance) return;
 
     mapInstance = L.map('globe-container', {
-      center:              [20, 0],
-      zoom:                2,
-      minZoom:             1,
-      maxZoom:             10,
-      zoomSnap:            0.1,
-      zoomDelta:           0.5,
-      zoomControl:         false,
-      scrollWheelZoom:     true,
-      worldCopyJump:       false,
-      maxBounds:           [[-85, -220], [85, 220]],
-      maxBoundsViscosity:  0.7,
-      attributionControl:  false
+      center:             [20, 0],
+      zoom:               2,
+      minZoom:            1,
+      maxZoom:            10,
+      zoomSnap:           0.1,
+      zoomDelta:          0.5,
+      zoomControl:        false,
+      scrollWheelZoom:    true,
+      worldCopyJump:      false,
+      maxBounds:          [[-85,-220],[85,220]],
+      maxBoundsViscosity: 0.7,
+      attributionControl: false
     });
 
-    // fitWorld fills the container with the world
-    mapInstance.fitWorld({ animate: false });
-    // Lock minZoom so user cannot zoom out past world fill
-    mapInstance.options.minZoom = mapInstance.getZoom();
-
-    // Dark no-label tiles (no Chinese, no any-language text)
-    // noWrap is NOT set — tiles repeat to fill container at low zoom
-    // maxBounds on the map itself controls where the user can pan
+    // Layer 1: Dark base tiles (no labels)
     L.tileLayer(
       'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png',
-      {
-        subdomains:        'abcd',
-        maxZoom:           10,
-        updateWhenZooming: false,
-        keepBuffer:        3
-      }
+      { subdomains:'abcd', maxZoom:10, updateWhenZooming:false, keepBuffer:3 }
     ).addTo(mapInstance);
 
-    // Zoom control bottom-right
-    L.control.zoom({ position: 'bottomright' }).addTo(mapInstance);
+    // Layer 2: English labels on top
+    L.tileLayer(
+      'https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png',
+      { subdomains:'abcd', maxZoom:10, updateWhenZooming:false }
+    ).addTo(mapInstance);
 
-    // Init empty marker layer
+    // Layer 3: Marker layer
     markerLayer = L.layerGroup().addTo(mapInstance);
 
-    // Force dark background on ALL map panes directly — defeats Leaflet default white
+    // Layer 4: Country borders from GeoJSON (behind markers)
+    fetch('https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson')
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        borderLayer = L.geoJSON(data, {
+          style: {
+            color:       '#00bfff',
+            weight:      0.8,
+            opacity:     0.45,
+            fillOpacity: 0
+          }
+        });
+        borderLayer.addTo(mapInstance);
+        borderLayer.bringToBack();
+      })
+      .catch(function(e){ console.warn('[Map] Borders failed:', e.message); });
+
+    // Zoom controls
+    L.control.zoom({ position:'bottomright' }).addTo(mapInstance);
+
+    // Fill container
+    mapInstance.fitWorld({ animate:false });
+    mapInstance.options.minZoom = mapInstance.getZoom();
+
+    // Force dark background
     var dark = '#080b12';
     mapInstance.getContainer().style.background = dark;
-    ['tilePane','shadowPane','overlayPane','markerPane','tooltipPane','popupPane'].forEach(function(p) {
-      try { mapInstance.getPane(p).style.background = dark; } catch(e) {}
+    ['tilePane','shadowPane','overlayPane','markerPane','tooltipPane','popupPane'].forEach(function(p){
+      try { mapInstance.getPane(p).style.background = dark; } catch(e){}
     });
 
-    // Hide loading overlays
-    var spinner = document.getElementById('globe-spinner');
-    if (spinner) spinner.style.display = 'none';
-    var placeholder = document.getElementById('globe-placeholder');
-    if (placeholder) placeholder.style.display = 'none';
+    // Hide loaders
+    ['globe-spinner','globe-placeholder'].forEach(function(id){
+      var el2 = document.getElementById(id);
+      if (el2) el2.style.display = 'none';
+    });
     if (window.Loader) window.Loader.hide();
 
-    console.log('[Map] Leaflet 2D map ready — v2 (no labels, no wrap)');
+    console.log('[Map] Leaflet 2D map ready — v10 (glowing pins, borders, labels)');
   }
 
-  // ------------------------------------------------
-  // Render story markers
-  // ------------------------------------------------
   function renderMarkers(stories) {
     if (!mapInstance) initDashboardMap();
     if (!markerLayer) return;
     markerLayer.clearLayers();
 
-    stories.forEach(function (story) {
+    stories.forEach(function(story){
       var lat = parseFloat(story.lat);
       var lng = parseFloat(story.lng);
-      if (!lat && !lng) return;
-      if (isNaN(lat) || isNaN(lng)) return;
+      if ((!lat && !lng) || isNaN(lat) || isNaN(lng)) return;
 
       var isBreaking = story.breaking || story.is_breaking;
-      var color      = storyColor(story);
-      var score      = story.xray_score || story.confidence_score || 50;
-      var radius     = isBreaking ? 9 : score >= 80 ? 7 : score >= 60 ? 5.5 : 4;
+      var color  = storyColor(story);
+      var score  = story.xray_score || story.confidence_score || 50;
+      var radius = isBreaking ? 10 : score >= 80 ? 8 : score >= 60 ? 6 : 4;
 
-      var marker = L.circleMarker([lat, lng], {
-        radius:      radius,
-        fillColor:   color,
-        fillOpacity: 0.88,
-        color:       isBreaking ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.4)',
-        weight:      isBreaking ? 2 : 1
+      var marker = L.marker([lat, lng], {
+        icon: makePinIcon(color, radius, isBreaking),
+        zIndexOffset: isBreaking ? 1000 : score
       });
 
-      // Tooltip on hover
       var cat   = story.category || 'News';
-      var title = (story.title || story.headline || '').substring(0, 90);
+      var title = (story.title || story.headline || '').substring(0,90);
       marker.bindTooltip(
         '<div class="map-tooltip">'
-          + '<span class="map-tooltip-cat" style="color:' + color + '">' + cat.toUpperCase() + (isBreaking ? ' ⚡' : '') + '</span>'
-          + '<div class="map-tooltip-title">' + title + '</div>'
+        + '<span class="map-tooltip-cat" style="color:' + color + '">' + cat.toUpperCase() + (isBreaking?' ⚡':'') + '</span>'
+        + '<div class="map-tooltip-title">' + title + '</div>'
         + '</div>',
-        { sticky: true, opacity: 1, className: 'map-tooltip-wrapper', offset: [10, 0] }
+        { sticky:true, opacity:1, className:'map-tooltip-wrapper', offset:[10,0] }
       );
 
-      // Click → story page
-      marker.on('click', function () {
-        if (story.id) {
-          window.location.href = 'story.html?id=' + story.id;
-        }
+      marker.on('click', function(){
+        if (story.id) window.location.href = 'story.html?id=' + story.id;
       });
 
       markerLayer.addLayer(marker);
     });
+
+    if (borderLayer) borderLayer.bringToBack();
   }
 
-  // ------------------------------------------------
-  // HUD update
-  // ------------------------------------------------
   function updateHUD(stories) {
     var total    = stories.length;
-    var verified = stories.filter(function (s) { return s.is_verified || s.status === 'verified'; }).length;
+    var verified = stories.filter(function(s){ return s.is_verified || s.status==='verified'; }).length;
     var pending  = total - verified;
-    var setEl    = function (id, val) {
-      var el = document.getElementById(id);
-      if (el) el.textContent = val;
-    };
+    function setEl(id,val){ var e=document.getElementById(id); if(e) e.textContent=val; }
     setEl('hud-total',    total);
     setEl('hud-verified', verified);
     setEl('hud-pending',  pending);
   }
 
-  // ------------------------------------------------
-  // Public API (interface-compatible with globe.js)
-  // ------------------------------------------------
   window.GlobeAPI = {
-
-    init: function (containerId, onCountryClickFn) {
-      _onCountryClick = onCountryClickFn || null;
-      initDashboardMap();
-    },
-
-    getInstance: function () { return mapInstance; },
-
-    updatePins: function (stories) {
+    init: function(containerId, fn){ initDashboardMap(); },
+    getInstance: function(){ return mapInstance; },
+    updatePins: function(stories){
       if (!mapInstance) initDashboardMap();
-      renderMarkers(stories || []);
+      renderMarkers(stories||[]);
     },
-
-    updateCountryStatsFromStories: function (stories) {
-      updateHUD(stories || []);
-    },
-
-    clearFilter:     function () {},
-    filterByCountry: function () {},
-    updateArcs:      function () {},
-    switchOverlay:   function () {}
+    updateCountryStatsFromStories: function(stories){ updateHUD(stories||[]); },
+    clearFilter:     function(){},
+    filterByCountry: function(){},
+    updateArcs:      function(){},
+    switchOverlay:   function(){}
   };
 
-  // Auto-init on DOM ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initDashboardMap);
   } else {
