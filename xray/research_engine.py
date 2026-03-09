@@ -16,11 +16,11 @@ from collections import defaultdict
 SUPABASE_URL = os.environ.get('SUPABASE_URL', 'https://dkxydhuojaspmbpjfyoz.supabase.co')
 
 def get_service_key():
-    key = os.environ.get('SERVICE_ROLE_SUBABASE', '')
+    key = os.environ.get('SERVICE_ROLE_SUPABASE', '')
     if not key:
         with open('/a0/usr/.env') as f:
             for line in f:
-                if line.startswith('SERVICE_ROLE_SUBABASE='):
+                if line.startswith('SERVICE_ROLE_SUPABASE='):
                     return line.split('=', 1)[1].strip()
     return key
 
