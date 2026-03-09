@@ -36,28 +36,32 @@
     }
     if (mapInstance) return;
 
+    var WORLD_BOUNDS = [[-75, -170], [80, 170]];
+
     mapInstance = L.map('globe-container', {
-      center:              [20, 10],
-      zoom:                2.5,
-      minZoom:             2,
+      minZoom:             1,
       maxZoom:             10,
+      zoomSnap:            0.1,
+      zoomDelta:           0.5,
       zoomControl:         false,
       scrollWheelZoom:     true,
       worldCopyJump:       false,
-      maxBounds:           [[-85.051129, -185], [85.051129, 185]],
+      maxBounds:           [[-85.051129, -180], [85.051129, 180]],
       maxBoundsViscosity:  1.0,
       attributionControl:  false
     });
 
+    // fitBounds fills the container exactly — no white bars at any screen size
+    mapInstance.fitBounds(WORLD_BOUNDS, { padding: [0, 0], animate: false });
+
     // Dark no-label tiles (no Chinese, no any-language text)
-    var WORLD_BOUNDS = [[-85.051129, -180], [85.051129, 180]];
     L.tileLayer(
       'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png',
       {
         subdomains:        'abcd',
         maxZoom:           10,
         noWrap:            true,
-        bounds:            WORLD_BOUNDS,
+        bounds:            [[-85.051129, -180], [85.051129, 180]],
         updateWhenZooming: false,
         updateWhenIdle:    false,
         keepBuffer:        2
