@@ -75,46 +75,46 @@ var STROKE_COLORS = {
   }
 };
 
-// Fill colors for heat map - solid professional look
+// Fill colors for heat map - fully opaque to cover earth texture
 var FILL_COLORS = {
   all: function(heat) {
-    if (heat === 0) return 'rgba(8,15,25,0.50)';      // Solid dark base
-    if (heat < 2) return 'rgba(20,60,140,0.70)';      // Solid blue
-    if (heat < 4) return 'rgba(15,120,160,0.75)';     // Solid cyan
-    if (heat < 8) return 'rgba(40,160,80,0.80)';      // Solid green
-    if (heat < 15) return 'rgba(190,160,40,0.82)';    // Solid yellow
-    if (heat < 25) return 'rgba(220,110,25,0.85)';    // Solid orange
-    return 'rgba(230,50,50,0.88)';                     // Solid red
+    if (heat === 0) return 'rgba(8,15,28,0.92)';      // Nearly opaque dark base
+    if (heat < 2) return 'rgba(15,55,130,0.94)';      // Near-opaque blue
+    if (heat < 4) return 'rgba(10,115,150,0.95)';     // Near-opaque cyan
+    if (heat < 8) return 'rgba(35,150,70,0.96)';      // Near-opaque green
+    if (heat < 15) return 'rgba(180,150,30,0.97)';    // Near-opaque yellow
+    if (heat < 25) return 'rgba(210,100,20,0.98)';    // Near-opaque orange
+    return 'rgba(220,40,40,0.99)';                     // Near-opaque red
   },
   density: function(heat) {
-    if (heat === 0) return 'rgba(10,15,25,0.50)';
-    if (heat < 2) return 'rgba(30,55,130,0.70)';
-    if (heat < 4) return 'rgba(25,110,150,0.75)';
-    if (heat < 8) return 'rgba(60,140,100,0.80)';
-    if (heat < 15) return 'rgba(160,140,55,0.82)';
-    if (heat < 25) return 'rgba(190,115,40,0.85)';
-    return 'rgba(200,55,55,0.88)';
+    if (heat === 0) return 'rgba(8,12,22,0.92)';
+    if (heat < 2) return 'rgba(25,50,120,0.94)';
+    if (heat < 4) return 'rgba(20,100,140,0.95)';
+    if (heat < 8) return 'rgba(50,130,90,0.96)';
+    if (heat < 15) return 'rgba(150,130,45,0.97)';
+    if (heat < 25) return 'rgba(180,105,30,0.98)';
+    return 'rgba(190,45,45,0.99)';
   },
   conflicts: function(heat) {
-    if (heat === 0) return 'rgba(15,10,10,0.50)';
-    if (heat < 2) return 'rgba(140,45,45,0.70)';
-    if (heat < 4) return 'rgba(160,65,45,0.75)';
-    if (heat < 8) return 'rgba(180,85,40,0.80)';
-    return 'rgba(220,35,35,0.88)';
+    if (heat === 0) return 'rgba(12,8,8,0.92)';
+    if (heat < 2) return 'rgba(130,40,40,0.94)';
+    if (heat < 4) return 'rgba(150,55,35,0.95)';
+    if (heat < 8) return 'rgba(170,75,30,0.96)';
+    return 'rgba(210,25,25,0.99)';
   },
   weather: function(heat) {
-    if (heat === 0) return 'rgba(10,20,15,0.50)';
-    if (heat < 2) return 'rgba(35,120,80,0.70)';
-    if (heat < 4) return 'rgba(45,140,100,0.75)';
-    if (heat < 8) return 'rgba(60,160,120,0.80)';
-    return 'rgba(140,200,150,0.88)';
+    if (heat === 0) return 'rgba(8,15,12,0.92)';
+    if (heat < 2) return 'rgba(30,110,70,0.94)';
+    if (heat < 4) return 'rgba(40,130,90,0.95)';
+    if (heat < 8) return 'rgba(50,150,110,0.96)';
+    return 'rgba(130,190,140,0.99)';
   },
   elections: function(heat) {
-    if (heat === 0) return 'rgba(20,12,25,0.50)';
-    if (heat < 2) return 'rgba(100,50,130,0.70)';
-    if (heat < 4) return 'rgba(120,70,150,0.75)';
-    if (heat < 8) return 'rgba(140,90,170,0.80)';
-    return 'rgba(180,130,210,0.88)';
+    if (heat === 0) return 'rgba(15,10,20,0.92)';
+    if (heat < 2) return 'rgba(90,45,120,0.94)';
+    if (heat < 4) return 'rgba(110,60,140,0.95)';
+    if (heat < 8) return 'rgba(130,80,160,0.96)';
+    return 'rgba(170,120,200,0.99)';
   }
 };;
 
