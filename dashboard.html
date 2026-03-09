@@ -12,7 +12,6 @@
   <link rel="stylesheet" href="css/main.css?v143">
   <link rel="stylesheet" href="css/dashboard.css?v142">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-  <!-- globe.gl loaded async in body -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="js/loader.js?v142"></script>
   <script>if(window.Loader)Loader.show();</script>
@@ -456,24 +455,14 @@
      ================================================ -->
 <section class="globe-section" aria-label="Global story map">
   <div id="globe-container" role="img" aria-label="Interactive 2D world map showing global news activity">
-  <div id="globe-placeholder" style="display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:16px;pointer-events:none;">
-    <div style="width:80px;height:80px;border:2px solid rgba(0,212,255,0.3);border-top-color:#00d4ff;border-radius:50%;animation:gwl-spin 1s linear infinite;"></div>
-    <span style="font-family:Orbitron,sans-serif;font-size:11px;color:rgba(0,212,255,0.6);letter-spacing:.1em;">LOADING GLOBE...</span>
-  </div>
+
 </div>
   <div class="globe-tooltip" id="globe-tooltip" role="tooltip" aria-hidden="true">
     <div class="tooltip-country">COUNTRY</div>
     <div class="tooltip-count">0 stories</div>
     <div class="tooltip-heat"></div>
   </div>
-  <div class="overlay-controls" role="group" aria-label="Map overlay mode" style="display:none;">
-    <button class="overlay-btn active" data-mode="all">All</button>
-    <button class="overlay-btn" data-mode="density">News Density</button>
-    <button class="overlay-btn" data-mode="conflicts">Conflicts</button>
-    <button class="overlay-btn" data-mode="weather">Weather</button>
-    <button class="overlay-btn" data-mode="elections">Elections</button>
-    <button class="overlay-btn outline-btn" id="outline-mode-btn" title="Toggle outline/texture mode" onclick="if(window.GlobeAPI&&window.GlobeAPI.toggleOutline)window.GlobeAPI.toggleOutline();">&#9711; Outline</button>
-  </div>
+  
     <!-- XrayNews Spin Toggle -->
     <div class="spin-toggle-wrap" id="spin-toggle-wrap">
       <button class="spin-toggle-btn" id="spin-toggle-btn" aria-label="Toggle globe rotation" title="Toggle rotation">
@@ -603,7 +592,7 @@
      ================================================ -->
 <script src="js/supabase-config.js?v142"></script>
 <script src="js/auth.js?v142"></script>
-<script src="js/map.js?v=2"></script>
+<script src="js/map.js?v=3"></script>
 <script src="js/pinned-stories.js?v142"></script>
         <script src="js/news-feed.js?v143"></script>
 <script src="js/stories.js?v142"></script>

@@ -68,9 +68,12 @@
     // Init empty marker layer
     markerLayer = L.layerGroup().addTo(mapInstance);
 
-    // Hide spinner
+    // Hide loading overlays
     var spinner = document.getElementById('globe-spinner');
     if (spinner) spinner.style.display = 'none';
+    var placeholder = document.getElementById('globe-placeholder');
+    if (placeholder) placeholder.style.display = 'none';
+    if (window.Loader) window.Loader.hide();
 
     console.log('[Map] Leaflet 2D map ready — v2 (no labels, no wrap)');
   }
