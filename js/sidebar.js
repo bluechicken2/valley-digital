@@ -67,14 +67,14 @@
         '</div>',
         '<div class="sb-act" id="sb-act"></div>',
         '<div class="sb-divider"></div>',
-        '<div class="sb-briefing-section" id="sb-briefing-section" style="display:none;">',
+        '<div class="sb-briefing-section" id="sb-briefing-section" style="visibility:hidden;max-height:0;overflow:hidden;">',
           '<div class="sb-briefing-head">',
             '<span class="sb-briefing-icon">&#127760;</span>',
             '<span>DAILY BRIEFING</span>',
           '</div>',
           '<div class="sb-briefing-content" id="sb-briefing-content"></div>',
         '</div>',
-        '<div class="sb-divider" id="sb-briefing-divider" style="display:none;"></div>',
+        '<div class="sb-divider" id="sb-briefing-divider" style="visibility:hidden;max-height:0;overflow:hidden;"></div>',
         '<div class="sb-stories-title">ACTIVE STORIES</div>',
         '<div class="sb-list" id="sb-list"></div>',
         '<div class="sb-foot" id="sb-foot"></div>',
@@ -205,18 +205,21 @@
     var briefingDivider = document.getElementById('sb-briefing-divider');
     var briefingContent = document.getElementById('sb-briefing-content');
     
+    // Use visibility instead of display to prevent layout reflow that causes sidebar shift
     if (briefingSection && briefingContent) {
       briefingContent.innerHTML = '<div class="sb-briefing-loading">Loading briefing...</div>';
-      briefingSection.style.display = '';
-      briefingDivider.style.display = '';
+      briefingSection.style.visibility = 'visible';
+      briefingSection.style.maxHeight = '500px';
+      briefingDivider.style.visibility = 'visible';
       
       var briefing = await _fetchBriefing(countryCode);
       
       if (briefing) {
         briefingContent.innerHTML = _renderBriefing(briefing, countryName);
       } else {
-        briefingSection.style.display = 'none';
-        briefingDivider.style.display = 'none';
+        briefingSection.style.visibility = 'hidden';
+        briefingSection.style.maxHeight = '0';
+        briefingDivider.style.visibility = 'hidden';
       }
     }
 
