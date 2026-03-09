@@ -8,6 +8,7 @@
   var markerLayer  = null;
   var borderLayer  = null;
   var _allStories  = [];  // cache for country click sidebar
+  var _pinCounter  = 0;   // unique SVG filter IDs
 
   var CAT_COLORS = {
     'War & Conflict':     '#ff4444',
@@ -29,12 +30,13 @@
     var size = radius * 2 + 16;
     var half = size / 2;
     var glow = isBreaking ? 6 : 3;
+    var fid  = 'pglow' + (++_pinCounter);  // unique filter ID per pin
     var pulse = isBreaking ? ' class="map-pin-pulse"' : '';
-    var html = '<div' + pulse + ' style="width:' + size + 'px;height:' + size + 'px">'
+    var html = '<div' + pulse + ' style="width:' + size + 'px;height:' + size + 'px;display:block">'
       + '<svg xmlns="http://www.w3.org/2000/svg" width="' + size + '" height="' + size + '">'
-      + '<defs><filter id="g"><feGaussianBlur stdDeviation="' + glow + '"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>'
-      + '<circle cx="' + half + '" cy="' + half + '" r="' + (radius+3) + '" fill="' + color + '" opacity="0.18"/>'
-      + '<circle cx="' + half + '" cy="' + half + '" r="' + radius + '" fill="' + color + '" filter="url(#g)" opacity="0.92"/>'
+      + '<defs><filter id="' + fid + '"><feGaussianBlur stdDeviation="' + glow + '"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>'
+      + '<circle cx="' + half + '" cy="' + half + '" r="' + (radius+3) + '" fill="' + color + '" opacity="0.22"/>'
+      + '<circle cx="' + half + '" cy="' + half + '" r="' + radius + '" fill="' + color + '" filter="url(#' + fid + ')" opacity="0.92"/>'
       + '</svg></div>';
     return L.divIcon({
       html: html,
