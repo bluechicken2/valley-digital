@@ -822,7 +822,7 @@ h1, h2, h3, h4, h5, h6 {
 /* ================================================
    Leaflet Map — Dark Theme v2
    ================================================ */
-#globeViz {
+#globe-container {
   background: #080b12;
 }
 .leaflet-container {
@@ -889,7 +889,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Map container border glow */
-#globeViz::after {
+#globe-container::after {
   content: "";
   position: absolute;
   inset: 0;

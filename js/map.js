@@ -29,14 +29,14 @@
   // Init map
   // ------------------------------------------------
   function initDashboardMap() {
-    var el = document.getElementById('globeViz');
+    var el = document.getElementById('globe-container');
     if (!el || typeof L === 'undefined') {
       console.warn('[Map] Leaflet or container not ready');
       return;
     }
     if (mapInstance) return;
 
-    mapInstance = L.map('globeViz', {
+    mapInstance = L.map('globe-container', {
       center:              [20, 10],
       zoom:                2.5,
       minZoom:             2,
