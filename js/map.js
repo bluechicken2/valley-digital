@@ -63,8 +63,8 @@
       zoomControl:        false,
       scrollWheelZoom:    true,
       worldCopyJump:      false,
-      maxBounds:          [[-85,-220],[85,220]],
-      maxBoundsViscosity: 0.7,
+      maxBounds:          [[-85,-180],[85,180]],
+      maxBoundsViscosity: 1.0,
       attributionControl: false
     });
 
@@ -74,10 +74,10 @@
       { subdomains:'abcd', maxZoom:10, updateWhenZooming:false, keepBuffer:3 }
     ).addTo(mapInstance);
 
-    // Layer 2: English labels on top
+    // Layer 2: English labels on top (noWrap=true prevents labels in ocean on map edges)
     L.tileLayer(
       'https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png',
-      { subdomains:'abcd', maxZoom:10, updateWhenZooming:false }
+      { subdomains:'abcd', maxZoom:10, updateWhenZooming:false, noWrap:true }
     ).addTo(mapInstance);
 
     // Layer 3: Marker layer
