@@ -145,7 +145,6 @@
     });
     if (window.Loader) window.Loader.hide();
 
-    console.log('[Map] Leaflet 2D map ready — v10 (glowing pins, borders, labels)');
   }
 
   function renderMarkers(stories) {

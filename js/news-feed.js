@@ -39,7 +39,6 @@ function timeAgo(iso) {
 // Load stories from Supabase
 // ------------------------------------------------
 async function loadStories(append) {
-  console.log("[FEED] loadStories called, append:", append);
   if (_isLoading) return _allStories;
   _isLoading = true;
   _setLoadMoreBtn('loading');
@@ -80,7 +79,6 @@ async function loadStories(append) {
   if (window.GlobeAPI && window.GlobeAPI.updatePins) {
     window.GlobeAPI.updatePins(_allStories);
     window.GlobeAPI.updateCountryStatsFromStories(_allStories);
-    console.log("[FEED] Called GlobeAPI with", _allStories.length, "stories");
   }
 
   // Always update HUD directly (fallback + ensures update)
@@ -96,7 +94,6 @@ async function loadStories(append) {
     var pending = _allStories.filter(function(s){return s.status!=="verified";}).length;
     hudPending.textContent = pending;
   }
-  console.log("[FEED] HUD updated to", _allStories.length, "stories" );
   if (!append) populateTickers(_allStories);
   if (window.checkSpaceStories) window.checkSpaceStories(_allStories);
   return _allStories;
@@ -112,7 +109,6 @@ function _setLoadMoreBtn(state) {
 }
 
 function loadMoreStories() {
-  console.log("[FEED] loadMoreStories called");
   loadStories(true);
 }
 
@@ -459,7 +455,6 @@ function setupRealtime() {
     if (hudTotal) hudTotal.textContent = _allStories.length;
     if (hudVerified) hudVerified.textContent = _allStories.filter(function(s){return s.status==="verified";}).length;
     if (hudPending) hudPending.textContent = _allStories.filter(function(s){return s.status!=="verified";}).length;
-    console.log("[FEED] Realtime update: HUD set to", _allStories.length, "stories");
     populateTickers(_allStories);
   });
 }
