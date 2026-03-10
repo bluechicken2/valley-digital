@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-Professional Analysis Generator v5
+Professional Analysis Generator v6
 Generates human-like journalist analysis from research data
+FIX: Prevents story blending by clearly separating main story from related coverage
 """
 
 import re
@@ -53,8 +54,9 @@ class ProfessionalAnalysisGenerator:
         return min(score, 100)
     
     def extract_claims_from_text(self, headline: str, summary: str = '') -> List[Dict]:
-        """Extract verifiable claims from text"""
+        """Extract verifiable claims from the CURRENT STORY ONLY"""
         claims = []
+        # Only use headline and summary from THIS story - no external content
         combined = f"{headline}. {summary}" if summary else headline
         
         # Split into sentences
@@ -143,13 +145,13 @@ class ProfessionalAnalysisGenerator:
     
     def generate_analysis(self, headline: str, summary: str, research: Dict,
                           related_stories: List[Dict] = None) -> str:
-        """Generate human-like journalistic analysis"""
+        """Generate human-like journalistic analysis - ONE STORY AT A TIME"""
         
         entities = research.get('entities', {})
         sources = research.get('sources', [])
-        context = research.get('context', {})
+        # NOTE: context (Wikipedia) is intentionally NOT used to prevent blending
         
-        # Extract and verify claims
+        # Extract and verify claims FROM THIS STORY ONLY
         claims = self.extract_claims_from_text(headline, summary)
         claims = self.verify_claims(claims, sources)
         
@@ -159,74 +161,59 @@ class ProfessionalAnalysisGenerator:
         # Build natural paragraphs
         paragraphs = []
         
-        # --- Opening: The Story So Far ---
-        opening = self._write_natural_opening(headline, summary, entities, confidence)
-        paragraphs.append(opening)
+        # --- CLEAR STORY IDENTIFICATION ---
+        story_id_para = self._write_story_identification(headline, confidence)
+        paragraphs.append(story_id_para)
         
-        # --- What We Know (confirmed facts) ---
+        # --- What We Know (confirmed facts from THIS story) ---
         confirmed_claims = [c for c in claims if c['status'] in ['confirmed', 'partially_confirmed']]
         if confirmed_claims:
             known_para = self._write_what_we_know(confirmed_claims)
             paragraphs.append(known_para)
         
-        # --- What's Still Unclear ---
+        # --- What's Still Unclear (from THIS story) ---
         unconfirmed_claims = [c for c in claims if c['status'] in ['unverified', 'contested']]
         if unconfirmed_claims or not confirmed_claims:
             unknown_para = self._write_what_we_dont_know(unconfirmed_claims, headline)
             paragraphs.append(unknown_para)
         
-        # --- The Players (key entities) ---
+        # --- The Players (key entities from THIS story) ---
         if entities and (entities.get('people') or entities.get('countries') or entities.get('organizations')):
             entities_para = self._write_entities_section(entities)
             paragraphs.append(entities_para)
-        
-        # --- Behind the Headlines (context) ---
-        if context:
-            context_para = self._write_context_section(context)
-            if context_para:
-                paragraphs.append(context_para)
-        
-        # --- The Bigger Picture (related) ---
-        if related_stories:
-            related_para = self._write_related_section(related_stories)
-            paragraphs.append(related_para)
         
         # --- Sources Note (subtle, at end) ---
         sources_note = self._write_sources_note(research, sources)
         paragraphs.append(sources_note)
         
+        # --- RELATED COVERAGE (clearly separated at the very end) ---
+        # This is placed AFTER sources note to make it clear these are OTHER stories
+        if related_stories:
+            related_para = self._write_related_section_separated(related_stories)
+            paragraphs.append(related_para)
+        
         return "\n\n".join(paragraphs)
     
-    def _write_natural_opening(self, headline, summary, entities, confidence):
-        """Write a natural opening paragraph"""
-        country = ""
-        if entities.get('countries'):
-            country = entities['countries'][0]['name']
-        
+    def _write_story_identification(self, headline: str, confidence: int) -> str:
+        """Write a clear story identification paragraph - NO BLENDING"""
         # Natural confidence phrase
         if confidence >= 70:
-            conf_phrase = "This story checks out."
+            conf_phrase = "This story has strong corroboration."
         elif confidence >= 50:
             conf_phrase = "The picture is still coming together."
         else:
             conf_phrase = "Details remain sketchy."
         
-        # Build opening
-        if country:
-            opening = f"This story involves {country}. {headline[:100]}"
-        else:
-            opening = headline[:120]
-        
-        if summary and len(summary) > 20:
-            summary_bit = summary[:150].rsplit('.', 1)[0]
-            if summary_bit and summary_bit != headline[:150]:
-                opening += f" {summary_bit}."
-        
-        opening += f" {conf_phrase}"
-        return opening
+        # CLEAR identification of which story we're analyzing
+        return f"ANALYZING: \"{headline}\"\n{conf_phrase}"
+    
+    def _write_natural_opening(self, headline, summary, entities, confidence):
+        """Write a natural opening paragraph - DEPRECATED, use _write_story_identification"""
+        # This method is kept for backwards compatibility but should not be used
+        return self._write_story_identification(headline, confidence)
 
     def _write_what_we_know(self, confirmed_claims):
-        """Write natural what we know section"""
+        """Write natural what we know section - from THIS story only"""
         lines = ["What we know:"]
         for claim in confirmed_claims[:4]:
             claim_text = claim['text'][:90].rstrip('.')
@@ -238,7 +225,7 @@ class ProfessionalAnalysisGenerator:
         return "\n".join(lines)
 
     def _write_what_we_dont_know(self, unconfirmed_claims, headline):
-        """Write natural what we don't know section"""
+        """Write natural what we don't know section - from THIS story only"""
         lines = ["What we don't know yet:"]
         if unconfirmed_claims:
             for claim in unconfirmed_claims[:3]:
@@ -250,7 +237,7 @@ class ProfessionalAnalysisGenerator:
         return "\n".join(lines)
 
     def _write_entities_section(self, entities):
-        """Write natural entities section"""
+        """Write natural entities section - from THIS story only"""
         parts = []
         if entities.get('people'):
             people = entities['people'][:2]
@@ -267,17 +254,19 @@ class ProfessionalAnalysisGenerator:
         return "\n".join(parts)
 
     def _write_context_section(self, context):
-        """Write natural context/background section"""
-        for entity, wiki_data in list(context.items())[:1]:
-            extract = wiki_data.get('extract', '')[:180]
-            if extract:
-                extract = extract.rstrip('.')
-                return f"Background: {extract}."
+        """Write natural context/background section - DISABLED to prevent blending"""
+        # INTENTIONALLY RETURN EMPTY - Wikipedia context was causing story blending
+        # Background info is not specific to the current story being analyzed
         return ""
 
     def _write_related_section(self, related_stories):
-        """Write related stories section"""
-        lines = ["Related coverage:"]
+        """Write related stories section - DEPRECATED, use _write_related_section_separated"""
+        return self._write_related_section_separated(related_stories)
+    
+    def _write_related_section_separated(self, related_stories):
+        """Write related stories section with CLEAR SEPARATION from main analysis"""
+        # Use a clear separator and label to distinguish from main story
+        lines = ["---", "OTHER COVERAGE (separate stories):"]
         for story in related_stories[:3]:
             country = story.get('country_name', 'World')
             story_headline = story.get('headline', '')[:70].rstrip('.')
