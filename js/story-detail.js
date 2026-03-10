@@ -266,6 +266,41 @@
     // Headline & Summary
     document.getElementById('story-headline').textContent = story.headline || '';
     document.getElementById('story-summary').textContent = story.summary || '';
+
+    // Show full article text if available
+    const fullTextEl = document.getElementById('story-full-text');
+    if (fullTextEl) {
+      if (story.full_text && story.full_text.trim()) {
+        // Parse markdown-like content to HTML
+        let html = story.full_text
+          .replace(/
+/g, '
+')
+          .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+          .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+          .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+          .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+          .replace(/\*(.+?)\*/g, '<em>$1</em>')
+          .replace(/^[-*] (.+)$/gm, '<li>$1</li>')
+          .replace(/^\d+\. (.+)$/gm, '<li>$1</li>')
+          .replace(/<li>(.+)<\/li>/g, '<ul><li>$1</li></ul>')
+          .replace(/<\/ul><ul>/g, '')
+          .replace(/^---$/gm, '<hr>')
+          .replace(/
+
+/g, '</p><p>')
+          .replace(/
+/g, '<br>');
+
+        // Wrap in paragraphs
+        html = '<p>' + html + '</p>';
+
+        fullTextEl.innerHTML = html;
+        fullTextEl.style.display = '';
+      } else {
+        fullTextEl.style.display = 'none';
+      }
+    }
     
     // Xray Score
     const score = story.xray_score || story.confidence_score || 0;

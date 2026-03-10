@@ -1019,7 +1019,25 @@
       animation: spin 1s linear infinite;
     }
 
-  </style>
+  
+    .story-full-text {
+      margin: 24px 0;
+      padding: 24px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .story-full-text h1 { font-size: 1.5em; margin: 0 0 16px 0; color: #fff; }
+    .story-full-text h2 { font-size: 1.25em; margin: 20px 0 12px 0; color: #00d4ff; }
+    .story-full-text h3 { font-size: 1.1em; margin: 16px 0 8px 0; color: #fff; }
+    .story-full-text p { margin: 0 0 12px 0; line-height: 1.6; }
+    .story-full-text ul, .story-full-text ol { margin: 12px 0; padding-left: 24px; }
+    .story-full-text li { margin: 8px 0; }
+    .story-full-text hr { border: none; border-top: 1px solid rgba(255,255,255,0.1); margin: 20px 0; }
+    .story-full-text strong { color: #fff; }
+    .story-full-text em { color: #aaa; }
+    .story-full-text blockquote { border-left: 3px solid #00d4ff; padding-left: 16px; margin: 16px 0; color: #ccc; }
+</style>
 </head>
 <body class="story-page">
   <div class="story-detail-container">
@@ -1164,6 +1182,9 @@
         </div>
         <h1 id="story-headline" class="story-headline"></h1>
         <p id="story-summary" class="story-summary"></p>
+
+        <!-- Full Article Text -->
+        <div id="story-full-text" class="story-full-text" style="display:none"></div>
       </div>
       
       <!-- Xray Independent Analysis -->
@@ -1265,6 +1286,6 @@
   </div>
   
   <script src="js/supabase-config.js?v=34"></script>
-  <script src="js/story-detail.js?v=34"></script>
+  <script src="js/story-detail.js?v=35"></script>
 </body>
 </html>
