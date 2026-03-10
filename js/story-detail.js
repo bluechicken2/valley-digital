@@ -271,30 +271,20 @@
     const fullTextEl = document.getElementById('story-full-text');
     if (fullTextEl) {
       if (story.full_text && story.full_text.trim()) {
-        // Parse markdown-like content to HTML
-        let html = story.full_text
-          .replace(/
-/g, '
-')
-          .replace(/^### (.+)$/gm, '<h3>$1</h3>')
-          .replace(/^## (.+)$/gm, '<h2>$1</h2>')
-          .replace(/^# (.+)$/gm, '<h1>$1</h1>')
-          .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-          .replace(/\*(.+?)\*/g, '<em>$1</em>')
-          .replace(/^[-*] (.+)$/gm, '<li>$1</li>')
-          .replace(/^\d+\. (.+)$/gm, '<li>$1</li>')
-          .replace(/<li>(.+)<\/li>/g, '<ul><li>$1</li></ul>')
-          .replace(/<\/ul><ul>/g, '')
-          .replace(/^---$/gm, '<hr>')
-          .replace(/
-
-/g, '</p><p>')
-          .replace(/
-/g, '<br>');
-
-        // Wrap in paragraphs
-        html = '<p>' + html + '</p>';
-
+        // Simple markdown-like parsing
+        let html = story.full_text;
+        // Convert newlines to <br>
+        html = html.replace(/\n/g, '<br>');
+        // Headers
+        html = html.replace(/### (.+?)<br>/g, '<h3>$1</h3>');
+        html = html.replace(/## (.+?)<br>/g, '<h2>$1</h2>');
+        html = html.replace(/# (.+?)<br>/g, '<h1>$1</h1>');
+        // Bold and italic
+        html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+        html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+        // Horizontal rules
+        html = html.replace(/---<br>/g, '<hr>');
+        
         fullTextEl.innerHTML = html;
         fullTextEl.style.display = '';
       } else {
