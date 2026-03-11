@@ -106,6 +106,19 @@ class XrayNewsDB {
   }
 
   // ---- Realtime -------------------------------------------------------
+
+  async getThreadStories(threadId) {
+    return this._fetch('/stories?story_thread_id=eq.' + encodeURIComponent(threadId) + '&order=created_at.desc&limit=20');
+  }
+
+  async getRelatedStories(category, countryCode, excludeId, limit) {
+    limit = limit || 5;
+    return this._fetch('/stories?category=eq.' + encodeURIComponent(category)
+      + '&country_code=eq.' + encodeURIComponent(countryCode)
+      + '&id=neq.' + encodeURIComponent(excludeId)
+      + '&order=created_at.desc&limit=' + limit);
+  }
+
   subscribeToStories(callback) {
     this._realtimeCbs.push(callback);
     if (this._realtimeWs) return;

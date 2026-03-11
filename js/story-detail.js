@@ -338,30 +338,28 @@
   // Render score breakdown
   function renderScoreBreakdown(story) {
     const score = story.xray_score || story.confidence_score || 0;
-    const container = document.getElementById('breakdown-list');
-    
-    // Calculate breakdown components (based on truth_engine.py logic)
-    const sourceScore = Math.min(40, Math.floor(score * 0.4));
-    const corrobScore = Math.min(30, (story.source_count || 1) * 6);
-    const recencyScore = Math.max(0, 10 - Math.floor((Date.now() - new Date(story.created_at)) / 3600000 / 24));
-    const statusScore = story.status === 'verified' ? 20 : (story.status === 'contested' ? -10 : 0);
-    
-    const breakdown = [
-      { label: 'Source Credibility', value: sourceScore, max: 40, color: '#00d4ff' },
-      { label: 'Corroboration', value: corrobScore, max: 30, color: '#00ff88' },
-      { label: 'Recency', value: recencyScore, max: 10, color: '#ffaa00' },
-      { label: 'Status Bonus', value: statusScore, max: 20, color: statusScore >= 0 ? '#00ff88' : '#ff4444' }
-    ];
-    
-    container.innerHTML = breakdown.map(function(item) {
-      return '<div class="breakdown-item">'
-        + '<span class="breakdown-label">' + escHtml(item.label) + '</span>'
-        + '<div class="breakdown-bar">'
-          + '<div class="breakdown-fill" style="width:' + Math.max(0, (item.value / item.max) * 100) + '%;background:' + item.color + '"></div>'
-        + '</div>'
-        + '<span class="breakdown-value" style="color:' + item.color + '">' + (item.value >= 0 ? '+' : '') + item.value + '</span>'
-      + '</div>';
-    }).join('');
+    const status = story.status || 'unverified';
+    const sourceCount = story.source_count || 1;
+    const created = story.created_at ? new Date(story.created_at).toLocaleString() : 'Unknown';
+
+    // Display factual data only — no fabricated component scores
+    let color = score >= 80 ? '#00ff88' : score >= 60 ? '#f59e0b' : '#ff4444';
+    let label = score >= 80 ? 'HIGH CONFIDENCE' : score >= 60 ? 'MODERATE' : 'LOW CONFIDENCE';
+
+    return `
+      <div class="score-overview">
+        <div class="score-main" style="color:${color}">
+          <span class="score-number">${score}</span>
+          <span class="score-label">${label}</span>
+        </div>
+        <div class="score-facts">
+          <div class="score-fact"><span class="fact-label">Status</span><span class="fact-value">${status}</span></div>
+          <div class="score-fact"><span class="fact-label">Sources Found</span><span class="fact-value">${sourceCount}</span></div>
+          <div class="score-fact"><span class="fact-label">First Reported</span><span class="fact-value">${created}</span></div>
+        </div>
+      </div>
+    `;
+  }).join('');
   }
   
   // Render verification sources
@@ -447,8 +445,7 @@
     
     try {
       // Fetch thread stories directly via targeted DB query (efficient)
-      const threadStories = await window.XrayNewsDB._fetch(
-        '/stories?story_thread_id=eq.' + encodeURIComponent(story.story_thread_id) +
+      const threadStories = await window.XrayNewsDB.getThreadStories(story.thread_id) +
         '&select=id,headline,xray_score,confidence_score,story_thread_id,created_at' +
         '&order=created_at.asc&limit=30'
       );
@@ -541,7 +538,7 @@
         }
         return base + '&category=eq.' + encodeURIComponent(story.category || 'Politics');
       })();
-      const related = (await window.XrayNewsDB._fetch(relatedUrl))
+      const related = (await window.XrayNewsDB.getRelatedStories(story.category, story.country_code, story.id, 5))
         .filter(function(s) {
           return !(story.story_thread_id && s.story_thread_id === story.story_thread_id);
         }).slice(0, 4);

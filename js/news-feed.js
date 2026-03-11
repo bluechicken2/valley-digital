@@ -521,7 +521,20 @@ function updateStatsBar(stories) {
 // ------------------------------------------------
 // Public API
 // ------------------------------------------------
+  function showLoadError() {
+    var grid = document.getElementById('story-grid');
+    if (grid) {
+      grid.setAttribute('aria-busy', 'false');
+      grid.innerHTML = '<div style="text-align:center;padding:48px 20px;color:#888;">'
+        + '<div style="font-size:28px;margin-bottom:14px;">⚠️</div>'
+        + '<div style="font-size:14px;margin-bottom:18px;">Failed to load stories. Check your connection.</div>'
+        + '<button onclick="location.reload()" style="background:rgba(0,212,255,0.12);border:1px solid rgba(0,212,255,0.3);color:#00d4ff;padding:10px 28px;border-radius:8px;cursor:pointer;font-size:13px;font-family:Orbitron,sans-serif;">🔄 Retry</button>'
+        + '</div>';
+    }
+  }
+
 window.NewsFeed = {
+    showLoadError: showLoadError,
   setPageSize: function(n) {
     _pageSize = parseInt(n, 10) || 50;
     _offset = 0;

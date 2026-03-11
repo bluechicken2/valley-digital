@@ -289,7 +289,7 @@ function parseNitterRss(text, sourceName) {
       if (cleanTitle && cleanTitle.length > 10) {
         items.push({
           title: cleanTitle,
-          desc: cleanDesc.substring(0, 500),
+          desc: desc.substring(0, 500),
           link: link.replace(/nitter\.[^\/]+/, 'twitter.com'), // Convert back to twitter
           pubDate,
           twitter_author: author,
@@ -435,7 +435,7 @@ async function gatherNews(env) {
   }
 
   // Fetch Nitter (Twitter/X) sources with instance rotation
-  log.push('Fetching Nitter (X/Twitter) sources...');
+  // log.push('Fetching Nitter (X/Twitter) sources...'); // DISABLED - all instances dead
   let nitterSuccess = false;
 
   for (const search of NITTER_SEARCHES) {

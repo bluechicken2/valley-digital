@@ -3,8 +3,8 @@
 // Uses @supabase/supabase-js v2 loaded from CDN
 // ================================================
 
-var SUPABASE_URL      = 'https://dkxydhuojaspmbpjfyoz.supabase.co';
-var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRreHlkaHVvamFzcG1icGpmeW96Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4MDE3NTcsImV4cCI6MjA4NzM3Nzc1N30.6jwE5s6aekCDXALnrCK2hA1Lu3h3lbh7WqR9Io0lx8s';
+// Supabase URL and ANON_KEY come from supabase-config.js (window.XrayNewsDB)
+
 var GUEST_FLAG_KEY    = 'gw_guest_mode';
 var _supaClient       = null;
 

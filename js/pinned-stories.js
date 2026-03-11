@@ -82,10 +82,11 @@ class PinnedStories {
         const scoreClass = score >= 70 ? 'high' : score >= 50 ? 'medium' : 'low';
         const flagEmoji = this.getFlagEmoji(story.country_code);
         // Safely encode story data for dataset
-        const storyJson = JSON.stringify(story).replace(/'/g, '&#39;');
+        const storyJson = JSON.stringify(story);
+            const safeJson = storyJson.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
         
         return `
-            <div class="pinned-card" data-story-id="${story.id}" data-story='${storyJson}'>
+            <div class="pinned-card" data-story-id="${story.id}" data-story="${safeJson}">
                 <div class="pinned-rank">#${rank}</div>
                 <div class="pinned-content">
                     <div class="pinned-country">

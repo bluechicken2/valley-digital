@@ -9,11 +9,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/main.css?v143">
-  <link rel="stylesheet" href="css/dashboard.css?v142">
+  <link rel="stylesheet" href="css/main.css?v=144">
+  <link rel="stylesheet" href="css/dashboard.css?v=144">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="js/loader.js?v142"></script>
+<script src="js/loader.js?v=144"></script>
   <script>if(window.Loader)Loader.show();</script>
   <style>
   :root {
@@ -585,14 +585,14 @@
 <!-- ================================================
      SCRIPTS
      ================================================ -->
-<script src="js/supabase-config.js?v142"></script>
-<script src="js/auth.js?v142"></script>
-<script src="js/map.js?v=20"></script>
-<script src="js/pinned-stories.js?v142"></script>
-        <script src="js/news-feed.js?v143"></script>
-<script src="js/stories.js?v142"></script>
-<script src="js/modal.js?v142"></script>
-<script src="js/sidebar.js?v143"></script>
+<script src="js/supabase-config.js?v=144"></script>
+<script src="js/auth.js?v=144"></script>
+<script src="js/map.js?v=144"></script>
+<script src="js/pinned-stories.js?v=144"></script>
+        <script src="js/news-feed.js?v=144"></script>
+<script src="js/stories.js?v=144"></script>
+<script src="js/modal.js?v=144"></script>
+<script src="js/sidebar.js?v=144"></script>
 <script>
 // ================================================
 // XRAYNEWS — Dashboard Init
@@ -643,8 +643,7 @@
       // Stats bar updates via NewsFeed internal hook
   } catch (e) {
     console.error('[Init] Story load error:', e);
-    // No sample fallback - show error state
-    if (window.StoryCards) window.StoryCards.renderAll([]);
+    if (window.NewsFeed && window.NewsFeed.showLoadError) window.NewsFeed.showLoadError();
   }
 
   // Store for globe to pick up whenever it becomes ready

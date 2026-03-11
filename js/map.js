@@ -169,13 +169,13 @@
       var cat      = story.category || 'News';
       var title    = (story.title || story.headline || '').substring(0, 100);
       var country  = story.country_name || story.country_code || '';
-      var score    = story.xray_score || story.confidence_score || null;
+      var displayScore    = story.xray_score || story.confidence_score || null;
       var scoreBar = '';
-      if (score) {
-        var barColor = score >= 80 ? '#00ff88' : score >= 60 ? '#f59e0b' : '#ff4444';
+      if (displayScore) {
+        var barColor = displayScore >= 80 ? '#00ff88' : displayScore >= 60 ? '#f59e0b' : '#ff4444';
         scoreBar = '<div class="map-tip-score">'
           + '<span class="map-tip-score-label">TRUTH</span>'
-          + '<div class="map-tip-score-track"><div class="map-tip-score-fill" style="width:' + score + '%;background:' + barColor + '"></div></div>'
+          + '<div class="map-tip-score-track"><div class="map-tip-score-fill" style="width:' + displayScore + '%;background:' + barColor + '"></div></div>'
           + '<span class="map-tip-score-val" style="color:' + barColor + '">' + score + '</span>'
           + '</div>';
       }

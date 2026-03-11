@@ -15,7 +15,7 @@ SUPABASE_URL = os.environ.get('SUPABASE_URL', 'https://gebogzeqczjbkqgnxrhf.supa
 SUPABASE_KEY = (
     os.environ.get('SERVICE_ROLE_SUPABASE') or 
     os.environ.get('SUPABASE_SERVICE_KEY') or 
-    os.environ.get('SUPABASE_ANON_KEY', '')
+    os.environ.get('SUPABASE_SERVICE_KEY', '')
 )
 
 # Expanded CATEGORY_MAP matching the CF worker
