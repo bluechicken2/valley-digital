@@ -1,5 +1,5 @@
 # SEO-friendly story URLs (Cloudflare Pages syntax)
 /story/:id  /story.html?id=:id  200
 
-# Dashboard is the main SPA
-/dashboard  /dashboard.html  200
+# SPA fallback — serve index.html for unmatched routes
+/*  /index.html  200
