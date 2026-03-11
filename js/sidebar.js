@@ -95,7 +95,7 @@
 
   function _miniCard(story) {
     var sm   = STATUS_MAP[story.status] || STATUS_MAP.unverified;
-    var sc   = story.confidence_score || 0;
+    var sc   = story.xray_score || story.confidence_score || 0;
     var col  = confColor(sc);
     var catC = CAT_COLORS[story.category] || '#00d4ff';
     
