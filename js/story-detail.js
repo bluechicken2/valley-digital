@@ -444,10 +444,7 @@
     
     try {
       // Fetch thread stories directly via targeted DB query (efficient)
-      const threadStories = await window.XrayNewsDB.getThreadStories(story.thread_id) +
-        '&select=id,headline,xray_score,confidence_score,story_thread_id,created_at' +
-        '&order=created_at.asc&limit=30'
-      );
+      const threadStories = await window.XrayNewsDB.getThreadStories(story.story_thread_id);
       
       if (threadStories.length <= 1) {
         if (section) section.style.display = 'none';
@@ -528,15 +525,6 @@
     
     try {
       // Fetch related stories via targeted DB query (efficient)
-      const relatedUrl = (() => {
-        const base = '/stories?select=id,headline,xray_score,confidence_score,story_thread_id,created_at&order=created_at.desc&limit=8&id=neq.' + story.id;
-        if (story.country_code && story.category) {
-          return base + '&or=(country_code.eq.' + encodeURIComponent(story.country_code) + ',category.eq.' + encodeURIComponent(story.category) + ')';
-        } else if (story.country_code) {
-          return base + '&country_code=eq.' + encodeURIComponent(story.country_code);
-        }
-        return base + '&category=eq.' + encodeURIComponent(story.category || 'Politics');
-      })();
       const related = (await window.XrayNewsDB.getRelatedStories(story.category, story.country_code, story.id, 5))
         .filter(function(s) {
           return !(story.story_thread_id && s.story_thread_id === story.story_thread_id);
