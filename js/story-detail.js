@@ -359,7 +359,6 @@
         </div>
       </div>
     `;
-  }).join('');
   }
   
   // Render verification sources
