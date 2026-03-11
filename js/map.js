@@ -62,11 +62,10 @@
       maxZoom:            10,
       zoomSnap:           0.1,
       zoomDelta:          0.5,
-      zoomControl: true,
+      zoomControl: false,
       scrollWheelZoom:    true,
       worldCopyJump:      false,
-      maxBounds: null,
-      
+      maxBounds: [[-90,-270],[90,270]],
       attributionControl: false
     });
 
