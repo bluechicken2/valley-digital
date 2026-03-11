@@ -58,7 +58,7 @@
     mapInstance = L.map('globe-container', {
       center:             [20, 0],
       zoom:               2,
-      minZoom:            1,
+      minZoom: 0,
       maxZoom:            10,
       zoomSnap:           0.1,
       zoomDelta:          0.5,
