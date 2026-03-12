@@ -2033,3 +2033,58 @@ svg.leaflet-zoom-animated,
 .leaflet-container path:focus {
   outline: none !important;
 }
+
+/* Nuclear option: prevent ALL selection on map */
+#globe-container * {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+/* Prevent SVG focus/active states */
+.leaflet-interactive,
+.leaflet-interactive *,
+svg.leaflet-zoom-animated path,
+.leaflet-overlay-pane path {
+  outline: none !important;
+  outline-offset: 0 !important;
+  stroke-dasharray: none !important;
+}
+
+/* Remove any Leaflet click highlight */
+.leaflet-clickable,
+.leaflet-clickable:hover,
+.leaflet-clickable:active,
+.leaflet-clickable:focus {
+  outline: none !important;
+  stroke: inherit !important;
+  stroke-width: inherit !important;
+}
+
+/* Prevent text selection highlight color */
+::selection {
+  background: transparent !important;
+}
+::-moz-selection {
+  background: transparent !important;
+}
+
+/* Remove focus ring from SVG paths */
+svg path:focus,
+svg path:active,
+svg *:focus,
+svg *:active {
+  outline: none !important;
+  outline-offset: 0 !important;
+}
+
+/* Leaflet specific: remove any highlight class */
+.leaflet-interactive.leaflet-clickable {
+  outline: none !important;
+}
+
+.leaflet-interactive:hover {
+  outline: none !important;
+}

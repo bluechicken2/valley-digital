@@ -45,6 +45,23 @@
     }
     if (mapInstance) return;
 
+    // Clear any text selection on map interactions
+    var container = document.getElementById('globe-container');
+    if (container) {
+      container.addEventListener('mousedown', function(e) {
+        if (window.getSelection) {
+          var sel = window.getSelection();
+          if (sel.rangeCount > 0) sel.removeAllRanges();
+        }
+      });
+      container.addEventListener('click', function(e) {
+        if (window.getSelection) {
+          var sel = window.getSelection();
+          if (sel.rangeCount > 0) sel.removeAllRanges();
+        }
+      });
+    }
+
     mapInstance = L.map('globe-container', {
       center:             [20, 0],
       zoom:               2,
@@ -105,8 +122,13 @@
                 });
               },
               click: function(e) {
-                // Prevent text selection
-                if (e.originalEvent) e.originalEvent.preventDefault();
+                // Prevent text selection and any browser default behavior
+                if (e.originalEvent) {
+                  e.originalEvent.preventDefault();
+                  e.originalEvent.stopPropagation();
+                  e.originalEvent.cancelBubble = true;
+                }
+                if (e.target) e.target.options = e.target.options || {};
                 // Filter stories by this country
                 if (countryInfo.count > 0 && countryInfo.stories) {
                   // Update news feed with filtered stories
