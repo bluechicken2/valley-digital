@@ -202,6 +202,10 @@
       renderHeatMap(_allStories);
       updateHUD(_allStories);
     },
+    updateCountryStatsFromStories: function(stories){
+      // Update HUD with story stats (called by news-feed.js)
+      updateHUD(stories || []);
+    },
     getStories: function(){ return _allStories; },
     getCountryStories: function(code){
       var info = _countryData[code && code.toUpperCase()];
