@@ -1,5 +1,5 @@
 // ================================================
-// XRAYNEWS — Flat 2D Leaflet Map (v11 - HEAT MAP MODE)
+// XRAYNEWS — Flat 2D Leaflet Map (v12 - HEAT MAP SINGLE COLOR)
 // Countries colored by story density instead of individual pins
 // ================================================
 
@@ -22,17 +22,14 @@
     'Environment':        '#34d399'
   };
 
-  // Heat map color scale: low (blue) -> medium (yellow) -> high (red)
+  // Heat map: single color (cyan) with brightness intensity based on story count
   function getHeatColor(count, maxCount) {
     if (count === 0) return 'rgba(30, 30, 40, 0.15)';
     var ratio = Math.min(count / maxCount, 1);
-    if (ratio < 0.33) {
-      return 'rgba(0, 212, 255, ' + (0.25 + ratio * 0.5) + ')';  // cyan
-    } else if (ratio < 0.66) {
-      return 'rgba(255, 170, 0, ' + (0.3 + ratio * 0.4) + ')';   // orange
-    } else {
-      return 'rgba(255, 68, 68, ' + (0.35 + ratio * 0.45) + ')';  // red
-    }
+    // Single cyan color, opacity increases with story count
+    // Low: 0.2 opacity, High: 0.85 opacity
+    var opacity = 0.2 + (ratio * 0.65);
+    return 'rgba(0, 212, 255, ' + opacity + ')';
   }
 
   function storyColor(story) {
