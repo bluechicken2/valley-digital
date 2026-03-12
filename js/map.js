@@ -105,6 +105,8 @@
                 });
               },
               click: function(e) {
+                // Prevent text selection
+                if (e.originalEvent) e.originalEvent.preventDefault();
                 // Filter stories by this country
                 if (countryInfo.count > 0 && countryInfo.stories) {
                   // Update news feed with filtered stories
