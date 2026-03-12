@@ -1,14 +1,15 @@
 // ================================================
-// XRAYNEWS — Flat 2D Leaflet Map (v10)
-// window.GlobeAPI is 100% interface-compatible
+// XRAYNEWS — Flat 2D Leaflet Map (v11 - HEAT MAP MODE)
+// Countries colored by story density instead of individual pins
 // ================================================
+
 (function () {
 
   var mapInstance  = null;
-  var markerLayer  = null;
+  var countryLayer = null;
   var borderLayer  = null;
-  var _allStories  = [];  // cache for country click sidebar
-  var _pinCounter  = 0;   // unique SVG filter IDs
+  var _allStories  = [];
+  var _countryData = {};  // country_code -> { stories: [], count: number }
 
   var CAT_COLORS = {
     'War & Conflict':     '#ff4444',
@@ -21,30 +22,22 @@
     'Environment':        '#34d399'
   };
 
+  // Heat map color scale: low (blue) -> medium (yellow) -> high (red)
+  function getHeatColor(count, maxCount) {
+    if (count === 0) return 'rgba(30, 30, 40, 0.15)';
+    var ratio = Math.min(count / maxCount, 1);
+    if (ratio < 0.33) {
+      return 'rgba(0, 212, 255, ' + (0.25 + ratio * 0.5) + ')';  // cyan
+    } else if (ratio < 0.66) {
+      return 'rgba(255, 170, 0, ' + (0.3 + ratio * 0.4) + ')';   // orange
+    } else {
+      return 'rgba(255, 68, 68, ' + (0.35 + ratio * 0.45) + ')';  // red
+    }
+  }
+
   function storyColor(story) {
     if (story.breaking || story.is_breaking) return '#ffffff';
     return CAT_COLORS[story.category] || '#00d4ff';
-  }
-
-  function makePinIcon(color, radius, isBreaking) {
-    var size = radius * 2 + 16;
-    var half = size / 2;
-    var glow = isBreaking ? 6 : 3;
-    var fid  = 'pglow' + (++_pinCounter);  // unique filter ID per pin
-    var pulse = isBreaking ? ' class="map-pin-pulse"' : '';
-    var html = '<div' + pulse + ' style="width:' + size + 'px;height:' + size + 'px;display:block">'
-      + '<svg xmlns="http://www.w3.org/2000/svg" width="' + size + '" height="' + size + '">'
-      + '<defs><filter id="' + fid + '"><feGaussianBlur stdDeviation="' + glow + '"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>'
-      + '<circle cx="' + half + '" cy="' + half + '" r="' + (radius+3) + '" fill="' + color + '" opacity="0.22"/>'
-      + '<circle cx="' + half + '" cy="' + half + '" r="' + radius + '" fill="' + color + '" filter="url(#' + fid + ')" opacity="0.92"/>'
-      + '</svg></div>';
-    return L.divIcon({
-      html: html,
-      className: '',
-      iconSize:    [size, size],
-      iconAnchor:  [half, half],
-      tooltipAnchor: [half + 4, 0]
-    });
   }
 
   function initDashboardMap() {
@@ -58,152 +51,138 @@
     mapInstance = L.map('globe-container', {
       center:             [20, 0],
       zoom:               2,
-      minZoom: -3,
+      minZoom:            2,
       maxZoom:            10,
       zoomSnap:           0.1,
       zoomDelta:          0.5,
-      zoomControl: false,
+      zoomControl:        false,
       scrollWheelZoom:    true,
       worldCopyJump:      false,
-      maxBounds: [[-90,-270],[90,270]],
+      maxBounds:          [[-90,-270],[90,270]],
       attributionControl: false
     });
 
-    // NO base tile layer — pure dark background from CSS
-    // Only labels on top for country/city names
+    // Dark labels only - no base map
     L.tileLayer(
       'https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png',
       { subdomains:'abcd', maxZoom:10, updateWhenZooming:false, noWrap:true, opacity:0.7 }
     ).addTo(mapInstance);
 
-    // Layer 3: Marker layer
-    markerLayer = L.layerGroup().addTo(mapInstance);
+    // Country heat map layer
+    countryLayer = L.layerGroup().addTo(mapInstance);
 
-    // Layer 4: Country borders from GeoJSON (behind markers)
+    // Load country borders and apply heat coloring
     fetch('https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson')
       .then(function(r){ return r.json(); })
       .then(function(data){
         borderLayer = L.geoJSON(data, {
           style: function(feature) {
+            var code = feature.properties.ISO_A2;
+            var countryInfo = _countryData[code] || { count: 0 };
+            var maxCount = Math.max(...Object.values(_countryData).map(function(c){ return c.count; }), 1);
             return {
               color:       '#00bfff',
-              weight:      0.8,
-              opacity:     0.4,
-              fillOpacity: 0,
-              fillColor:   '#00bfff'
+              weight:      1,
+              opacity:     0.6,
+              fillColor:   getHeatColor(countryInfo.count, maxCount),
+              fillOpacity: 0.7
             };
           },
           onEachFeature: function(feature, layer) {
+            var code = feature.properties.ISO_A2;
+            var countryInfo = _countryData[code] || { count: 0 };
+            var countryName = feature.properties.NAME || feature.properties.ADMIN || code;
+            
+            // Hover effect
             layer.on({
               mouseover: function(e) {
-                e.target.setStyle({ weight: 1.8, opacity: 0.9, fillOpacity: 0.05 });
+                e.target.setStyle({ weight: 2.5, opacity: 1, fillOpacity: 0.85 });
               },
               mouseout: function(e) {
-                borderLayer.resetStyle(e.target);
+                var maxCount = Math.max(...Object.values(_countryData).map(function(c){ return c.count; }), 1);
+                e.target.setStyle({ 
+                  weight: 1, 
+                  opacity: 0.6, 
+                  fillOpacity: 0.7,
+                  fillColor: getHeatColor(countryInfo.count, maxCount)
+                });
               },
               click: function(e) {
-                var props = feature.properties || {};
-                var code  = props.ISO_A2 || props.ADM0_A3 || '';
-                var name  = props.ADMIN || props.NAME || props.NAME_EN || code;
-                if (!code || !name) return;
-                // Filter stories for this country
-                var countryStories = _allStories.filter(function(s) {
-                  return (s.country_code || '').toUpperCase() === code.toUpperCase();
-                });
-                if (window.CountrySidebar) {
-                  window.CountrySidebar.open(code, name, countryStories);
+                // Filter stories by this country
+                if (countryInfo.count > 0 && countryInfo.stories) {
+                  // Update news feed with filtered stories
+                  if (window.filterByCountry) {
+                    window.filterByCountry(code);
+                  }
+                  // Show country in sidebar if available
+                  if (window.SidebarAPI && window.SidebarAPI.showCountry) {
+                    window.SidebarAPI.showCountry(code, countryName, countryInfo.stories);
+                  }
                 }
               }
             });
+            
+            // Tooltip showing story count
+            if (countryInfo.count > 0) {
+              layer.bindTooltip(
+                '<div style="text-align:center">'
+                + '<strong style="font-size:14px">' + countryName + '</strong><br>'
+                + '<span style="color:#00d4ff;font-size:18px;font-weight:bold">' + countryInfo.count + '</span> '
+                + '<span style="color:#888">story' + (countryInfo.count !== 1 ? 's' : '') + '</span>'
+                + '</div>',
+                { direction: 'center', className: 'country-tooltip' }
+              );
+            }
           }
-        });
-        borderLayer.addTo(mapInstance);
-        borderLayer.bringToBack();
+        }).addTo(countryLayer);
       })
-      .catch(function(e){ console.warn('[Map] Borders failed:', e.message); });
-
-    // Zoom controls
-    L.control.zoom({ position:'bottomright' }).addTo(mapInstance);
-
-    // Fill container
-    // fitBounds to show the full world including Oceania without hitting antimeridian
-    mapInstance.fitBounds([[-55, -170], [75, 175]], { animate: false, padding: [0, 0] });
-    mapInstance.options.minZoom = mapInstance.getZoom();
-
-    // Force dark background
-    var dark = '#080b12';
-    mapInstance.getContainer().style.background = dark;
-    ['tilePane','shadowPane','overlayPane','markerPane','tooltipPane','popupPane'].forEach(function(p){
-      try { mapInstance.getPane(p).style.background = dark; } catch(e){}
-    });
-
-    // Hide loaders
-    ['globe-spinner','globe-placeholder'].forEach(function(id){
-      var el2 = document.getElementById(id);
-      if (el2) el2.style.display = 'none';
-    });
-    if (window.Loader) window.Loader.hide();
-
+      .catch(function(err){
+        console.error('[Map] Failed to load country borders:', err);
+      });
   }
 
-  function renderMarkers(stories) {
+  function renderHeatMap(stories) {
     if (!mapInstance) initDashboardMap();
-    if (!markerLayer) return;
-    markerLayer.clearLayers();
+    if (!countryLayer) return;
 
-    stories.forEach(function(story){
-      var lat = parseFloat(story.lat);
-      var lng = parseFloat(story.lng);
-      if ((!lat && !lng) || isNaN(lat) || isNaN(lng)) return;
-
-      var isBreaking = story.breaking || story.is_breaking;
-      var color  = storyColor(story);
-      var score  = story.xray_score || story.confidence_score || 50;
-      var radius = isBreaking ? 10 : score >= 80 ? 8 : score >= 60 ? 6 : 4;
-
-      var marker = L.marker([lat, lng], {
-        icon: makePinIcon(color, radius, isBreaking),
-        zIndexOffset: isBreaking ? 1000 : score
-      });
-
-      var cat      = story.category || 'News';
-      var title    = (story.title || story.headline || '').substring(0, 100);
-      var country  = story.country_name || story.country_code || '';
-      var displayScore    = story.xray_score || story.confidence_score || null;
-      var scoreBar = '';
-      if (displayScore) {
-        var barColor = displayScore >= 80 ? '#00ff88' : displayScore >= 60 ? '#f59e0b' : '#ff4444';
-        scoreBar = '<div class="map-tip-score">'
-          + '<span class="map-tip-score-label">TRUTH</span>'
-          + '<div class="map-tip-score-track"><div class="map-tip-score-fill" style="width:' + displayScore + '%;background:' + barColor + '"></div></div>'
-          + '<span class="map-tip-score-val" style="color:' + barColor + '">' + score + '</span>'
-          + '</div>';
+    // Group stories by country
+    _countryData = {};
+    stories.forEach(function(story) {
+      var code = story.country_code;
+      if (!code) return;
+      code = code.toUpperCase();
+      if (!_countryData[code]) {
+        _countryData[code] = { stories: [], count: 0 };
       }
-      var tipHtml = '<div class="map-tip">'
-        + '<div class="map-tip-header">'
-        + '<span class="map-tip-cat" style="color:' + color + ';border-color:' + color + '">' + (isBreaking ? '⚡ BREAKING' : cat.toUpperCase()) + '</span>'
-        + (country ? '<span class="map-tip-country">' + country + '</span>' : '')
-        + '</div>'
-        + '<div class="map-tip-title">' + title + (title.length >= 100 ? '…' : '') + '</div>'
-        + scoreBar
-        + '<div class="map-tip-cta">Click to read →</div>'
-        + '</div>';
-      marker.bindTooltip(tipHtml, {
-        sticky: false,
-        direction: 'auto',
-        opacity: 1,
-        className: 'map-tip-wrapper',
-        offset: [10, -20]
-      });
-
-      marker.on('click', function(){
-        if (story.id) window.location.href = 'story.html?id=' + story.id;
-      });
-
-      markerLayer.addLayer(marker);
+      _countryData[code].stories.push(story);
+      _countryData[code].count++;
     });
 
-    if (borderLayer) borderLayer.bringToBack();
+    // If border layer exists, refresh the styling
+    if (borderLayer) {
+      borderLayer.eachLayer(function(layer) {
+        var code = layer.feature.properties.ISO_A2;
+        var countryInfo = _countryData[code] || { count: 0 };
+        var maxCount = Math.max(...Object.values(_countryData).map(function(c){ return c.count; }), 1);
+        layer.setStyle({
+          fillColor: getHeatColor(countryInfo.count, maxCount),
+          fillOpacity: 0.7
+        });
+        
+        // Update tooltip
+        var countryName = layer.feature.properties.NAME || layer.feature.properties.ADMIN || code;
+        if (countryInfo.count > 0) {
+          layer.bindTooltip(
+            '<div style="text-align:center">'
+            + '<strong style="font-size:14px">' + countryName + '</strong><br>'
+            + '<span style="color:#00d4ff;font-size:18px;font-weight:bold">' + countryInfo.count + '</span> '
+            + '<span style="color:#888">story' + (countryInfo.count !== 1 ? 's' : '') + '</span>'
+            + '</div>',
+            { direction: 'center', className: 'country-tooltip' }
+          );
+        }
+      });
+    }
   }
 
   function updateHUD(stories) {
@@ -218,39 +197,17 @@
 
   window.GlobeAPI = {
     init: function(containerId, fn){ initDashboardMap(); },
-    getInstance: function(){ return mapInstance; },
     updatePins: function(stories){
       if (!mapInstance) initDashboardMap();
-      _allStories = stories || [];  // populate cache for country sidebar
-      renderMarkers(_allStories);
+      _allStories = stories || [];
+      renderHeatMap(_allStories);
+      updateHUD(_allStories);
     },
-    updateCountryStatsFromStories: function(stories){ updateHUD(stories||[]); },
-    clearFilter: function() {
-      if (borderLayer) {
-        borderLayer.eachLayer(function(l) { borderLayer.resetStyle(l); });
-      }
-    },
-    filterByCountry: function(code) {
-      // Highlight matching country border
-      if (borderLayer) {
-        borderLayer.eachLayer(function(l) {
-          var c = (l.feature && l.feature.properties && l.feature.properties.ISO_A2) || '';
-          if (c.toUpperCase() === (code||'').toUpperCase()) {
-            l.setStyle({ weight: 2.5, opacity: 1, fillOpacity: 0.08 });
-          } else {
-            borderLayer.resetStyle(l);
-          }
-        });
-      }
-    },
-    updateArcs:      function(){},
-    switchOverlay:   function(){}
+    getStories: function(){ return _allStories; },
+    getCountryStories: function(code){
+      var info = _countryData[code && code.toUpperCase()];
+      return info ? info.stories : [];
+    }
   };
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initDashboardMap);
-  } else {
-    initDashboardMap();
-  }
-
-}());
+})();
