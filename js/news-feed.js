@@ -7,6 +7,7 @@ var _filtered    = [];
 var _country     = null;
 var _category    = 'all';
 var _status      = 'all';
+var _searchQuery = '';
 var _sort        = 'latest';
 var _offset      = 0;
 var _pageSize    = 50;
@@ -175,6 +176,13 @@ function _applyAll() {
   if (_country)            list = list.filter(function(s){ return s.country_code===_country; });
   if (_category !== 'all') list = list.filter(function(s){ return s.category===_category; });
   if (_status   !== 'all') list = list.filter(function(s){ return s.status===_status; });
+  if (_searchQuery)        list = list.filter(function(s){
+    var q = _searchQuery.toLowerCase();
+    return (s.headline||'').toLowerCase().indexOf(q)>=0
+        || (s.country_name||'').toLowerCase().indexOf(q)>=0
+        || (s.summary||'').toLowerCase().indexOf(q)>=0
+        || (s.category||'').toLowerCase().indexOf(q)>=0;
+  });
   switch (_sort) {
     case 'confidence': list.sort(function(a,b){ return (b.xray_score||b.confidence_score||0)-(a.xray_score||a.confidence_score||0); }); break;
     case 'sources':    list.sort(function(a,b){ return (b.source_count||0)-(a.source_count||0); }); break;
@@ -371,6 +379,35 @@ function _timeAgoShort(iso) {
   return Math.floor(d/86400) + 'd ago';
 }
 
+
+// ------------------------------------------------
+// Stories Bar Filters (Category + Search)
+// ------------------------------------------------
+function setupStoriesBarFilters() {
+  // Category filter in stories bar
+  var catSelect = document.getElementById('category-filter-select');
+  if (catSelect) {
+    catSelect.addEventListener('change', function() {
+      _category = this.value || 'all';
+      _applyAll();
+    });
+  }
+
+  // Search input in stories bar (inline filter)
+  var searchInput = document.getElementById('stories-search');
+  if (searchInput) {
+    var searchTimer;
+    searchInput.addEventListener('input', function() {
+      clearTimeout(searchTimer);
+      var q = this.value.trim();
+      searchTimer = setTimeout(function() {
+        _searchQuery = q;
+        _applyAll();
+      }, 200);
+    });
+  }
+}
+
 // ------------------------------------------------
 // Realtime
 // ------------------------------------------------
@@ -547,7 +584,8 @@ window.NewsFeed = {
   startAutoRefresh:   startAutoRefresh,
   updateStatsBar:     updateStatsBar,
   showBreakingToast:  showBreakingToast,
-  setupLiveSearch:    setupLiveSearch,
+  setupLiveSearch:       setupLiveSearch,
+  setupStoriesBarFilters: setupStoriesBarFilters,
   setupNotifications: setupNotifications,
   filterByCountry:    filterByCountry,
   clearCountryFilter: clearCountryFilter,

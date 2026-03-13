@@ -2088,3 +2088,54 @@ svg *:active {
 .leaflet-interactive:hover {
   outline: none !important;
 }
+
+/* Stories Search Wrapper */
+.stories-search-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.stories-search-icon {
+  position: absolute;
+  left: 10px;
+  color: rgba(0, 212, 255, 0.6);
+  font-size: 14px;
+  pointer-events: none;
+}
+
+.stories-search-input {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(0, 212, 255, 0.2);
+  border-radius: 6px;
+  padding: 8px 12px 8px 32px;
+  color: #fff;
+  font-size: 13px;
+  width: 180px;
+  transition: all 0.2s ease;
+}
+
+.stories-search-input:focus {
+  outline: none;
+  border-color: rgba(0, 212, 255, 0.5);
+  box-shadow: 0 0 10px rgba(0, 212, 255, 0.2);
+}
+
+.stories-search-input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+@media (max-width: 900px) {
+  .stories-search-input {
+    width: 140px;
+  }
+}
+
+@media (max-width: 600px) {
+  .stories-search-wrapper {
+    width: 100%;
+  }
+  .stories-search-input {
+    width: 100%;
+  }
+}

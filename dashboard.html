@@ -9,8 +9,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/main.css?v=145">
-  <link rel="stylesheet" href="css/dashboard.css?v=151">
+  <link rel="stylesheet" href="css/main.css?v=153">
+  <link rel="stylesheet" href="css/dashboard.css?v=153">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="js/loader.js?v=145"></script>
@@ -345,35 +345,7 @@
   </a>
 
   <div class="nav-center">
-    <!-- Categories dropdown -->
-    <div class="nav-dropdown">
-      <button class="nav-btn" id="categories-btn"
-        aria-haspopup="true" aria-expanded="false" aria-controls="categories-menu">
-        CATEGORIES <span class="dropdown-arrow" aria-hidden="true">&#9660;</span>
-      </button>
-      <div class="dropdown-menu" id="categories-menu" role="menu" aria-label="Categories" style="z-index:1100;">
-        <button class="dropdown-item" data-category="all" role="menuitem">&#127760; All Stories</button>
-        <div class="dropdown-divider" role="separator"></div>
-        <button class="dropdown-item" data-category="War &amp; Conflict" role="menuitem">&#9876;&#65039; War &amp; Conflict</button>
-        <button class="dropdown-item" data-category="Politics" role="menuitem">&#127963;&#65039; Politics</button>
-        <button class="dropdown-item" data-category="Weather &amp; Disaster" role="menuitem">&#127786;&#65039; Weather &amp; Disaster</button>
-        <button class="dropdown-item" data-category="Economy" role="menuitem">&#128201; Economy</button>
-        <button class="dropdown-item" data-category="Science &amp; Tech" role="menuitem">&#128300; Science &amp; Tech</button>
-        <button class="dropdown-item" data-category="Health" role="menuitem">&#127973; Health</button>
-        <button class="dropdown-item" data-category="Elections" role="menuitem">&#128499;&#65039; Elections</button>
-        <button class="dropdown-item" data-category="Environment" role="menuitem">&#127807; Environment</button>
-      </div>
-    </div>
-    <!-- Search -->
-    <div class="nav-search-wrapper" role="search">
-      <span class="search-icon" aria-hidden="true">&#128269;</span>
-      <input type="search" class="nav-search-input" id="nav-search"
-        placeholder="Search stories&#8230;" autocomplete="off"
-        aria-label="Search stories" aria-autocomplete="list"
-        aria-controls="search-dropdown">
-      <div class="dropdown-menu search-dropdown" id="search-dropdown"
-        role="listbox" aria-label="Search results" style="z-index:1100;"></div>
-    </div>
+    <!-- Categories and Search moved to stories bar -->
   </div>
 
   <div class="nav-right">
@@ -545,6 +517,25 @@
       <span class="stories-count" id="stories-count" aria-live="polite">Loading&#8230;</span>
     </div>
     <div class="stories-controls" role="group" aria-label="Filter and sort controls">
+      <!-- Category Filter -->
+      <select class="control-select" id="category-filter-select" aria-label="Filter by category">
+        <option value="all">&#127760; All Categories</option>
+        <option value="War & Conflict">&#9876;&#65039; War & Conflict</option>
+        <option value="Politics">&#127963;&#65039; Politics</option>
+        <option value="Weather & Disaster">&#127786;&#65039; Weather & Disaster</option>
+        <option value="Economy">&#128201; Economy</option>
+        <option value="Science & Tech">&#128300; Science & Tech</option>
+        <option value="Health">&#127973; Health</option>
+        <option value="Elections">&#128499;&#65039; Elections</option>
+        <option value="Environment">&#127807; Environment</option>
+      </select>
+      <!-- Search -->
+      <div class="stories-search-wrapper" role="search">
+        <span class="stories-search-icon" aria-hidden="true">&#128269;</span>
+        <input type="search" class="stories-search-input" id="stories-search"
+          placeholder="Search stories&#8230;" autocomplete="off"
+          aria-label="Search stories">
+      </div>
       <select class="control-select" id="pagesize-select" aria-label="Stories to load" title="Stories to load" onchange="if(window.NewsFeed && window.NewsFeed.setPageSize) window.NewsFeed.setPageSize(this.value)">
         <option value="50" selected>Show 50</option>
         <option value="100">Show 100</option>
@@ -590,7 +581,7 @@
 <script src="js/auth.js?v=145"></script>
 <script src="js/map.js?v=152"></script>
 <script src="js/pinned-stories.js?v=145"></script>
-        <script src="js/news-feed.js?v=145"></script>
+        <script src="js/news-feed.js?v=153"></script>
 <script src="js/stories.js?v=145"></script>
 <script src="js/modal.js?v=145"></script>
 <script src="js/sidebar.js?v=145"></script>
@@ -715,6 +706,7 @@
   // ---- Live search, notifications, realtime ----
   if (window.NewsFeed.setupLiveSearch)    window.NewsFeed.setupLiveSearch();
   if (window.NewsFeed.setupNotifications) window.NewsFeed.setupNotifications(stories);
+  if (window.NewsFeed.setupStoriesBarFilters) window.NewsFeed.setupStoriesBarFilters();
   if (window.NewsFeed.setupRealtime)      window.NewsFeed.setupRealtime();
 
   // ---- Globe clear-filter helper ----
