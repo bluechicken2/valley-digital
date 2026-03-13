@@ -136,8 +136,8 @@
                     window.filterByCountry(code);
                   }
                   // Show country in sidebar if available
-                  if (window.SidebarAPI && window.SidebarAPI.showCountry) {
-                    window.SidebarAPI.showCountry(code, countryName, countryInfo.stories);
+                  if (window.CountrySidebar) {
+                    window.CountrySidebar.open(code, countryName, countryInfo.stories);
                   }
                 }
               }
@@ -151,7 +151,7 @@
                 + '<span style="color:#00d4ff;font-size:18px;font-weight:bold">' + countryInfo.count + '</span> '
                 + '<span style="color:#888">story' + (countryInfo.count !== 1 ? 's' : '') + '</span>'
                 + '</div>',
-                { direction: 'center', className: 'country-tooltip' }
+                { direction: 'top', className: 'country-tooltip' }
               );
             }
           }
@@ -199,7 +199,7 @@
             + '<span style="color:#00d4ff;font-size:18px;font-weight:bold">' + countryInfo.count + '</span> '
             + '<span style="color:#888">story' + (countryInfo.count !== 1 ? 's' : '') + '</span>'
             + '</div>',
-            { direction: 'center', className: 'country-tooltip' }
+            { direction: 'top', className: 'country-tooltip' }
           );
         }
       });
