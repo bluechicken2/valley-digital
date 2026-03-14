@@ -164,7 +164,7 @@ class NarrativeAnalysisGenerator:
         
         if context.is_breaking or context.urgency == 'urgent':
             action = self._extract_core_news(headline)
-            return f"Breaking: {action} Details are still emerging."
+            return f"{action} This is a developing story."
         
         action = self._extract_core_news(headline)
         if context.country and context.country != 'World':
@@ -206,7 +206,13 @@ class NarrativeAnalysisGenerator:
         if country_code == 'RU' or 'russia' in combined:
             return "Russia's actions affect global energy supplies, nuclear deterrence, and the international framework built after World War II. The world is watching."
         if context.story_type == 'conflict':
-            return "Military developments in this region can shift energy markets, trigger refugee flows, and redraw alliances. The humanitarian stakes are equally high."
+            if 'marine' in combined or 'warship' in combined or 'troops' in combined:
+                return "The deployment signals how seriously Washington views the escalating situation. Military assets in the region give commanders options, from deterrence to direct action."
+            if 'missile' in combined or 'strike' in combined:
+                return "Missile deployments reshape the tactical calculus on the ground. Each strike carries the risk of escalation in an already volatile environment."
+            if 'iran' in combined or 'tehran' in combined:
+                return "Tensions with Iran have been a flashpoint for years. Any miscalculation could draw in regional powers and disrupt vital shipping lanes."
+            return "The situation on the ground remains fluid. Military posturing often signals diplomatic positions as much as tactical intent."
         if context.story_type == 'economic':
             return "Economic policy changes affect trade partnerships, consumer prices, and investment flows across borders. Markets and workers alike feel the impact."
         return "This story is being closely watched. Further developments could shape the broader picture in significant ways."
@@ -230,7 +236,22 @@ class NarrativeAnalysisGenerator:
             outlet_names = []
             for s in tier1_sources[:3]:
                 title = s.get('title', '')
-                outlet_names.append(title.split()[0] if ' ' in title else title)
+                # Use full title if it's a known outlet, otherwise extract properly
+                known_outlets = ['Reuters', 'AP', 'BBC', 'CNN', 'CBS', 'NBC', 'ABC', 'Fox', 'NYT', 'Washington Post', 
+                                'Guardian', 'Times', 'Post', 'Journal', 'News', 'Politico', 'Axios', 'Bloomberg']
+                outlet_name = None
+                for known in known_outlets:
+                    if known.lower() in title.lower():
+                        outlet_name = known
+                        break
+                if not outlet_name:
+                    # Use first word only if it looks like an outlet name (capitalized, reasonable length)
+                    first_word = title.split()[0] if title else ''
+                    if len(first_word) > 2 and first_word[0].isupper() and not first_word.lower() in ['the', 'a', 'an', 'breaking', 'more', 'new']:
+                        outlet_name = first_word
+                    else:
+                        continue  # Skip this source
+                outlet_names.append(outlet_name)
             
             if len(outlet_names) >= 2:
                 # Get content from source snippets
@@ -244,13 +265,23 @@ class NarrativeAnalysisGenerator:
                 
                 # Create evidence sentence from actual snippet content
                 if snippets:
-                    # Extract key action from snippet
-                    snippet_text = snippets[0][:80]
-                    if len(snippet_text) > 60:
-                        snippet_text = snippet_text[:60].rsplit(' ', 1)[0]
-                    sentences.append(f"{connector} {outlets_text}: {snippet_text}.")
+                    # Extract key action from snippet - avoid repeating headline
+                    snippet_text = snippets[0][:100]
+                    # Don't repeat the headline
+                    if headline.lower()[:30] in snippet_text.lower():
+                        # Use second snippet or skip
+                        if len(snippets) > 1:
+                            snippet_text = snippets[1][:100]
+                        else:
+                            # Create contextual sentence instead
+                            sentences.append(f"{connector} {outlets_text} have reported on the developing situation.")
+                            snippet_text = None
+                    if snippet_text:
+                        if len(snippet_text) > 80:
+                            snippet_text = snippet_text[:80].rsplit(' ', 1)[0]
+                        sentences.append(f"{connector} {outlets_text}: {snippet_text}.")
                 else:
-                    sentences.append(f"{connector} {outlets_text} confirm the details.")
+                    sentences.append(f"{connector} {outlets_text} have reported on the developing situation.")
         
         if not sentences:
             return ""
@@ -266,6 +297,10 @@ class NarrativeAnalysisGenerator:
         
         text = re.sub(r'^(The|A|An)\s+', '', text, flags=re.IGNORECASE)
         text = text[0].upper() + text[1:] if len(text) > 1 else text.upper()
+        
+        # Remove 'Details are still emerging' or similar weak endings
+        text = re.sub(r'\s*Details are still emerging\.?$', '', text, flags=re.IGNORECASE)
+        text = re.sub(r'\s*This is a developing story\.?$', '', text, flags=re.IGNORECASE)
         
         if not text.endswith(('.', '!', '?')):
             text += '.'
@@ -318,7 +353,9 @@ class NarrativeAnalysisGenerator:
         if context.story_type == 'conflict':
             if country_code == 'UA' or 'ukraine' in combined:
                 return "The coming weeks will be decisive. Ukraine's ability to sustain its defense depends on continued Western support."
-            return "The humanitarian situation remains fragile, and the trajectory depends on decisions made far from the front lines."
+            if 'marine' in combined or 'warship' in combined:
+                return "The movement of naval and Marine assets gives commanders flexibility. Whether this translates into action or remains a show of force depends on what happens next."
+            return "What comes next depends on decisions made in Washington, Tehran, and other capitals with skin in the game."
         
         if context.story_type == 'political' and key_figure:
             name = key_figure.get('name', '')
@@ -401,14 +438,24 @@ class NarrativeAnalysisGenerator:
     # ==================== PRESERVED METHODS FROM V8 ====================
     
     def _clean_text(self, text: str) -> str:
+        """Clean HTML and normalize text"""
         if not text:
             return ""
+        # Remove HTML tags
         text = re.sub(r'<[^>]+>', '', text)
-        text = re.sub(r'https?://[^\s]+\.(jpg|jpeg|png|gif|webp)', '', text, flags=re.IGNORECASE)
-        text = re.sub(r'external-preview\.redd\.it[^\s]*', '', text)
-        text = re.sub(r'\s+', ' ', text)
-        return text.strip()
-    
+        # Decode HTML entities
+        text = text.replace('&amp;', '&').replace('&lt;', '<').replace('&gt;', '>')
+        text = text.replace('&quot;', '"').replace('&#39;', "'")
+        # Remove robotic/boilerplate phrases
+        text = re.sub(r'\s*[-\|]?\s*Details are still emerging\.?$', '', text, flags=re.IGNORECASE)
+        text = re.sub(r'\s*[-\|]?\s*This is a developing story\.?$', '', text, flags=re.IGNORECASE)
+        text = re.sub(r'^Breaking:\s*', '', text, flags=re.IGNORECASE)
+        text = re.sub(r'^Just in:\s*', '', text, flags=re.IGNORECASE)
+        text = re.sub(r'\s*reports say$', '', text, flags=re.IGNORECASE)
+        # Normalize whitespace
+        text = re.sub(r'\s+', ' ', text).strip()
+        return text
+
     def calculate_confidence(self, research: Dict, claims: List[Dict]) -> int:
         score = 30
         total_sources = research.get('source_count', 0)
