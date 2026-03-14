@@ -146,8 +146,8 @@ class ProfessionalAnalysisGenerator:
         # Detect Canadian content
         canadian_markers = ['canada', 'canadian', 'ottawa', 'toronto', 'vancouver', 'montreal',
                           'alberta', 'ontario', 'quebec', 'bc', 'manitoba', 'saskatchewan',
-                          'prime minister', 'premier', 'mp ', 'liberal party', 'conservative party',
-                          'ndp', 'parliament', 'parliament hill']
+                          'parliament hill', 'house of commons', 'rideau', '24 sussex',
+                          'liberal party of canada', 'conservative party of canada', 'ndp canada']
         
         for marker in canadian_markers:
             if marker in combined:

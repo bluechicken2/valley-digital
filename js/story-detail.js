@@ -35,6 +35,27 @@
     return idFromQuery;
   }
   
+  // Strip HTML tags and clean text - prevents Reddit contamination
+  function cleanText(s) {
+    if (!s) return '';
+    s = String(s);
+    // Remove any img tags (complete or partial/truncated)
+    s = s.replace(/<img[^>]*>/gi, ' ');
+    s = s.replace(/<img[^>]*$/gi, ' ');
+    // Remove all other HTML tags
+    s = s.replace(/<[^>]+>/g, ' ');
+    // Remove any remaining < or > characters (truncated tags)
+    s = s.replace(/</g, ' ');
+    s = s.replace(/>/g, ' ');
+    // Decode HTML entities
+    var el = document.createElement('div');
+    el.innerHTML = s;
+    s = el.textContent || el.innerText || '';
+    // Clean up whitespace
+    s = s.replace(/\s+/g, ' ').trim();
+    return s;
+  }
+  
   // Escape HTML
   function escHtml(s) {
     return String(s)
@@ -264,8 +285,8 @@
     }
     
     // Headline & Summary
-    document.getElementById('story-headline').textContent = story.headline || '';
-    document.getElementById('story-summary').textContent = story.summary || '';
+    document.getElementById('story-headline').textContent = cleanText(story.headline) || '';
+    document.getElementById('story-summary').textContent = cleanText(story.summary) || '';
 
     // Show full article text if available
     const fullTextEl = document.getElementById('story-full-text');

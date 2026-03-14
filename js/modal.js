@@ -1,6 +1,6 @@
 // ================================================
 // XRAYNEWS — Story Detail Modal
-// js/modal.js
+// js/modal.js - v149
 // ================================================
 (function () {
   'use strict';
@@ -39,7 +39,6 @@
     document.getElementById('mdl-next').addEventListener('click', next);
     el.querySelector('.mdl-backdrop').addEventListener('click', close);
 
-    // Touch swipe-down
     var sheet = document.getElementById('mdl-sheet');
     sheet.addEventListener('touchstart', function (e) { _touchSY = e.touches[0].clientY; }, { passive: true });
     sheet.addEventListener('touchend', function (e) {
@@ -47,7 +46,6 @@
     }, { passive: true });
   }
 
-  // ---- Keyboard ----
   document.addEventListener('keydown', function (e) {
     if (!_open) return;
     if (e.key === 'Escape')     close();
@@ -56,11 +54,45 @@
   });
 
   // ---- Helpers ----
+  // Decode HTML entities
+  function decodeEntities(s) {
+    if (!s) return '';
+    var el = document.createElement('div');
+    el.innerHTML = s;
+    return el.textContent || el.innerText || '';
+  }
+  
+  // Strip HTML tags and clean text
+  function cleanText(s) {
+    if (!s) return '';
+    s = String(s);
+    // Remove any img tags (complete or partial)
+    s = s.replace(/<img[^>]*>/gi, ' ');
+    s = s.replace(/<img[^>]*$/gi, ' ');
+    // Remove all other HTML tags
+    s = s.replace(/<[^>]+>/g, ' ');
+    // Remove any remaining < characters (truncated tags)
+    s = s.replace(/</g, ' ');
+    // Remove any > characters
+    s = s.replace(/>/g, ' ');
+    // Decode HTML entities
+    s = decodeEntities(s);
+    // Clean up whitespace
+    s = s.replace(/\s+/g, ' ').trim();
+    return s;
+  }
+  
   function esc(s) {
     return String(s || '')
       .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
       .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
   }
+  
+  // Clean and escape text for safe display
+  function cleanDisplay(s) {
+    return esc(cleanText(s));
+  }
+  
   function flag(code) {
     if (!code || code.length !== 2) return '';
     var o = 0x1F1E6 - 65;
@@ -107,14 +139,15 @@
     'Environment':       '&#127807;'
   };
 
-  // ---- CSS circle gauge (pure CSS conic-gradient) ----
+  // ---- CSS circle gauge ----
   function _gauge(pct, color) {
     var deg = Math.round(pct / 100 * 360);
+    var label = pct >= 70 ? 'HIGH' : pct >= 40 ? 'MODERATE' : 'LOW';
     return '<div class="mdl-gauge-wrap">'
       + '<div class="mdl-gauge" style="background: conic-gradient(' + color + ' ' + deg + 'deg, rgba(255,255,255,0.07) ' + deg + 'deg)">'
         + '<div class="mdl-gauge-inner">'
           + '<span class="mdl-gauge-val" style="color:' + color + '">' + pct + '%</span>'
-          + '<span class="mdl-gauge-lbl">CONFIDENCE</span>'
+          + '<span class="mdl-gauge-lbl">' + label + '</span>'
         + '</div>'
       + '</div>'
     + '</div>';
@@ -123,12 +156,11 @@
   // ---- Source breakdown ----
   function _sources(story) {
     var count = story.source_count || 3;
-    var vc    = story.verified_count || Math.max(1, Math.floor(count * 0.7));
     var types = [
-      { label:'Legacy\nMedia',      icon:'&#128240;', key:'legacy'      },
-      { label:'Official\nSources',  icon:'&#127963;&#65039;', key:'official'    },
-      { label:'Social\nMedia',      icon:'&#128241;', key:'social'      },
-      { label:'Independent\nReport',icon:'&#128269;', key:'independent' }
+      { label:'Legacy\nMedia',      icon:'&#128240;' },
+      { label:'Official\nSources',  icon:'&#127963;&#65039;' },
+      { label:'Social\nMedia',      icon:'&#128241;' },
+      { label:'Independent\nReport',icon:'&#128269;' }
     ];
     var pool = Math.max(count, 4);
     var cols = types.map(function (t, i) {
@@ -147,34 +179,33 @@
   // ---- Analysis Preview ----
   function _analysisPreview(story) {
     if (!story.xray_analysis) {
-      return '<div class="mdl-analysis-pending">Analysis pending...</div>';
+      return '';
     }
     var analysis = story.xray_analysis;
     var verdict = '';
     var entities = '';
     var conclusion = '';
     
-    // Parse VERIFICATION status - use simple string search
     var vIdx = analysis.indexOf('**VERIFICATION:**');
     if (vIdx !== -1) {
       var vEnd = analysis.indexOf('**', vIdx + 18);
       if (vEnd !== -1) verdict = analysis.substring(vIdx + 17, vEnd).trim();
     }
     
-    // Parse KEY ENTITIES
     var eIdx = analysis.indexOf('**KEY ENTITIES:**');
     if (eIdx !== -1) {
       var eEnd = analysis.indexOf('**CLAIM', eIdx);
       if (eEnd === -1) eEnd = analysis.indexOf('**SOURCES', eIdx);
       if (eEnd === -1) eEnd = analysis.length;
-      entities = analysis.substring(eIdx + 17, eEnd).trim().replace(/\n/g, ' ').substring(0, 120);
+      entities = analysis.substring(eIdx + 17, eEnd).trim().replace(/\n/g, ' ').substring(0, 100);
     }
     
-    // Parse CONCLUSION
     var cIdx = analysis.indexOf('**CONCLUSION:**');
     if (cIdx !== -1) {
-      conclusion = analysis.substring(cIdx + 15).trim().replace(/\n/g, ' ').substring(0, 180);
+      conclusion = analysis.substring(cIdx + 15).trim().replace(/\n/g, ' ').substring(0, 150);
     }
+    
+    if (!verdict && !entities && !conclusion) return '';
     
     var html = '<div class="mdl-analysis-card">';
     if (verdict) {
@@ -187,23 +218,12 @@
     if (conclusion) {
       html += '<div class="mdl-conclusion">' + esc(conclusion) + '</div>';
     }
-    html += '<a href="story.html?id=' + story.id + '" class="mdl-analysis-link">View Full Analysis</a>';
     html += '</div>';
     return html;
   }
 
   // ---- Render ----
   function _render(story) {
-    // Update source link visibility
-    var srcLink = document.getElementById('mdl-source-link');
-    if (srcLink) {
-      if (story.source_url) {
-        srcLink.href = story.source_url;
-        srcLink.style.display = 'inline-flex';
-      } else {
-        srcLink.style.display = 'none';
-      }
-    }
     var sc = story.xray_score || story.confidence_score || 0;
     var col   = confColor(sc);
     var sm    = STATUS_MAP[story.status] || STATUS_MAP.unverified;
@@ -211,6 +231,10 @@
     var catCol= CAT_COLORS[story.category] || '#00d4ff';
     var catIc = CAT_ICONS[story.category] || '&#127760;';
     var brk   = story.is_breaking ? '<span class="mdl-breaking">&#9889; BREAKING</span>' : '';
+
+    // Clean headline and summary - strip HTML and decode entities
+    var displayHeadline = cleanDisplay(story.headline);
+    var displaySummary = cleanDisplay(story.summary);
 
     document.getElementById('mdl-body').innerHTML = [
       '<div class="mdl-hero">',
@@ -222,20 +246,16 @@
             '<span class="status-badge ' + sm.cls + '">' + sm.icon + ' ' + sm.label + '</span>',
             brk,
           '</div>',
-          '<h2 class="mdl-headline">' + esc(story.headline) + '</h2>',
-          '<div class="mdl-meta">' + timeAgo(story.created_at) + ' &nbsp;·&nbsp; ' + (story.source_count||1) + ' sources across multiple countries</div>',
+          '<h2 class="mdl-headline">' + displayHeadline + '</h2>',
+          '<div class="mdl-meta">' + timeAgo(story.created_at) + ' &nbsp;&#183;&nbsp; ' + (story.source_count||1) + ' sources</div>',
         '</div>',
       '</div>',
 
       '<div class="mdl-conf-section">',
         _gauge(sc, col),
         '<div class="mdl-conf-desc">',
-          '<p class="mdl-conf-title" style="color:' + col + '">',
-            sc >= 70 ? 'HIGH CONFIDENCE' : sc >= 40 ? 'MODERATE CONFIDENCE' : 'LOW CONFIDENCE',
-          '</p>',
-          '<p class="mdl-conf-sub">Based on ' + (story.source_count||1) + ' sources across multiple countries</p>',
-          story.summary ? '<p class="mdl-summary">' + esc(story.summary) + '</p>' : '',
-        _analysisPreview(story),
+          displaySummary ? '<p class="mdl-summary">' + displaySummary + '</p>' : '',
+          _analysisPreview(story),
         '</div>',
       '</div>',
 
@@ -249,12 +269,34 @@
       '<div class="mdl-divider"></div>',
 
       '<div class="mdl-actions">',
-        '<a href="story.html?id=' + story.id + '" class="mdl-action-btn mdl-action-primary">&#128270; FULL ANALYSIS</a>',
-        '<button class="mdl-action-btn" onclick="if(window.GlobeAPI){var i=document.getElementById(\'mdl\');i.classList.add(\'mdl-closing\');setTimeout(function(){window.StoryModal.close();},400);}">&#127757; VIEW ON GLOBE</button>',
-        '<button class="mdl-action-btn" onclick="try{navigator.share({title:\'' + esc(story.headline).replace(/\x27/g,"\\x27") + '\',url:location.href});}catch(e){navigator.clipboard&&navigator.clipboard.writeText(location.href);alert(\'Link copied to clipboard\');}}">&#128228; SHARE</button>',
-        '<button class="mdl-action-btn" onclick="alert(\'Alert set for: ' + esc(story.country_name||story.headline).slice(0,30).replace(/\x27/g,'') + '\');">&#128276; ALERT ME</button>',
+        '<a href="story.html?id=' + story.id + '" class="mdl-action-btn mdl-action-primary">&#128270; VIEW FULL ANALYSIS</a>',
+        '<button class="mdl-action-btn mdl-globe-btn">&#127757; VIEW ON GLOBE</button>',
+        '<button class="mdl-action-btn mdl-share-btn">&#128228; SHARE</button>',
       '</div>'
     ].join('');
+    
+    // Attach button handlers
+    var globeBtn = document.querySelector('.mdl-globe-btn');
+    if (globeBtn) {
+      globeBtn.addEventListener('click', function() {
+        var mdl = document.getElementById('mdl');
+        if (mdl) mdl.classList.add('mdl-closing');
+        setTimeout(function() { close(); }, 400);
+      });
+    }
+    
+    var shareBtn = document.querySelector('.mdl-share-btn');
+    if (shareBtn) {
+      shareBtn.addEventListener('click', function() {
+        var shareData = { title: story.headline, url: location.href };
+        if (navigator.share) {
+          navigator.share(shareData).catch(function() {});
+        } else if (navigator.clipboard) {
+          navigator.clipboard.writeText(location.href);
+          alert('Link copied to clipboard');
+        }
+      });
+    }
   }
 
   // ---- Public ----
@@ -269,7 +311,6 @@
     mdl.classList.add('mdl-open');
     document.body.classList.add('mdl-no-scroll');
     _open = true;
-    // Focus trap
     setTimeout(function () {
       var btn = document.getElementById('mdl-close');
       if (btn) btn.focus();
