@@ -264,37 +264,81 @@ class ProfessionalAnalysisGenerator:
         return claim.rstrip('.')
     
     def _write_context(self, headline: str, summary: str, entities: Dict, context: Dict) -> str:
-        """Write 1-2 sentences of context"""
+        """Write 1-2 sentences of context - country-aware based on key_figure"""
         
         key_figure = context.get('key_figure')
         
         if key_figure:
             name = key_figure.get('name', '')
             country = key_figure.get('country_name', '')
+            country_code = key_figure.get('country', '')
             
-            if context.get('is_canadian'):
-                return f"**Background:** {name} leads a Liberal government navigating economic pressures and shifting public opinion in {country}."
+            # Canada-specific context
+            if country_code == 'CA':
+                return f"**Background:** {name} leads Canada's government amid economic pressures and shifting public opinion."
+            
+            # US-specific context
+            if country_code == 'US':
+                combined = f"{headline} {summary}".lower()
+                if 'ukraine' in combined or 'zelensky' in combined:
+                    return f"**Background:** {name}'s administration is reshaping US policy on the Ukraine-Russia conflict, with significant implications for European security."
+                if 'iran' in combined:
+                    return f"**Background:** {name}'s Iran strategy marks a shift in US Middle East policy amid regional tensions."
+                return f"**Background:** {name} leads the US administration with a focus on reshaping America's domestic and foreign policy."
+            
+            # UK-specific context
+            if country_code == 'GB':
+                return f"**Background:** {name} leads the UK government navigating post-Brexit challenges and economic recovery."
+            
+            # Ukraine-specific context
+            if country_code == 'UA':
+                return f"**Background:** {name} leads Ukraine amid ongoing conflict with Russia and efforts to secure Western support."
+            
+            # Russia-specific context
+            if country_code == 'RU':
+                return f"**Background:** {name} continues to shape Russia's trajectory amid international sanctions and geopolitical tensions."
+            
+            # Generic fallback
             return f"**Background:** {name} has been a central figure in {country}'s recent political developments."
         
         return ""
-    
     def _write_why_it_matters(self, headline: str, summary: str, entities: Dict, context: Dict) -> str:
-        """Write why this story matters - make it specific, not generic"""
+        """Write why this story matters - country-aware based on key_figure"""
         
         key_figure = context.get('key_figure')
         story_type = context.get('type', 'general')
+        country_code = key_figure.get('country', '') if key_figure else None
+        combined = f"{headline} {summary}".lower()
+        
+        # US political story - check for specific contexts
+        if country_code == 'US':
+            if 'ukraine' in combined or 'zelensky' in combined:
+                return "**Why It Matters:** US military support for Ukraine has been a cornerstone of Western opposition to Russia's invasion. Any shift in policy could reshape the battlefield and European security."
+            if 'russia' in combined or 'putin' in combined:
+                return "**Why It Matters:** US-Russia relations impact global nuclear stability, energy markets, and the security architecture of Europe."
+            if 'iran' in combined:
+                return "**Why It Matters:** US policy toward Iran affects nuclear non-proliferation, oil markets, and stability across the Middle East."
+            if 'china' in combined:
+                return "**Why It Matters:** US-China relations shape global trade, technology competition, and security in the Indo-Pacific."
+            return "**Why It Matters:** US policy decisions ripple through global markets, alliances, and international agreements."
         
         # Canadian political story
-        if context.get('is_canadian') and story_type == 'political':
-            if key_figure and 'prime minister' in key_figure.get('role', '').lower():
-                return "**Why It Matters:** Canada's political direction affects trade relationships with the US, climate policy, and immigration — issues that resonate beyond its borders."
-            return "**Why It Matters:** Canadian politics often sets precedents for social and economic policies watched by other Western nations."
+        if country_code == 'CA':
+            return "**Why It Matters:** Canada's political direction affects trade relationships with the US, climate policy, and immigration — issues that resonate beyond its borders."
         
-        # US political story
-        if key_figure and key_figure.get('country') == 'US':
-            return "**Why It Matters:** US policy shifts ripple through global markets, alliances, and international agreements."
+        # UK political story
+        if country_code == 'GB':
+            return "**Why It Matters:** UK policy shifts affect transatlantic trade, European financial markets, and the post-Brexit global order."
         
-        # Conflict story
+        # Ukraine story
+        if country_code == 'UA' or 'ukraine' in combined:
+            return "**Why It Matters:** The war in Ukraine has reshaped European security, displaced millions, and triggered sanctions that affect global energy and food supplies."
+        
+        # Russia story
+        if country_code == 'RU' or 'russia' in combined:
+            return "**Why It Matters:** Russia's actions affect global energy supplies, nuclear deterrence, and the international order established after World War II."
+        
+        # Conflict story (war, military)
         if story_type == 'conflict':
             return "**Why It Matters:** Military developments in this region can affect global energy markets, refugee flows, and international security arrangements."
         
@@ -303,8 +347,7 @@ class ProfessionalAnalysisGenerator:
             return "**Why It Matters:** Economic policy changes affect trade partnerships, consumer prices, and investment flows across borders."
         
         # Generic but better
-        return "**Why It Matters:** This story is being covered by major outlets and could develop further as more information becomes available."
-    
+        return "**Why It Matters:** This story is being closely followed by major news organizations and may develop further."
     def _extract_action(self, headline: str) -> str:
         """Extract the main action from a headline"""
         
