@@ -18,7 +18,7 @@ from collections import Counter, defaultdict
 
 # Configuration
 SUPABASE_URL = os.environ.get('SUPABASE_URL', 'https://dkxydhuojaspmbpjfyoz.supabase.co')
-SERVICE_KEY = os.environ.get('SERVICE_ROLE_SUPABASE', '') or os.environ.get('SUPABASE_SERVICE_KEY', ''))
+SERVICE_KEY = os.environ.get('SERVICE_ROLE_SUPABASE', '') or os.environ.get('SUPABASE_SERVICE_KEY', '')
 
 # ============================================================================
 # THEME CLASSIFICATION SYSTEM
