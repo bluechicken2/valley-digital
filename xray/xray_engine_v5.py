@@ -9,11 +9,13 @@ Improvements over v4:
 - Added retry mechanism with exponential backoff
 - Added comprehensive logging
 - Fixed stale lockfile handling
+- Added country auto-correction based on content
+- Updated to use human-like analysis generator v8
 
 Usage:
   python xray_engine_v5.py                    # Run all engines
   python xray_engine_v5.py --truth            # Only score stories
-  python xray_engine_v5.py --research         # Only research stories
+  python xray_engine_v5.py --analysis         # Only analyze stories
   python xray_engine_v5.py --pin              # Only update pinned stories
   python xray_engine_v5.py --limit 20         # Process 20 stories per engine
 """
@@ -44,48 +46,29 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-def acquire_lock():
-    """Acquire exclusive lock to prevent concurrent runs - with stale lockfile handling"""
-    # Check for stale lockfile (>1 hour old)
-    if os.path.exists(LOCKFILE):
-        try:
-            age = time.time() - os.path.getmtime(LOCKFILE)
-            if age > 3600:  # 1 hour
-                os.unlink(LOCKFILE)
-                logger.warning(f"Removed stale lockfile (age: {age:.0f}s)")
-                print(f"[LOCK] Removed stale lockfile (age: {age:.0f}s)")
-        except Exception as e:
-            logger.error(f"Error checking lockfile: {e}")
-    
-    lock_file = open(LOCKFILE, 'w')
-    try:
-        fcntl.flock(lock_file, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        lock_file.write(str(os.getpid()))
-        lock_file.flush()
-        return lock_file
-    except IOError:
-        lock_file.close()
-        return None
-
-# Import v5 components (with rate limiting)
+# Import v5 components
 from research_engine import ResearchEngine
 from analysis_generator import ProfessionalAnalysisGenerator
 from pin_calculator import PinCalculator
 
 # Load environment
-SUPABASE_URL = os.environ.get('SUPABASE_URL', 'https://dkxydhuojaspmbpjfyoz.supabase.co')
+SUPABASE_URL = os.environ.get('SUPABASE_URL', '')
+if not SUPABASE_URL:
+    SUPABASE_URL = 'https://dkxydhuojaspmbpjfyoz.supabase.co'
 
 def get_service_key():
     key = os.environ.get('SERVICE_ROLE_SUPABASE', '')
     if not key:
-        with open('/a0/usr/.env') as f:
-            for line in f:
-                if line.startswith('SERVICE_ROLE_SUPABASE='):
-                    return line.split('=', 1)[1].strip()
+        try:
+            with open('/a0/usr/.env') as f:
+                for line in f:
+                    if line.startswith('SERVICE_ROLE_SUPABASE='):
+                        return line.split('=', 1)[1].strip()
+        except:
+            pass
     return key
 
 SERVICE_KEY = get_service_key()
-
 
 # Retry queue for failed stories
 FAILED_STORIES = []
@@ -114,6 +97,75 @@ def with_retry(func, story, max_retries=3, delay=2):
             print(f"  [RETRY {attempt+1}/{max_retries}] Waiting {wait}s...")
             time.sleep(wait)
     return False
+
+
+# Country detection patterns for auto-correction
+COUNTRY_PATTERNS = {
+    'CA': {
+        'name': 'Canada',
+        'patterns': ['canada', 'canadian', 'ottawa', 'toronto', 'vancouver', 'montreal',
+                    'alberta', 'ontario', 'quebec', 'british columbia', 'manitoba', 'saskatchewan',
+                    'prime minister of canada', 'premier of', 'parliament hill',
+                    'liberal party of canada', 'conservative party of canada', 'ndp'],
+        'figures': ['mark carney', 'carney', 'trudeau', 'justin trudeau', 'poilievre', 
+                   'doug ford', 'wab kinew', 'jagmeet singh', 'chrystia freeland', 'kinew', 'ford']
+    },
+    'US': {
+        'name': 'United States', 
+        'patterns': ['united states', 'american', 'washington dc', 'white house', 'pentagon'],
+        'figures': ['trump', 'biden', 'harris', 'us president']
+    },
+    'GB': {
+        'name': 'United Kingdom',
+        'patterns': ['united kingdom', 'british', 'london', 'westminster', 'downing street'],
+        'figures': ['starmer', 'keir starmer', 'rishi sunak']
+    },
+    'DE': {
+        'name': 'Germany',
+        'patterns': ['germany', 'german', 'berlin', 'bundestag'],
+        'figures': ['merz', 'friedrich merz', 'scholz', 'olaf scholz']
+    }
+}
+
+def detect_country_from_content(headline: str, summary: str) -> tuple:
+    """Detect proper country from content, return (country_code, country_name) or None"""
+    combined = f"{headline} {summary}".lower()
+    
+    for code, data in COUNTRY_PATTERNS.items():
+        # Check patterns
+        for pattern in data['patterns']:
+            if pattern in combined:
+                return (code, data['name'])
+        # Check known figures
+        for figure in data['figures']:
+            if figure in combined:
+                return (code, data['name'])
+    
+    return None
+
+
+def acquire_lock():
+    """Acquire exclusive lock to prevent concurrent runs - with stale lockfile handling"""
+    # Check for stale lockfile (>1 hour old)
+    if os.path.exists(LOCKFILE):
+        try:
+            age = time.time() - os.path.getmtime(LOCKFILE)
+            if age > 3600:  # 1 hour
+                os.unlink(LOCKFILE)
+                logger.warning(f"Removed stale lockfile (age: {age:.0f}s)")
+                print(f"[LOCK] Removed stale lockfile (age: {age:.0f}s)")
+        except Exception as e:
+            logger.error(f"Error checking lockfile: {e}")
+    
+    lock_file = open(LOCKFILE, 'w')
+    try:
+        fcntl.flock(lock_file, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        lock_file.write(str(os.getpid()))
+        lock_file.flush()
+        return lock_file
+    except IOError:
+        lock_file.close()
+        return None
 
 
 class SupabaseClient:
@@ -163,7 +215,7 @@ class TruthEngineV5:
     def fetch_unscored(self, limit: int = 50) -> List[Dict]:
         return self.db.fetch(
             'stories',
-            select='id,headline,summary,country_name,category,external_url',
+            select='id,headline,summary,country_name,country_code,category,external_url',
             filters={'or': '(xray_score.is.null,xray_score.eq.0)'},
             order='created_at.desc',
             limit=limit
@@ -215,79 +267,84 @@ class TruthEngineV5:
         
         return min(score, 100), verdict, research
     
-    # Non-news patterns learned from cleanup (March 2026)
+    # Non-news patterns
     NON_NEWS_PATTERNS = [
-        # Personal advice
         r'pick.*name', r'choose.*name', r'help me.*choose', r'which.*should i',
         r'should i.*or', r'living with.*in.*law', r'thoughts on.*professor',
         r'what do you think', r'am i the.*asshole', r'\baita\b',
         r'relationship.*advice', r'dating.*advice', r'need.*advice',
         r'career.*advice', r'job.*advice', r'interview.*tips',
-        # Discussion threads
         r'megathread', r'daily.*thread', r'weekly.*thread', r'discussion.*thread',
         r'free talk', r'casual.*conversation', r'just.*curious',
         r'anyone.*else', r'does anyone', r'what.*your.*favorite',
-        # PSA/Mod posts
         r'^psa:', r'^note:', r'^reminder:', r'^meta:', r'mod.*post',
         r'subreddit.*rule', r'off-topic',
-        # Requests
         r'translate.*please', r'translation.*request', r'what does.*mean',
         r'can someone.*explain', r'question about', r'looking for.*recommendation',
-        # Travel/Living
         r'travel.*tips', r'travel.*itinerary', r'tourist.*advice',
         r'cost of living', r'apartment.*search', r'housing.*advice',
         r'best.*neighborhood', r'where.*live', r'moving to',
-        # Education/Career
         r'study.*abroad', r'student.*visa', r'university.*admission',
         r'college.*application', r'how.*get.*job', r'salary.*question',
-        # Shopping/Reviews
         r'worth.*buying', r'should.*buy', r'review.*my', r'rate my',
         r'is it.*worth',
     ]
-    NON_NEWS_COMPILED = None  # Compiled at runtime
+    NON_NEWS_COMPILED = None
 
     def is_quality_story(self, story: Dict) -> bool:
-        """Filter out low-quality/junk stories before expensive research"""
+        """Filter out low-quality/junk stories"""
         headline = story.get('headline', '') or ''
         summary = story.get('summary', '') or ''
         combined = (headline + ' ' + summary).lower()
 
-        # Compile patterns once
         if self.__class__.NON_NEWS_COMPILED is None:
             self.__class__.NON_NEWS_COMPILED = [
                 re.compile(p, re.IGNORECASE) for p in self.__class__.NON_NEWS_PATTERNS
             ]
 
-        # Skip very short headlines
         if len(headline) < 15:
             return False
 
-        # Check non-news patterns
         for pattern in self.__class__.NON_NEWS_COMPILED:
             if pattern.search(combined):
                 return False
 
-        # Skip social posts with no country context (Reddit junk)
         source_type = story.get('source_type', 'legacy')
         country = story.get('country_name', '') or ''
         if source_type == 'social' and country in ['', 'World', None]:
+            # But check if content suggests a country
+            detected = detect_country_from_content(headline, summary)
+            if detected:
+                return True  # Keep it, we can fix the country
             return False
 
         return True
 
     def _do_score_story(self, story: Dict) -> bool:
-        """Internal scoring logic (used by retry wrapper)"""
+        """Internal scoring logic"""
         story_id = story['id']
         headline = story.get('headline', '')
+        summary = story.get('summary', '')
         
         score, verdict, research = self.calculate_score(story)
         
-        # Update database
-        success = self.db.update('stories', story_id, {
+        # Also fix country if detected
+        current_country = story.get('country_code', '')
+        detected = detect_country_from_content(headline, summary)
+        
+        update_data = {
             'xray_score': score,
             'xray_verdict': verdict,
             'status': 'verified' if score >= 55 else 'unverified'
-        })
+        }
+        
+        if detected and current_country in ['', 'XX', 'World', None]:
+            code, name = detected
+            update_data['country_code'] = code
+            update_data['country_name'] = name
+            print(f"  [COUNTRY] Auto-corrected to {name} ({code})")
+        
+        success = self.db.update('stories', story_id, update_data)
         
         if success:
             logger.info(f"Scored story {story_id}: {score} - {verdict}")
@@ -299,7 +356,6 @@ class TruthEngineV5:
         story_id = story['id']
         headline = story.get('headline', '')
         
-        # Skip junk stories
         if not self.is_quality_story(story):
             logger.info(f"Skipping junk story: {headline[:50]}")
             print(f"[TRUTH] Skipping junk: {headline[:50]}")
@@ -336,7 +392,7 @@ class TruthEngineV5:
 
 
 class AnalysisEngineV5:
-    """Analysis Engine v5 - Professional summaries with fixed filter"""
+    """Analysis Engine v5 - Human-like analysis with fixed filter"""
     
     def __init__(self, db: SupabaseClient):
         self.db = db
@@ -354,10 +410,22 @@ class AnalysisEngineV5:
         )
     
     def _do_analyze_story(self, story: Dict) -> bool:
-        """Internal analysis logic (used by retry wrapper)"""
+        """Internal analysis logic"""
         story_id = story['id']
         headline = story.get('headline', '')
         summary = story.get('summary', '')
+        
+        # Auto-correct country if detected from content
+        current_country = story.get('country_code', '')
+        detected = detect_country_from_content(headline, summary)
+        
+        if detected and current_country in ['', 'XX', 'World', None]:
+            code, name = detected
+            self.db.update('stories', story_id, {
+                'country_code': code,
+                'country_name': name
+            })
+            print(f"  [COUNTRY] Corrected to {name} ({code})")
         
         # Get research
         research = self.research_engine.research_story(headline, summary)
@@ -496,7 +564,7 @@ if __name__ == '__main__':
     
     parser = argparse.ArgumentParser(description='Xray Engine v5')
     parser.add_argument('--truth', action='store_true', help='Run only Truth Engine')
-    parser.add_argument('--research', action='store_true', help='Run only Analysis Engine')
+    parser.add_argument('--analysis', action='store_true', help='Run only Analysis Engine')
     parser.add_argument('--pin', action='store_true', help='Run only Pin Calculator')
     parser.add_argument('--limit', type=int, default=10, help='Max stories per engine')
     parser.add_argument('--quiet', action='store_true', help='Less output')
@@ -515,7 +583,7 @@ if __name__ == '__main__':
         
         if args.truth:
             engine.run_truth_only(limit=args.limit, verbose=not args.quiet)
-        elif args.research:
+        elif args.analysis:
             engine.run_analysis_only(limit=args.limit, verbose=not args.quiet)
         elif args.pin:
             engine.run_pin_only(verbose=not args.quiet)
