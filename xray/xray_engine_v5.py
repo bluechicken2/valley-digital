@@ -10,7 +10,7 @@ Improvements over v4:
 - Added comprehensive logging
 - Fixed stale lockfile handling
 - Added country auto-correction based on content
-- Updated to use human-like analysis generator v8
+- Updated to use narrative journalism generator v9
 
 Usage:
   python xray_engine_v5.py                    # Run all engines
@@ -48,7 +48,7 @@ logger = logging.getLogger(__name__)
 
 # Import v5 components
 from research_engine import ResearchEngine
-from analysis_generator import ProfessionalAnalysisGenerator
+from analysis_generator_v9 import NarrativeAnalysisGenerator as ProfessionalAnalysisGenerator
 from pin_calculator import PinCalculator
 
 # Load environment
