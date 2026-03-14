@@ -5,9 +5,21 @@ Professional-grade research and verification
 """
 
 import os
+import time
 import re
 import json
 import requests
+# Rate limiting for external APIs
+LAST_API_CALL = 0
+MIN_API_INTERVAL = 0.5  # 500ms between calls to avoid IP bans
+
+def rate_limit():
+    global LAST_API_CALL
+    elapsed = time.time() - LAST_API_CALL
+    if elapsed < MIN_API_INTERVAL:
+        time.sleep(MIN_API_INTERVAL - elapsed)
+    LAST_API_CALL = time.time()
+
 from datetime import datetime, timezone, timedelta
 from typing import Dict, List, Optional, Tuple
 from collections import defaultdict
@@ -42,6 +54,7 @@ class WikipediaAPI:
                 'limit': limit,
                 'format': 'json'
             }
+            rate_limit()
             resp = requests.get(self.API_URL, params=params, timeout=10)
             if resp.status_code == 200:
                 data = resp.json()
@@ -63,6 +76,7 @@ class WikipediaAPI:
         try:
             # Use REST API for summary
             url = f"{self.BASE_URL}/page/summary/{title.replace(' ', '_')}"
+            rate_limit()
             resp = requests.get(url, timeout=10)
             if resp.status_code == 200:
                 data = resp.json()
@@ -241,6 +255,7 @@ class MultiSourceSearcher:
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
             }
             params = {'q': query}
+            rate_limit()
             resp = requests.post(self.ddg_url, headers=headers, data=params, timeout=15)
             
             if resp.status_code == 200:
